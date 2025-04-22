@@ -1,7 +1,17 @@
+import SignupFlow from "@/components/Signup";
+import Image from "next/image";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <h1 className="text-4xl font-bold">Hello World</h1>
+    <main className="w-full">
+      <Image
+        src="/email-logo.jpg"
+        alt="Email Logo"
+        width={500}
+        height={500}
+        className="absolute top-10 left-10 h-auto object-cover object-center z-10"
+      />
+      <SignupFlow />
     </main>
   );
 }
