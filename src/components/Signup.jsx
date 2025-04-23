@@ -1,6 +1,11 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { CircleDollarSign, Link, Mail } from "lucide-react";
+import { Label } from "./ui/label";
+import { Textarea } from "./ui/textarea";
 
 const SignupFlow = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -55,18 +60,18 @@ const SignupFlow = () => {
             animate="center"
             exit="exit"
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-            className="w-[70%] flex flex-col justify-center p-12 h-full"
+            className="flex flex-col justify-center items-center w-full mx-auto h-full text-left"
           >
-            <h1 className="text-4xl font-bold text-[var(--secondary-color)] mb-4">
+            <h1 className="text-[40px] font-semibold text-[var(--secondary-color)] mb-1 pl-3.5">
               Continue With LinkedIn
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Please attach your LinkedIn profile so your information can be
-              automatically filled from it.
+            <p className="text-xl font-500 text-gray-600 mb-8 text-justify">
+              Please attach your LinkedIn profile so your <br /> information can
+              be automatically filled from it.
             </p>
 
             <button
-              className="flex items-center justify-center bg-[rgba(44,81,76,1)] text-white py-3 px-6 rounded-lg w-fit hover:bg-[rgba(44,81,76,0.9)] transition-colors"
+              className="flex items-center justify-center bg-[rgba(44,81,76,1)] text-white border-2 border-[rgba(44,81,76,1)] py-3 px-6 rounded-lg w-1/3 hover:bg-transparent hover:text-[rgba(44,81,76,1)]  transition-colors hover:font-[400] cursor-pointer"
               onClick={nextStep}
             >
               <svg
@@ -91,29 +96,37 @@ const SignupFlow = () => {
             animate="center"
             exit="exit"
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-            className="w-[70%] flex flex-col justify-center p-12 h-full"
+            className="flex flex-col justify-center items-center w-full mx-auto h-full text-left"
           >
-            <h1 className="text-4xl font-bold text-[var(--secondary-color)] mb-4">
-              Email Access
+            <h1 className="text-[40px] font-semibold text-[var(--secondary-color)] mb-8 text-end">
+              Please add your gmail to continue
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              To personalize your experience, we need access to your email.
-            </p>
 
-            <button
-              className="flex items-center justify-center bg-[rgba(44,81,76,1)] text-white py-3 px-6 rounded-lg w-fit hover:bg-[rgba(44,81,76,0.9)] transition-colors"
-              onClick={nextStep}
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
+            <div className="w-full max-w-lg space-y-6 flex flex-col items-start justify-start mr-24">
+              <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                <Mail className="text-[rgba(44,81,76,1)]" />
+                <Input
+                  type="email"
+                  placeholder="Email Address"
+                  className=" border-none focus-visible:ring-0 shadow-none text-lg py-6"
+                />
+              </div>
+
+              <Button
+                onClick={nextStep}
+                className="w-full bg-[rgba(44,81,76,1)] border-2 border-[rgba(44,81,76,0.9)] hover:bg-transparent hover:text-[rgba(44,81,76,1)] h-12 text-lg cursor-pointer "
               >
-                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-              </svg>
-              Give Access to Email
-            </button>
+                <svg
+                  className="size-5 mr-1"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                </svg>
+                Give Access to Email
+              </Button>
+            </div>
           </motion.div>
         );
       case 3:
@@ -126,49 +139,44 @@ const SignupFlow = () => {
             animate="center"
             exit="exit"
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-            className="w-[70%] flex flex-col justify-center p-12 h-full"
+            className="flex flex-col items-center justify-center p-12 h-full w-[80%] mx-auto text-left"
           >
-            <h1 className="text-4xl font-bold text-[rgba(44,81,76,1)] mb-4">
-              Connect Your Calendar
-            </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Paste your existing calendar link to sync your availability.
-            </p>
+            <div className="w-full max-w-3xl space-y-8 text-start">
+              <h1 className="text-lg font-[500] text-[#413E5E] mb-4">
+                Submit your pre-existing calendar links
+              </h1>
 
-            <div className="relative mb-8 w-full max-w-lg">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z" />
-                </svg>
+              <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                <Link className="text-[rgba(44,81,76,1)]" />
+                <Input
+                  type="link"
+                  placeholder="Calendar Link"
+                  className=" border-none focus-visible:ring-0 shadow-none text-lg py-6"
+                />
               </div>
-              <input
-                type="text"
-                name="calendarLink"
-                value={formData.calendarLink}
-                onChange={handleInputChange}
-                placeholder="Paste your calendar link here"
-                className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgba(44,81,76,1)] focus:border-[rgba(44,81,76,1)]"
-              />
-            </div>
 
-            <div className="flex gap-4">
-              <button
-                className="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors"
-                onClick={prevStep}
-              >
-                Back
-              </button>
-              <button
-                className="bg-[rgba(44,81,76,1)] text-white py-2 px-6 rounded-lg hover:bg-[rgba(44,81,76,0.9)] transition-colors"
-                onClick={nextStep}
-              >
-                Next
-              </button>
+              <p className="text-gray-600 text-lg mb-8 underline font-[500]">
+                Don't have a schedule calendar?
+              </p>
+
+              <div className="flex justify-between w-full gap-4">
+                <Button
+                  variant="outline"
+                  size={"default"}
+                  onClick={prevStep}
+                  className="h-12 w-36 text-lg border-gray-300 text-gray-700 bg-transparent cursor-pointer"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={nextStep}
+                  size={"default"}
+                  className="h-12 w-44 text-lg bg-[#2c514c] text-white cursor-pointer border-2 
+                  border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)]"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </motion.div>
         );
@@ -182,72 +190,55 @@ const SignupFlow = () => {
             animate="center"
             exit="exit"
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-            className="w-[70%] flex flex-col justify-center p-12 h-full"
+            className="flex flex-col items-center justify-center p-12 h-full"
           >
-            <h1 className="text-4xl font-bold text-[rgba(44,81,76,1)] mb-4">
-              Charity Preferences
-            </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Tell us about your charity preferences.
-            </p>
-
-            <div className="space-y-6 mb-8 w-full max-w-lg">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
-                  </svg>
+            <div className="w-full max-w-3xl space-y-8">
+              <div className="gap-2 flex flex-col">
+                <h1 className="text-lg font-[500] text-[var(--secondary-color)] text-left">
+                  Charity Company
+                </h1>
+                <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                  <Input
+                    type="text"
+                    placeholder="UNICEF"
+                    className=" border-none focus-visible:ring-0 shadow-none text-lg py-6"
+                  />
                 </div>
-                <input
-                  type="text"
-                  name="charityCompany"
-                  value={formData.charityCompany}
-                  onChange={handleInputChange}
-                  placeholder="Charity/Company"
-                  className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgba(44,81,76,1)] focus:border-[rgba(44,81,76,1)]"
-                />
               </div>
 
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" />
-                  </svg>
-                </div>
-                <input
-                  type="number"
-                  name="minBidDonation"
-                  value={formData.minBidDonation}
-                  onChange={handleInputChange}
-                  placeholder="Minimum Bid Donation ($)"
-                  className="pl-10 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgba(44,81,76,1)] focus:border-[rgba(44,81,76,1)]"
-                />
-              </div>
-            </div>
+              <div className="gap-2 flex flex-col">
+                <h1 className="text-lg font-[500] text-[var(--secondary-color)] text-left">
+                  Minimum Bid Donation
+                </h1>
 
-            <div className="flex gap-4">
-              <button
-                className="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors"
-                onClick={prevStep}
-              >
-                Back
-              </button>
-              <button
-                className="bg-[rgba(44,81,76,1)] text-white py-2 px-6 rounded-lg hover:bg-[rgba(44,81,76,0.9)] transition-colors"
-                onClick={nextStep}
-              >
-                Next
-              </button>
+                <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                  <CircleDollarSign className="text-[rgba(44,81,76,1)]" />
+                  <Input
+                    type="number"
+                    placeholder=""
+                    className=" border-none focus-visible:ring-0 shadow-none text-lg py-6"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-between w-full gap-4">
+                <Button
+                  variant="outline"
+                  size={"default"}
+                  onClick={prevStep}
+                  className="h-12 w-36 text-lg border-gray-300 text-gray-700 bg-transparent cursor-pointer"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={nextStep}
+                  size={"default"}
+                  className="h-12 w-44 text-lg bg-[#2c514c] text-white cursor-pointer border-2 
+                  border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)]"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </motion.div>
         );
@@ -261,56 +252,65 @@ const SignupFlow = () => {
             animate="center"
             exit="exit"
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-            className="w-[70%] flex flex-col justify-center p-12 h-full"
+            className="flex flex-col items-center justify-center p-12 h-full"
           >
-            <h1 className="text-4xl font-bold text-[rgba(44,81,76,1)] mb-4">
-              Almost There!
-            </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Answer these final questions to complete your profile.
-            </p>
+            <div className="w-full max-w-5xl space-y-8">
+              <h1 className="text-4xl font-bold text-[var(--secondary-color)] text-left mb-5">
+                Survey For Sales Representative
+              </h1>
 
-            <div className="space-y-6 mb-8 w-full max-w-lg">
-              <div>
-                <label className="block text-gray-700 mb-2">
-                  What motivates you to participate in charity auctions?
-                </label>
-                <textarea
-                  rows={3}
-                  name="motivation"
-                  value={formData.motivation}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgba(44,81,76,1)] focus:border-[rgba(44,81,76,1)]"
-                />
+              <div className="space-y-12 border border-gray-200 rounded-sm p-5 bg-white">
+                <section className="space-y-6">
+                  <h2 className="text-[23px] font-[500] text-gray-800 mb-3">
+                    Open-Ended Questions
+                  </h2>
+
+                  <div className="space-y-8">
+                    <div className="space-y-2">
+                      <Label className="text-lg font-medium">
+                        Describe your solution and its key features.
+                      </Label>
+                      <Textarea
+                        className="w-full min-h-[120px] text-lg p-4 focus-visible:ring-0 resize-none"
+                        placeholder="Enter your response here..."
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-lg font-medium">
+                        Describe your solution and its key features.
+                      </Label>
+                      <Textarea
+                        className="w-full min-h-[120px] text-lg p-4 focus-visible:ring-0 resize-none"
+                        placeholder="Enter your response here..."
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <hr className="border-gray-200 my-8" />
+
+                <div className="flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={prevStep}
+                    className="h-12 text-lg px-8 border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  >
+                    Back
+                  </Button>
+
+                  <Button
+                  onClick={nextStep}
+                  size={"default"}
+                  className="h-12 w-44 text-lg bg-[#2c514c] text-white cursor-pointer border-2 
+                  border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)]"
+                >
+                  Finish
+                </Button>
+                </div>
               </div>
-
-              <div>
-                <label className="block text-gray-700 mb-2">
-                  How did you hear about our platform?
-                </label>
-                <textarea
-                  rows={3}
-                  name="howHeard"
-                  value={formData.howHeard}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgba(44,81,76,1)] focus:border-[rgba(44,81,76,1)]"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                className="bg-gray-200 text-gray-800 py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors"
-                onClick={prevStep}
-              >
-                Back
-              </button>
-              <button
-                className="bg-[rgba(44,81,76,1)] text-white py-2 px-6 rounded-lg hover:bg-[rgba(44,81,76,0.9)] transition-colors"
-                onClick={() => alert("Signup complete!")}
-              >
-                Finish
-              </button>
             </div>
           </motion.div>
         );
@@ -322,17 +322,15 @@ const SignupFlow = () => {
   const getImageForStep = () => {
     switch (currentStep) {
       case 1:
-        return "/signup-image-1.png";
+        return "/login-page.svg";
       case 2:
-        return "/signup-image-2.png";
+        return "/login-page.svg";
       case 3:
-        return "/signup-image-3.png";
+        return "/login-page-2.svg";
       case 4:
-        return "/signup-image-4.png";
-      case 5:
-        return "/signup-image-5.png";
+        return "/login-page-3.svg";
       default:
-        return "/signup-image-1.png";
+        return "/login-page.svg";
     }
   };
 
@@ -344,7 +342,7 @@ const SignupFlow = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="w-[30%] flex items-center justify-center p-8"
+        className="w-[42%] flex items-center justify-center"
       >
         <img
           src={getImageForStep()}
