@@ -1,13 +1,9 @@
-import EmailAuthorize from "./EmailAuthorize";
-import LinkedInLogin from "./LinkedInLogin";
+import SignupFlow from "@/components/Signup";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <>
-      {/* <LinkedInLogin/> */}
-      <EmailAuthorize/>
-      </>
+    <main className="w-full">
+      <SignupFlow />
     </main>
   );
 }

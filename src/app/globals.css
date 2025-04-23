@@ -120,3 +120,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+:root{
+  --primaty-color: rgba(44, 81, 76, 1);
+  --secondary-color: rgba(43, 42, 64, 1);
+  --background-color: rgb(255, 253, 240, 1);
+}

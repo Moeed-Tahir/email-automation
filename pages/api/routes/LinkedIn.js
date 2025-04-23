@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     try {
         if (req.method === 'GET' && action === 'linkedInLogin') {
             return await linkedInLogin(req, res);
-        } else if (req.method === 'POST' && action === 'linkedInCallback') {
+        } else if (req.method === 'GET' && action === 'linkedInCallback') {
             return await linkedInCallback(req, res);
         } else {
             return res.status(405).json({ message: 'Method Not Allowed' });

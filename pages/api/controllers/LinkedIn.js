@@ -1,71 +1,87 @@
 import axios from "axios";
+import connectToDatabase from "../lib/db";
+const User = require('../models/User');
 
-const CLIENT_ID = "77b0khtosn6p36";
-const CLIENT_SECRET = "WPL_AP1.jpONyVpb7FNHFTXW.6aq20w==";
-const REDIRECT_URI = "http://localhost:3000/linkedInCallback";
+const CLIENT_ID = "8616qrav1c1mf7";
+const CLIENT_SECRET = "WPL_AP1.uZs73YcU2Hmhrj84.pVbiIQ==";
+const REDIRECT_URI = "http://localhost:3000";
 
 const linkedInLogin = async (req, res) => {
   console.log("Call")
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
     REDIRECT_URI
-  )}&scope=r_liteprofile%20r_emailaddress`;
+  )}&scope=openid profile email`;
 
   res.redirect(authUrl);
 };
 
 const linkedInCallback = async (req, res) => {
-  const { code } = req.body;
+  const { code, error } = req.query;
+
+  if (error) {
+    console.error("LinkedIn OAuth error:", error);
+    return res.status(400).send(`OAuth Error: ${error}`);
+  }
+
+  if (!code) {
+    return res.status(400).send("Authorization code missing");
+  }
 
   try {
+    await connectToDatabase();
     const tokenRes = await axios.post(
       "https://www.linkedin.com/oauth/v2/accessToken",
-      null,
+      new URLSearchParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: REDIRECT_URI,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+      }),
       {
-        params: {
-          grant_type: "authorization_code",
-          code,
-          redirect_uri: REDIRECT_URI,
-          client_id: CLIENT_ID,
-          client_secret: CLIENT_SECRET,
-        },
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       }
     );
 
-    const accessToken = tokenRes.data.access_token;
+    const { access_token } = tokenRes.data;
 
-    const profileRes = await axios.get(
-      "https://api.linkedin.com/v2/me",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const profileRes = await axios.get("https://api.linkedin.com/v2/userinfo", {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
 
-    const emailRes = await axios.get(
-      "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const { sub, name, email, picture } = profileRes.data;
+    let user = await User.findOne({ linkedInProfileEmail: email });
 
-    const profileData = profileRes.data;
-    const email = emailRes.data.elements[0]["handle~"].emailAddress;
+    if (!user) {
+      user = new User({
+        linkedInProfileName: name,
+        linkedInProfileEmail: email,
+        linkedInProfilePhoto: picture,
+      });
+    } else {
+      user.linkedInProfileName = name;
+      user.linkedInProfilePhoto = picture;
+    }
 
-    console.log("Profile:", profileData);
-    console.log("Email:", email);
+    await user.save();
 
-    res.send("LinkedIn login successful!");
+    res.json({
+      message: "LinkedIn login successful and user saved!",
+      userEmail: email
+    });
+
   } catch (error) {
-    console.error("LinkedIn login error:", error.response?.data || error.message);
+    console.error(
+      "LinkedIn API error:",
+      error.response?.data || error.message
+    );
     res.status(500).send("Login failed");
   }
 };
 
 
-export default { linkedInLogin, linkedInCallback };
+module.exports = { linkedInLogin, linkedInCallback };
