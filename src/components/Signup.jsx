@@ -342,12 +342,12 @@ const SignupFlow = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="w-[42%] flex items-center justify-center"
+        className="w-[35%] flex items-center justify-center"
       >
         <img
           src={getImageForStep()}
           alt={`Step ${currentStep}`}
-          className="max-w-full max-h-full object-contain"
+          className="max-w-full max-h-full object-cover"
         />
       </motion.div>
 
