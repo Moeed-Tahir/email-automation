@@ -427,7 +427,7 @@ const SignupFlow = () => {
             className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-4 sm:px-8"
           >
             <div className="w-full  lg:max-w-md space-y-8 text-start">
-              <h1 className="text-3xl md:text-3xl font-semibold text-[var(--secondary-color)] mb-4 text-center md:text-left">
+              <h1 className="text-3xl md:text-[40px] font-semibold text-[var(--secondary-color)] mb-2 text-center md:text-left leading-[51px]">
                 Continue With LinkedIn
               </h1>
               <p className="text-base md:text-lg text-gray-600 mb-8 md:text-left text-justify px-5 md:px-0">
@@ -436,12 +436,11 @@ const SignupFlow = () => {
               </p>
 
               <button
-                className="w-8/9 md:w-full lg:w-full mx-auto flex items-center justify-center bg-[rgba(44,81,76,1)] text-white border-2 border-[rgba(44,81,76,1)] py-3 px-6 rounded-lg hover:bg-transparent hover:text-[rgba(44,81,76,1)] transition-colors cursor-pointer"
+                className="w-8/9 md:w-full lg:w-full mx-auto flex items-center justify-center border-2 border-[rgba(44,81,76,1)] py-3 px-6 rounded-lg hover:bg-transparent font-semibold text-[rgba(44,81,76,1)] transition-colors cursor-pointer"
                 onClick={nextStep}
               >
                 <svg
-                  className="w-5 h-5 mr-2"
-                  fill="currentColor"
+                  className="w-5 h-5 mr-2 fill-blue-600"
                   viewBox="0 0 24 24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
@@ -465,7 +464,7 @@ const SignupFlow = () => {
             className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 sm:px-8"
           >
             <div className="w-full  lg:max-w-md space-y-8 text-start">
-              <h1 className="text-3xl md:text-3xl font-semibold text-[var(--secondary-color)] mb-4 text-left">
+              <h1 className="text-3xl md:text-[40px] font-semibold text-[var(--secondary-color)] mb-4 text-left leading-[51px]">
                 Please add your gmail to continue
               </h1>
 
@@ -613,10 +612,10 @@ const SignupFlow = () => {
             animate="center"
             exit="exit"
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-            className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 md:px-8  overflow-auto "
+            className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 md:px-8 overflow-auto "
           >
-            <div className="w-full  lg:max-w-md md:space-y-8 lg:space-y-5 ">
-              <h1 className="text-3xl md:text-2xl font-semibold text-[var(--secondary-color)] mb-4 text-left">
+            <div className="w-full  lg:max-w-xl md:space-y-8 lg:space-y-5 ">
+              <h1 className="text-3xl md:text-2xl font-semibold text-[var(--secondary-color)] mb-4 text-left leading-[50px]">
                 Survey For Sales Representative
               </h1>
 
@@ -701,7 +700,7 @@ const SignupFlow = () => {
         <img
           src={getImageForStep()}
           alt={`Step ${currentStep}`}
-          className="max-w-full min-h-screen object-cover shrink-0"
+          className="max-w-full min-h-screen object-cover shrink-0 "
         />
       </motion.div>
 
@@ -713,7 +712,7 @@ const SignupFlow = () => {
         />
       </div>
 
-      <div className="w-full lg:w-[118%] relative h-full overflow-y-auto">
+      <div className="w-full lg:w-[118%] relative h-full ">
         <AnimatePresence custom={direction} initial={false}>
           {renderStep()}
         </AnimatePresence>

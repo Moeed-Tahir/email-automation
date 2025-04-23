@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { ChevronRight, Filter, ListFilter } from "lucide-react"
-import { Sidebar } from "./ui/sidebar"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { ChevronRight, Filter, ListFilter } from "lucide-react";
+import Image from "next/image";
 
 const navItems = [
   { label: "Dashboard", href: "#", icon: <ChevronRight size={16} /> },
@@ -14,15 +14,15 @@ const navItems = [
   { label: "History", href: "#" },
   { label: "Settings", href: "#" },
   { label: "FAQs", href: "#" },
-]
+];
 
 export default function DashboardPage() {
   return (
     <div className="flex min-h-screen bg-muted">
-      <Sidebar items={navItems} />
+      <div items={navItems} />
 
-      <main className="flex-1 p-6 space-y-6">
-        <h2 className="text-2xl font-semibold">Dashboard</h2>
+      <main className="flex-1 px-6 py-2 space-y-6">
+        <h2 className="text-xl font-semibold">Dashboard</h2>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -31,9 +31,19 @@ export default function DashboardPage() {
               <div>
                 <p className="text-muted-foreground">This month you earned</p>
                 <h3 className="text-xl font-bold">$48.9k</h3>
-                <Button size="sm" className="mt-2">View Bids</Button>
+                <Button size="sm" className="mt-2">
+                  View Bids
+                </Button>
               </div>
-              <div className="w-16 h-16 bg-primary/10 rounded-full" />
+              <div className="size-16 shrink-0 rounded-full bg-primary/10 ">
+                <Image
+                  src="/login-page.svg"
+                  alt="Logo"
+                  width={40}
+                  height={40}
+                  className="size-full shrink-0 rounded-full"
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -75,8 +85,12 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Recent Bid Requests</h3>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm"><Filter className="w-4 h-4 mr-1" /> Filters</Button>
-              <Button variant="outline" size="sm"><ListFilter className="w-4 h-4 mr-1" /> Sort By</Button>
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-1" /> Filters
+              </Button>
+              <Button variant="outline" size="sm">
+                <ListFilter className="w-4 h-4 mr-1" /> Sort By
+              </Button>
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -94,33 +108,73 @@ export default function DashboardPage() {
               </thead>
               <tbody>
                 {[
-                  { name: "Jamal Kerrod", email: "abcde@gmail.com", date: "09 May 2022", score: "08", bid: "$100", status: "Pending" },
-                  { name: "Shamus Tuttle", email: "abcde@gmail.com", date: "19 Nov 2022", score: "07", bid: "$150", status: "Reject" },
-                  { name: "Devonne Wallbridge", email: "abcde@gmail.com", date: "25 Sep 2022", score: "09", bid: "$200", status: "Reject" },
-                  { name: "Ariella Filipuyev", email: "abcde@gmail.com", date: "15 Dec 2022", score: "04", bid: "$250", status: "Accept" },
+                  {
+                    name: "Jamal Kerrod",
+                    email: "abcde@gmail.com",
+                    date: "09 May 2022",
+                    score: "08",
+                    bid: "$100",
+                    status: "Pending",
+                  },
+                  {
+                    name: "Shamus Tuttle",
+                    email: "abcde@gmail.com",
+                    date: "19 Nov 2022",
+                    score: "07",
+                    bid: "$150",
+                    status: "Reject",
+                  },
+                  {
+                    name: "Devonne Wallbridge",
+                    email: "abcde@gmail.com",
+                    date: "25 Sep 2022",
+                    score: "09",
+                    bid: "$200",
+                    status: "Reject",
+                  },
+                  {
+                    name: "Ariella Filipuyev",
+                    email: "abcde@gmail.com",
+                    date: "15 Dec 2022",
+                    score: "04",
+                    bid: "$250",
+                    status: "Accept",
+                  },
                 ].map((row, i) => (
                   <tr key={i} className="border-b">
                     <td className="p-2">
                       <p className="font-medium">{row.name}</p>
-                      <p className="text-muted-foreground text-xs">{row.email}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {row.email}
+                      </p>
                     </td>
                     <td className="p-2">Abc Company</td>
                     <td className="p-2">{row.date}</td>
                     <td className="p-2">{row.score}</td>
                     <td className="p-2">{row.bid}</td>
                     <td className="p-2">
-                      <Badge variant={
-                        row.status === "Accept" ? "success" :
-                        row.status === "Reject" ? "destructive" :
-                        "warning"
-                      }>
+                      <Badge
+                        variant={
+                          row.status === "Accept"
+                            ? "success"
+                            : row.status === "Reject"
+                            ? "destructive"
+                            : "warning"
+                        }
+                      >
                         {row.status}
                       </Badge>
                     </td>
                     <td className="p-2 space-x-2">
-                      <Button size="sm" variant="secondary">View Details</Button>
-                      <Button size="sm" variant="success">Accept</Button>
-                      <Button size="sm" variant="destructive">Reject</Button>
+                      <Button size="sm" variant="secondary">
+                        View Details
+                      </Button>
+                      <Button size="sm" variant="success">
+                        Accept
+                      </Button>
+                      <Button size="sm" variant="destructive">
+                        Reject
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -130,12 +184,18 @@ export default function DashboardPage() {
 
           {/* Pagination */}
           <div className="flex justify-end mt-4 gap-2">
-            {["1", "2", "3", "4", "5"].map(p => (
-              <Button key={p} size="sm" variant={p === "1" ? "default" : "outline"}>{p}</Button>
+            {["1", "2", "3", "4", "5"].map((p) => (
+              <Button
+                key={p}
+                size="sm"
+                variant={p === "1" ? "default" : "outline"}
+              >
+                {p}
+              </Button>
             ))}
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }
