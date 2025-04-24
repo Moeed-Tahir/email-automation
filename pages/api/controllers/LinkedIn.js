@@ -4,7 +4,7 @@ const User = require('../models/User');
 
 const CLIENT_ID = "8616qrav1c1mf7";
 const CLIENT_SECRET = "WPL_AP1.uZs73YcU2Hmhrj84.pVbiIQ==";
-const REDIRECT_URI = "https://email-automation-woad.vercel.app/";
+const REDIRECT_URI = "https://email-automation-woad.vercel.app";
 
 const linkedInLogin = async (req, res) => {
   console.log("Call")
