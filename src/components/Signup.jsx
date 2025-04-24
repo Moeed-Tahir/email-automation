@@ -109,7 +109,7 @@ const SignupFlow = () => {
 
     if (code) {
       axios
-        .get("http://localhost:3000/api/routes/LinkedIn", {
+        .get("/api/routes/LinkedIn", {
           params: {
             action: "linkedInCallback",
             code: code,
