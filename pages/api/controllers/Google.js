@@ -5,7 +5,7 @@ const connectToDatabase = require('../lib/db');
 
 const CLIENT_ID = process.env.CLIENT_ID || '34860616241-1kcc767m6k6isr2tnmpq4levhjb5lm7k.apps.googleusercontent.com';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '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';
-const REDIRECT_URI = 'https://email-automation-woad.vercel.app/api/routes/Google?action=handleOAuth2Callback';
+const REDIRECT_URI = 'https://email-automation-ivory.vercel.app/api/routes/Google?action=handleOAuth2Callback';
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   throw new Error('Missing required environment variables: CLIENT_ID and CLIENT_SECRET');
@@ -70,11 +70,11 @@ exports.handleOAuth2Callback = async (req, res) => {
 
     await user.save();
 
-    res.redirect(`http://localhost:3000/?currentStep=3`);
+    res.redirect(`https://email-automation-ivory.vercel.app/?currentStep=3`);
 
   } catch (error) {
     console.error('OAuth2 Error:', error);
-    res.redirect(`http://localhost:3000/auth-error?message=${encodeURIComponent(error.message)}`);
+    res.redirect(`https://email-automation-ivory.vercel.app/auth-error?message=${encodeURIComponent(error.message)}`);
     
   }
 };
@@ -83,7 +83,7 @@ async function refreshAccessTokenIfNeeded(tokens) {
   const oAuth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
-    'http://localhost:3000/api/routes/Google?action=handleOAuth2Callback'
+    'https://email-automation-ivory.vercel.app/api/routes/Google?action=handleOAuth2Callback'
   );
 
   oAuth2Client.setCredentials({

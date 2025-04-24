@@ -23,17 +23,7 @@ const SignupFlow = () => {
     window.location.href = "/api/routes/LinkedIn?action=linkedInLogin";
   };
 
-  const submitProfileInformation = async () => {
-    try{
-    const userEmail = localStorage.getItem("userEmail");
-    const response = await axios.post("/api/routes/ProfileInfo?action=addSalesRepresentative", {
-      linkedInProfileEmail: userEmail,
-      questionSolution: formData.motivation
-    });
-    }catch(error){
 
-    }
-  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -78,7 +68,7 @@ const SignupFlow = () => {
 
     if (code) {
       axios
-        .get("https://email-automation-woad.vercel.app/api/routes/LinkedIn", {
+        .get("https://email-automation-ivory.vercel.app/api/routes/LinkedIn", {
           params: {
             action: "linkedInCallback",
             code: code,
@@ -150,7 +140,7 @@ const SignupFlow = () => {
             return;
           }
 
-          window.location.href = `http://localhost:3000/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
+          window.location.href = `https://email-automation-ivory.vercel.app/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
         };
 
         return (
@@ -317,6 +307,40 @@ const SignupFlow = () => {
           </motion.div>
         );
       case 5:
+        const submitProfileInformation = async () => {
+          try {
+            const userEmail = localStorage.getItem("userEmail");
+
+            if (!userEmail) {
+              alert("User email not found. Please log in again.");
+              return;
+            }
+
+            const response = await axios.post("/api/routes/ProfileInfo?action=addProfileInfo", {
+              linkedInProfileEmail: userEmail,
+              questionSolution: formData.motivation,
+              calendarLink: formData.calendarLink,
+              charityCompany: formData.charityCompany,
+              minimumBidDonation: formData.minBidDonation,
+              howHeard: formData.howHeard
+            }, {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+
+            if (response.data.message) {
+              alert(response.data.message);
+              // Optionally update local state with the returned user data
+            } else {
+              alert("Profile updated successfully");
+            }
+
+          } catch (error) {
+            console.error("Error occurred:", error);
+            alert(error.response?.data?.message || "Failed to update profile. Please try again.");
+          }
+        }
         return (
           <motion.div
             key="step5"

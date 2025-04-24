@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
         charityCompany: { type: String, required: false },
         minimumBidDonation: { type: String, required: false },
         questionSolution: { type: String, required: false },
+        howHeard:{type: String, required: false}
     },
     { timestamps: true }
 );
