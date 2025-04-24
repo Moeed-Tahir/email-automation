@@ -20,13 +20,13 @@ const SignupFlow = () => {
   });
 
   const handleLinkedInLogin = () => {
-    window.location.href = "http://localhost:3000/api/routes/LinkedIn?action=linkedInLogin";
+    window.location.href = "/api/routes/LinkedIn?action=linkedInLogin";
   };
 
   const handleCalendarLinkSubmit = async () => {
     try {
       const userEmail = localStorage.getItem("userEmail");
-      const response = await axios.post("http://localhost:3000/api/routes/ProfileInfo?action=addCalendarLink", {
+      const response = await axios.post("/api/routes/ProfileInfo?action=addCalendarLink", {
         linkedInProfileEmail: userEmail,
         calendarLink: formData.calendarLink
       });
@@ -40,7 +40,7 @@ const SignupFlow = () => {
   const handleCompanyInfoSubmit = async () => {
     try {
       const userEmail = localStorage.getItem("userEmail");
-      const response = await axios.post("http://localhost:3000/api/routes/ProfileInfo?action=addCompanyInfo", {
+      const response = await axios.post("/api/routes/ProfileInfo?action=addCompanyInfo", {
         linkedInProfileEmail: userEmail,
         charityCompany: formData.charityCompany,
         minimumBidDonation: formData.minBidDonation
@@ -55,7 +55,7 @@ const SignupFlow = () => {
   const handleSalesRepSubmit = async () => {
     try {
       const userEmail = localStorage.getItem("userEmail");
-      const response = await axios.post("http://localhost:3000/api/routes/ProfileInfo?action=addSalesRepresentative", {
+      const response = await axios.post("/api/routes/ProfileInfo?action=addSalesRepresentative", {
         linkedInProfileEmail: userEmail,
         questionSolution: formData.motivation
       });
