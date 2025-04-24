@@ -23,48 +23,17 @@ const SignupFlow = () => {
     window.location.href = "/api/routes/LinkedIn?action=linkedInLogin";
   };
 
-  const handleCalendarLinkSubmit = async () => {
-    try {
-      const userEmail = localStorage.getItem("userEmail");
-      const response = await axios.post("/api/routes/ProfileInfo?action=addCalendarLink", {
-        linkedInProfileEmail: userEmail,
-        calendarLink: formData.calendarLink
-      });
-      console.log("Calendar link added:", response.data);
-      nextStep();
-    } catch (error) {
-      console.error("Error adding calendar link:", error);
-    }
-  };
+  const submitProfileInformation = async () => {
+    try{
+    const userEmail = localStorage.getItem("userEmail");
+    const response = await axios.post("/api/routes/ProfileInfo?action=addSalesRepresentative", {
+      linkedInProfileEmail: userEmail,
+      questionSolution: formData.motivation
+    });
+    }catch(error){
 
-  const handleCompanyInfoSubmit = async () => {
-    try {
-      const userEmail = localStorage.getItem("userEmail");
-      const response = await axios.post("/api/routes/ProfileInfo?action=addCompanyInfo", {
-        linkedInProfileEmail: userEmail,
-        charityCompany: formData.charityCompany,
-        minimumBidDonation: formData.minBidDonation
-      });
-      console.log("Company info added:", response.data);
-      nextStep();
-    } catch (error) {
-      console.error("Error adding company info:", error);
     }
-  };
-
-  const handleSalesRepSubmit = async () => {
-    try {
-      const userEmail = localStorage.getItem("userEmail");
-      const response = await axios.post("/api/routes/ProfileInfo?action=addSalesRepresentative", {
-        linkedInProfileEmail: userEmail,
-        questionSolution: formData.motivation
-      });
-      console.log("Sales rep info added:", response.data);
-      nextStep();
-    } catch (error) {
-      console.error("Error adding sales rep info:", error);
-    }
-  };
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -270,7 +239,7 @@ const SignupFlow = () => {
                   Back
                 </Button>
                 <Button
-                  onClick={handleCalendarLinkSubmit}
+                  onClick={nextStep}
                   size={"default"}
                   className="h-12 w-44 text-lg bg-[#2c514c] text-white cursor-pointer border-2 
                   border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)]"
@@ -336,7 +305,7 @@ const SignupFlow = () => {
                   Back
                 </Button>
                 <Button
-                  onClick={handleCompanyInfoSubmit}
+                  onClick={nextStep}
                   size={"default"}
                   className="h-12 w-44 text-lg bg-[#2c514c] text-white cursor-pointer border-2 
                   border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)]"
@@ -409,7 +378,7 @@ const SignupFlow = () => {
                     Back
                   </Button>
                   <Button
-                    onClick={handleSalesRepSubmit}
+                    onClick={submitProfileInformation}
                     className="h-12 w-32 md:w-44 text-base sm:text-lg bg-[#2c514c] text-white border-2 border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)] cursor-pointer"
                   >
                     Finish

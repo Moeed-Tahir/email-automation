@@ -1,7 +1,5 @@
 import {
-    addCalendarLink,
-    addCompanyInfo,
-    addSalesRepresentative
+    addProfileInfo,
 } from "../controllers/ProfileInfo";
 
 export default async function handler(req, res) {
@@ -13,12 +11,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        if (req.method === 'POST' && action === 'addCalendarLink') {
-            return await addCalendarLink(req, res);
-        } else if (req.method === 'POST' && action === 'addCompanyInfo') {
-            return await addCompanyInfo(req, res);
-        } else if (req.method === 'POST' && action === 'addSalesRepresentative') {
-            return await addSalesRepresentative(req, res);
+        if (req.method === 'POST' && action === 'addProfileInfo') {
+            return await addProfileInfo(req, res);
         } else {
             return res.status(405).json({ message: 'Method Not Allowed' });
         }
