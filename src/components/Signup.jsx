@@ -109,7 +109,7 @@ const SignupFlow = () => {
 
     if (code) {
       axios
-        .get("/api/routes/LinkedIn", {
+        .get("https://email-automation-woad.vercel.app/api/routes/LinkedIn", {
           params: {
             action: "linkedInCallback",
             code: code,
