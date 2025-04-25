@@ -128,3 +128,13 @@
   --secondary-color: rgba(43, 42, 64, 1);
   --background-color: rgb(255, 253, 240, 1);
 }
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(44, 81, 76, 1);
+  border-radius: 5px;
+}

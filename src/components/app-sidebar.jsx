@@ -2,10 +2,7 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
   CircleHelp,
-  Command,
-  GalleryVerticalEnd,
   HandCoins,
   HeartHandshake,
   LayoutDashboardIcon,
@@ -14,51 +11,33 @@ import {
 } from "lucide-react";
 
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import logo from "../../public/Logo.svg";
-import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
+
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-// This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
+  dashboard: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
-  navMain: [
-    {
-      title: "DashBoard",
-      url: "#",
+      title: "Dashboard",
+      url: "/dashboard",
       icon: LayoutDashboardIcon,
-      isActive: true,
     },
     {
       title: "Bidding Requests",
-      url: "#",
+      url: "/bidding-requests",
       icon: HandCoins,
     },
     {
@@ -72,14 +51,14 @@ const data = {
       icon: ScrollText,
     },
   ],
-  projects: [
+  settings: [
     {
-      name: "Settings",
+      title: "Settings",
       url: "#",
       icon: Settings,
     },
     {
-      name: "FAQs",
+      title: "FAQs",
       url: "#",
       icon: CircleHelp,
     },
@@ -87,18 +66,48 @@ const data = {
 };
 
 export function AppSidebar({ ...props }) {
+  const pathname = usePathname();
+
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className="bg-[#2C514C] pt-6 pl-4">
+    <Sidebar collapsible="icon" {...props} className="z-20">
+      <SidebarHeader className="bg-[#2C514C] py-6 px-4">
         <Image src={logo} alt="Logo" width={130} height={130} />
       </SidebarHeader>
       <SidebarContent className="bg-[#2C514C]">
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        {Object.keys(data).map((item, idx) => (
+          <SidebarGroup key={idx}>
+            <SidebarGroupLabel className="capitalize text-white">
+              {item}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {data[item].map((t, i) => {
+                  const isActive = pathname === t.url;
+                  return (
+                    <SidebarMenuItem key={i}>
+                      <SidebarMenuButton asChild>
+                        <Link
+                          href={t.url}
+                          className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${
+                            isActive
+                              ? "bg-white text-[#2C514C]"
+                              : "text-white hover:bg-white hover:text-[#2C514C]"
+                          }`}
+                        >
+                          <t.icon className="size-4 shrink-0" />
+                          <span className="font-medium text-[16px]">
+                            {t.title}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
-      <SidebarFooter className="bg-[#2C514C]">
-        {/* <NavUser user={data.user} /> */}
-      </SidebarFooter>
     </Sidebar>
   );
 }

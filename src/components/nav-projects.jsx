@@ -33,9 +33,9 @@ export function NavProjects({ projects }) {
         Setting
       </SidebarGroupLabel>
       <SidebarMenu>
-        {projects.map((item) => (
+        {projects.map((item, idx) => (
           <Collapsible
-            key={item.title}
+            key={idx}
             asChild
             defaultOpen={item.isActive}
             className="group/collapsible"
