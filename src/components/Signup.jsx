@@ -24,8 +24,6 @@ const SignupFlow = () => {
     window.location.href = "/api/routes/LinkedIn?action=linkedInLogin";
   };
 
-
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -35,7 +33,10 @@ const SignupFlow = () => {
     setDirection(1);
     setCurrentStep((prev) => Math.min(prev + 1, 5));
 
-    if (window.location.search.includes('code=') || window.location.search.includes('currentStep=')) {
+    if (
+      window.location.search.includes("code=") ||
+      window.location.search.includes("currentStep=")
+    ) {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
     }
@@ -158,11 +159,10 @@ const SignupFlow = () => {
           </motion.div>
         );
       case 2:
-
         const handleGmailAuth = () => {
           const email = document.querySelector('input[type="email"]').value;
           if (!email) {
-            alert('Please enter your email address');
+            alert("Please enter your email address");
             return;
           }
 
@@ -342,18 +342,22 @@ const SignupFlow = () => {
               return;
             }
 
-            const response = await axios.post("/api/routes/ProfileInfo?action=addProfileInfo", {
-              linkedInProfileEmail: userEmail,
-              questionSolution: formData.motivation,
-              calendarLink: formData.calendarLink,
-              charityCompany: formData.charityCompany,
-              minimumBidDonation: formData.minBidDonation,
-              howHeard: formData.howHeard
-            }, {
-              headers: {
-                'Content-Type': 'application/json'
+            const response = await axios.post(
+              "/api/routes/ProfileInfo?action=addProfileInfo",
+              {
+                linkedInProfileEmail: userEmail,
+                questionSolution: formData.motivation,
+                calendarLink: formData.calendarLink,
+                charityCompany: formData.charityCompany,
+                minimumBidDonation: formData.minBidDonation,
+                howHeard: formData.howHeard,
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
               }
-            });
+            );
 
             if (response.data.message) {
               alert(response.data.message);
@@ -361,12 +365,14 @@ const SignupFlow = () => {
             } else {
               alert("Profile updated successfully");
             }
-
           } catch (error) {
             console.error("Error occurred:", error);
-            alert(error.response?.data?.message || "Failed to update profile. Please try again.");
+            alert(
+              error.response?.data?.message ||
+                "Failed to update profile. Please try again."
+            );
           }
-        }
+        };
         return (
           <motion.div
             key="step5"

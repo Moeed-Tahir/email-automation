@@ -32,12 +32,12 @@ const data = {
   dashboard: [
     {
       title: "Dashboard",
-      url: "/dashboard",
+      url: "/user/dashboard",
       icon: LayoutDashboardIcon,
     },
     {
       title: "Bidding Requests",
-      url: "/bidding-requests",
+      url: "/user/bidding-requests",
       icon: HandCoins,
     },
     {
@@ -54,7 +54,7 @@ const data = {
   settings: [
     {
       title: "Settings",
-      url: "#",
+      url: "/user/profile",
       icon: Settings,
     },
     {
