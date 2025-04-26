@@ -99,7 +99,7 @@ const DashboardTable = () => {
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
 
   return (
-    <div className="w-full">
+    <div className="w-full h-max">
       <div className="flex items-center justify-between w-full">
         <div className="w-full md:w-auto">
           <h2 className="text-xl font-semibold mb-1">Recent Bid Requests</h2>
@@ -171,7 +171,7 @@ const DashboardTable = () => {
         </div>
       </div>
 
-      <div className="md:h-[calc(100vh-810px)] lg:h-[calc(100vh-460px)] overflow-auto lg:overflow-hidden mb-5">
+      <div className="overflow-auto lg:overflow-hidden mb-5 h-max">
         <Table className="w-full min-w-[1000px]">
           <TableHeader className="border-t">
             <TableRow className="bg-white sticky top-0 z-10">
