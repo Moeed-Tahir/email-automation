@@ -7,6 +7,7 @@ import { CircleDollarSign, Link, Mail } from "lucide-react";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const SignupFlow = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -64,19 +65,17 @@ const SignupFlow = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const code = searchParams.get("code");
     const currentStepParam = searchParams.get("currentStep");
-    console.log("currentStepParam", currentStepParam);
 
     if (code) {
       axios
-        .get("https://email-automation-ivory.vercel.app/api/routes/LinkedIn", {
+        .get("http://localhost:3000/api/routes/LinkedIn", {
           params: {
             action: "linkedInCallback",
             code: code,
           },
         })
         .then((res) => {
-          console.log("Login success:", res);
-          localStorage.setItem("userEmail", res.data.userEmail)
+          Cookies.set("userEmail", res.data.userEmail); // set cookie
           nextStep();
         })
         .catch((err) => {
@@ -88,6 +87,33 @@ const SignupFlow = () => {
         setCurrentStep(step);
       }
     }
+  }, []);
+
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      const email = Cookies.get("userEmail"); // get cookie
+      if (!email) return;
+
+      try {
+        const res = await axios.get(`/api/routes/ProfileInfo?action=checkUser`, {
+          params: { linkedInProfileEmail: email },
+        });
+        if (res.data.currentStep === 0) {
+          setCurrentStep(1);
+        } else if (res.data.currentStep === 1) {
+          setCurrentStep(2);
+        } else if (res.data.currentStep === "completed") {
+          Cookies.set('userEmail', res.data.linkedInProfileEmail, { path: '/', sameSite: 'lax' });
+          Cookies.set('UserId', res.data.userId, { path: '/', sameSite: 'lax' });
+          Cookies.set('Token', res.data.token, { path: '/', sameSite: 'lax' });
+
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    checkUserStatus();
   }, []);
 
 
@@ -140,7 +166,7 @@ const SignupFlow = () => {
             return;
           }
 
-          window.location.href = `https://email-automation-ivory.vercel.app/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
+          window.location.href = `http://localhost:3000/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
         };
 
         return (
