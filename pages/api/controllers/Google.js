@@ -5,7 +5,7 @@ const connectToDatabase = require('../lib/db');
 
 const CLIENT_ID = process.env.CLIENT_ID || '34860616241-1kcc767m6k6isr2tnmpq4levhjb5lm7k.apps.googleusercontent.com';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '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';
-const REDIRECT_URI = 'http://localhost:3000/api/routes/Google?action=handleOAuth2Callback';
+const REDIRECT_URI = 'https://email-automation-ivory.vercel.app/api/routes/Google?action=handleOAuth2Callback';
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   throw new Error('Missing required environment variables: CLIENT_ID and CLIENT_SECRET');
@@ -72,11 +72,11 @@ exports.handleOAuth2Callback = async (req, res) => {
     await user.save();
     startEmailMonitoring(userEmail);
 
-    res.redirect(`http://localhost:3000/?currentStep=3`);
+    res.redirect(`https://email-automation-ivory.vercel.app/login/?currentStep=3`);
 
   } catch (error) {
     console.error('OAuth2 Error:', error);
-    res.redirect(`http://localhost:3000/auth-error?message=${encodeURIComponent(error.message)}`);
+    res.redirect(`https://email-automation-ivory.vercel.app/auth-error?message=${encodeURIComponent(error.message)}`);
 
   }
 };
@@ -85,7 +85,7 @@ async function refreshAccessTokenIfNeeded(tokens) {
   const oAuth2Client = new google.auth.OAuth2(
     CLIENT_ID,
     CLIENT_SECRET,
-    'http://localhost:3000/api/routes/Google?action=handleOAuth2Callback'
+    'https://email-automation-ivory.vercel.app/api/routes/Google?action=handleOAuth2Callback'
   );
 
   oAuth2Client.setCredentials({
@@ -393,5 +393,137 @@ exports.stopMonitoring = (userEmail) => {
     clearInterval(activeMonitors[userEmail]);
     delete activeMonitors[userEmail];
     console.log(`Stopped monitoring for ${userEmail}`);
+  }
+};
+
+exports.sendAcceptEmailToAdmin = async (req, res) => {
+  try {
+    const { sendFromEmail, sendToEmail} = req.body;
+    
+    await connectToDatabase();
+    
+    const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    if (!user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'User has not authorized Gmail access' 
+      });
+    }
+
+    const tokens = await refreshAccessTokenIfNeeded({
+      access_token: user.gmailAccessToken,
+      refresh_token: user.gmailRefreshToken,
+      expiry_date: parseInt(user.gmailExpiryDate, 10),
+    });
+
+    if (tokens.access_token !== user.gmailAccessToken || 
+        tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
+      user.gmailAccessToken = tokens.access_token;
+      user.gmailExpiryDate = tokens.expiry_date;
+      await user.save();
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: sendFromEmail,
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+        refreshToken: tokens.refresh_token,
+        accessToken: tokens.access_token,
+      },
+    });
+
+    const mailOptions = {
+      from: sendFromEmail,
+      to: sendToEmail,
+      subject: "This is the Accept Subject",
+      text: "This is the Reject text",
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({
+      success: true,
+      message: 'Email sent successfully',
+    });
+    
+  } catch(error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to send email',
+    });
+  }
+};
+
+exports.sendRejectEmailToAdmin = async (req, res) => {
+  try {
+    const { sendFromEmail, sendToEmail} = req.body;
+    
+    await connectToDatabase();
+    
+    const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    if (!user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'User has not authorized Gmail access' 
+      });
+    }
+
+    const tokens = await refreshAccessTokenIfNeeded({
+      access_token: user.gmailAccessToken,
+      refresh_token: user.gmailRefreshToken,
+      expiry_date: parseInt(user.gmailExpiryDate, 10),
+    });
+
+    if (tokens.access_token !== user.gmailAccessToken || 
+        tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
+      user.gmailAccessToken = tokens.access_token;
+      user.gmailExpiryDate = tokens.expiry_date;
+      await user.save();
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: sendFromEmail,
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+        refreshToken: tokens.refresh_token,
+        accessToken: tokens.access_token,
+      },
+    });
+
+    const mailOptions = {
+      from: sendFromEmail,
+      to: sendToEmail,
+      subject: "This is the Reject Subject",
+      text: "This is the Reject text",
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({
+      success: true,
+      message: 'Email sent successfully',
+    });
+    
+  } catch(error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to send email',
+    });
   }
 };

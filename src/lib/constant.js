@@ -1,5 +1,14 @@
 export const data = [
   {
+    name: "Moeed Tahir",
+    email: "moeedtahir29@gmail.com",
+    company: "Abc Company",
+    date: "09 May 2022",
+    score: "08",
+    bid: "$100",
+    status: "Pending",
+  },
+  {
     name: "Jamal Kerrod",
     email: "abcdef@gmail.com",
     company: "Abc Company",

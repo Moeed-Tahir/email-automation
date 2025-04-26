@@ -8,6 +8,7 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 const SignupFlow = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -19,6 +20,7 @@ const SignupFlow = () => {
     motivation: "",
     howHeard: "",
   });
+  const router = useRouter();
 
   const handleLinkedInLogin = () => {
     window.location.href = "/api/routes/LinkedIn?action=linkedInLogin";
@@ -69,7 +71,7 @@ const SignupFlow = () => {
 
     if (code) {
       axios
-        .get("http://localhost:3000/api/routes/LinkedIn", {
+        .get("https://email-automation-ivory.vercel.app/api/routes/LinkedIn", {
           params: {
             action: "linkedInCallback",
             code: code,
@@ -92,7 +94,7 @@ const SignupFlow = () => {
 
   useEffect(() => {
     const checkUserStatus = async () => {
-      const email = Cookies.get("userEmail"); // get cookie
+      const email = Cookies.get("userEmail");
       if (!email) return;
 
       try {
@@ -103,11 +105,6 @@ const SignupFlow = () => {
           setCurrentStep(1);
         } else if (res.data.currentStep === 1) {
           setCurrentStep(2);
-        } else if (res.data.currentStep === "completed") {
-          Cookies.set('userEmail', res.data.linkedInProfileEmail, { path: '/', sameSite: 'lax' });
-          Cookies.set('UserId', res.data.userId, { path: '/', sameSite: 'lax' });
-          Cookies.set('Token', res.data.token, { path: '/', sameSite: 'lax' });
-
         }
       } catch (err) {
         console.error(err);
@@ -160,13 +157,8 @@ const SignupFlow = () => {
         );
       case 2:
         const handleGmailAuth = () => {
-          const email = document.querySelector('input[type="email"]').value;
-          if (!email) {
-            alert("Please enter your email address");
-            return;
-          }
-
-          window.location.href = `http://localhost:3000/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
+          const email = Cookies.get("userEmail");
+          window.location.href = `https://email-automation-ivory.vercel.app/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
         };
 
         return (
@@ -186,14 +178,6 @@ const SignupFlow = () => {
               </h1>
 
               <div className="w-full space-y-6 flex flex-col items-start justify-start sm:mr-24">
-                <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
-                  <Mail className="text-[rgba(44,81,76,1)]" />
-                  <Input
-                    type="email"
-                    placeholder="Email Address"
-                    className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
-                  />
-                </div>
 
                 <Button
                   onClick={handleGmailAuth}
@@ -335,7 +319,7 @@ const SignupFlow = () => {
       case 5:
         const submitProfileInformation = async () => {
           try {
-            const userEmail = localStorage.getItem("userEmail");
+            const userEmail = Cookies.get("userEmail");
 
             if (!userEmail) {
               alert("User email not found. Please log in again.");
@@ -351,25 +335,21 @@ const SignupFlow = () => {
                 charityCompany: formData.charityCompany,
                 minimumBidDonation: formData.minBidDonation,
                 howHeard: formData.howHeard,
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                },
               }
             );
 
-            if (response.data.message) {
-              alert(response.data.message);
-              // Optionally update local state with the returned user data
-            } else {
-              alert("Profile updated successfully");
-            }
+            Cookies.set('UserId', response.data.user.userId, { path: '/', expires: 7 });
+            Cookies.set('Token', response.data.token, { path: '/', expires: 7 });
+
+            setTimeout(() => {
+              router.push(`/${response.data.user.userId}/dashboard`);
+            }, 100);
+
           } catch (error) {
             console.error("Error occurred:", error);
             alert(
               error.response?.data?.message ||
-                "Failed to update profile. Please try again."
+              "Failed to update profile. Please try again."
             );
           }
         };

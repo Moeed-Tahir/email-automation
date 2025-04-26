@@ -22,6 +22,8 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowDownWideNarrow, ChevronsUpDown, FunnelIcon } from "lucide-react";
 import { data } from "../lib/constant";
 import { useState } from "react";
+import Cookies from "js-cookie";
+import axios from "axios";
 
 const DashboardTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -74,6 +76,50 @@ const DashboardTable = () => {
   const handleAdvancedSort = (key, direction) => {
     setSortConfig({ key, direction });
     setShowSortMenu(false);
+  };
+
+  const handleAccept = async (representativeEmail) => {
+    try {
+      const fromEmail = Cookies.get("userEmail");
+      if (!fromEmail) {
+        throw new Error("User email not found in cookies");
+      }
+
+      const response = await axios.post('/api/routes/Google?action=sendAcceptEmailToAdmin', {
+        sendFromEmail: fromEmail,
+        sendToEmail: representativeEmail,
+      });
+
+      if (response.data.message) {
+        alert('Email sent successfully');
+      } else {
+        throw new Error(result.message || 'Failed to send email');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  };
+
+  const handleReject = async (representativeEmail) => {
+    try {
+      const fromEmail = Cookies.get("userEmail");
+      if (!fromEmail) {
+        throw new Error("User email not found in cookies");
+      }
+
+      const response = await axios.post('/api/routes/Google?action=sendRejectEmailToAdmin', {
+        sendFromEmail: fromEmail,
+        sendToEmail: representativeEmail,
+      });
+
+      if (response.data.message) {
+        alert('Email sent successfully');
+      } else {
+        throw new Error(result.message || 'Failed to send email');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
   };
 
   const filteredData =
@@ -235,11 +281,12 @@ const DashboardTable = () => {
                   >
                     View Details
                   </Button>
-                  <Button size="sm" className="bg-[#28C76F29] text-[#28C76F]">
+                  <Button size="sm" onClick={() => handleAccept(item.email)} className="bg-[#28C76F29] text-[#28C76F]">
                     Accept
                   </Button>
                   <Button
                     size="sm"
+                    onClick={() => handleReject(item.email)}
                     className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA545529] hover:text-[#EA5455]"
                   >
                     Reject

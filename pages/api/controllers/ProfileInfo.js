@@ -1,6 +1,8 @@
 const connectToDatabase = require("../lib/db");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const addProfileInfo = async (req, res) => {
   try {
@@ -19,8 +21,15 @@ const addProfileInfo = async (req, res) => {
     user.howHeard = howHeard;
 
     await user.save();
-
-    return res.status(200).json({ message: "Profile updated successfully", user });
+    const token = jwt.sign(
+      {
+        userId: user.userId,
+        email: user.linkedInProfileEmail,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    return res.status(200).json({ message: "Profile updated successfully", user,token });
 
   } catch (error) {
     console.error("Error adding sales representative info:", error);
@@ -67,19 +76,11 @@ const checkUser = async (req, res) => {
     } else if (!finalInfoComplete) {
       return res.status(200).json({ currentStep: 2, message: "Profile Info step incomplete" });
     } else {
-      const token = jwt.sign(
-        {
-          userId: user.userId,
-          email: user.linkedInProfileEmail,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
+      
 
       return res.status(200).json({
         currentStep: "completed",
         message: "All steps completed",
-        token,
         userId: user.userId,
         linkedInProfileEmail: user.linkedInProfileEmail,
       });
