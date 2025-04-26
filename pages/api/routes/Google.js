@@ -2,6 +2,7 @@ import {
     startAuth,
     handleOAuth2Callback,
     sendEmail,
+    getEmails
 } from "../controllers/Google";
 
 export default async function handler(req, res) {
@@ -20,7 +21,9 @@ export default async function handler(req, res) {
             return await handleOAuth2Callback(req, res);
         } else if (req.method === 'POST' && action === 'sendEmail') {
             return await sendEmail(req, res);
-        }else {
+        } else if (req.method === 'POST' && action === 'getEmails') {
+            return await getEmails(req, res);
+        } else {
             return res.status(405).json({ message: 'Method Not Allowed' });
         }
     } catch (error) {

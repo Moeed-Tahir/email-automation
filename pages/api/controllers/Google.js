@@ -75,21 +75,19 @@ exports.handleOAuth2Callback = async (req, res) => {
   } catch (error) {
     console.error('OAuth2 Error:', error);
     res.redirect(`https://email-automation-ivory.vercel.app/auth-error?message=${encodeURIComponent(error.message)}`);
-    
+
   }
 };
 
 async function refreshAccessTokenIfNeeded(tokens) {
   const oAuth2Client = new google.auth.OAuth2(
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
+    CLIENT_ID,
+    CLIENT_SECRET,
     'https://email-automation-ivory.vercel.app/api/routes/Google?action=handleOAuth2Callback'
   );
 
   oAuth2Client.setCredentials({
-    refresh_token: tokens.refresh_token,
-    access_token: tokens.access_token,
-    expiry_date: tokens.expiry_date,
+    refresh_token: tokens.refresh_token, // ✅ Only set refresh_token here
   });
 
   const FIVE_MINUTES = 5 * 60 * 1000;
@@ -97,22 +95,27 @@ async function refreshAccessTokenIfNeeded(tokens) {
 
   if (tokens.expiry_date - currentTime < FIVE_MINUTES) {
     try {
-      const { credentials } = await oAuth2Client.refreshAccessToken();
-      console.log('Access token refreshed:', credentials);
+      const accessTokenResponse = await oAuth2Client.getAccessToken(); // returns { token: '...' }
+      const newAccessToken = accessTokenResponse?.token;
+
+      if (!newAccessToken) throw new Error('Failed to get new access token');
+
+      const newExpiryDate = Date.now() + 60 * 60 * 1000; // Gmail access tokens typically last 1 hour
 
       return {
-        access_token: credentials.access_token,
-        refresh_token: credentials.refresh_token || tokens.refresh_token,
-        expiry_date: credentials.expiry_date,
+        access_token: newAccessToken,
+        refresh_token: tokens.refresh_token,
+        expiry_date: newExpiryDate,
       };
     } catch (error) {
-      console.error('Error refreshing access token:', error);
+      console.error('Error refreshing access token:', error.response?.data || error.message);
       throw new Error('Could not refresh access token');
     }
   }
 
   return tokens;
 }
+
 
 exports.sendEmail = async (req, res) => {
   const { user_email, to, subject, text } = req.body;
@@ -170,4 +173,135 @@ exports.sendEmail = async (req, res) => {
     });
   }
 };
+
+// exports.getEmails = async (req, res) => {
+//   const {user_email} = req.body;
+
+//   try {
+//     await connectToDatabase();
+//     const user = await User.findOne({ linkedInProfileEmail: user_email });
+//     if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
+//       return res.status(400).json({ success: false, message: 'Missing Gmail OAuth tokens for this user' });
+//     }
+
+//     const tokens = await refreshAccessTokenIfNeeded({
+//       access_token: user.gmailAccessToken,
+//       refresh_token: user.gmailRefreshToken,
+//       expiry_date: parseInt(user.gmailExpiryDate, 10),
+//     });
+
+//     if (tokens.access_token !== user.gmailAccessToken || tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
+//       user.gmailAccessToken = tokens.access_token;
+//       user.gmailExpiryDate = tokens.expiry_date;
+//       await user.save();
+//     }
+
+//     const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+//     oAuth2Client.setCredentials({
+//       access_token: tokens.access_token,
+//       refresh_token: tokens.refresh_token,
+//     });
+
+//     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+
+//     const response = await gmail.users.messages.list({
+//       userId: 'me',
+//       maxResults: 70,
+//     });
+
+//     const messages = response.data.messages || [];
+
+//     const fullMessages = await Promise.all(messages.map(msg =>
+//       gmail.users.messages.get({ userId: 'me', id: msg.id })
+//     ));
+
+//     const emails = fullMessages.map(msg => ({
+//       id: msg.data.id,
+//       snippet: msg.data.snippet,
+//       subject: msg.data.payload.headers.find(h => h.name === 'Subject')?.value || '',
+//       from: msg.data.payload.headers.find(h => h.name === 'From')?.value || '',
+//       date: msg.data.payload.headers.find(h => h.name === 'Date')?.value || '',
+//     }));
+
+//     res.json({ success: true, emails });
+
+//   } catch (error) {
+//     console.error('Error fetching emails:', error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+exports.getEmails = async (req, res) => {
+  const { user_email } = req.body;
+
+  try {
+    await connectToDatabase();
+    const user = await User.findOne({ linkedInProfileEmail: user_email });
+    if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
+      return res.status(400).json({ success: false, message: 'Missing Gmail OAuth tokens for this user' });
+    }
+
+    const tokens = await refreshAccessTokenIfNeeded({
+      access_token: user.gmailAccessToken,
+      refresh_token: user.gmailRefreshToken,
+      expiry_date: parseInt(user.gmailExpiryDate, 10),
+    });
+
+    if (tokens.access_token !== user.gmailAccessToken || tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
+      user.gmailAccessToken = tokens.access_token;
+      user.gmailExpiryDate = tokens.expiry_date;
+      await user.save();
+    }
+
+    const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+    oAuth2Client.setCredentials({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+    
+    const response = await gmail.users.messages.list({
+      userId: 'me',
+      maxResults: 70,
+      q: 'is:unread',
+      orderBy: 'date',
+      labelIds: ['INBOX']
+    });
+
+    const messages = response.data.messages || [];
+    
+    console.log(`Found ${messages.length} unread messages`);
+
+    const fullMessages = [];
+    for (const msg of messages) {
+      const messageData = await gmail.users.messages.get({
+        userId: 'me',
+        id: msg.id,
+        format: 'metadata', 
+        metadataHeaders: ['Subject', 'From', 'Date']
+      });
+      fullMessages.push(messageData);
+    }
+
+    const emails = fullMessages.map(msg => ({
+      id: msg.data.id,
+      snippet: msg.data.snippet,
+      subject: msg.data.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)',
+      from: msg.data.payload.headers.find(h => h.name === 'From')?.value || '',
+      date: msg.data.payload.headers.find(h => h.name === 'Date')?.value || '',
+      isUnread: msg.data.labelIds.includes('UNREAD'),
+      internalDate: msg.data.internalDate 
+    }));
+
+    emails.sort((a, b) => parseInt(b.internalDate) - parseInt(a.internalDate));
+
+    res.json({ success: true, emails });
+
+  } catch (error) {
+    console.error('Error fetching emails:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
