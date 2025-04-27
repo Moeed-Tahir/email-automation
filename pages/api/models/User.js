@@ -12,6 +12,9 @@ const userSchema = new mongoose.Schema(
         linkedInProfileName: { type: String, required: false },
         linkedInProfilePhoto: { type: String, required: false },
         linkedInProfileEmail: { type: String, required: false },
+        companyName: { type: String, required: false, default: null },
+        jobTitle: { type: String, required: false, default: null },
+        industry: { type: String, required: false, default: null },
         gmailAccessToken: { type: String, required: false },
         gmailRefreshToken: { type: String, required: false },
         gmailExpiryDate: { type: String, required: false },
@@ -19,7 +22,7 @@ const userSchema = new mongoose.Schema(
         charityCompany: { type: String, required: false },
         minimumBidDonation: { type: String, required: false },
         questionSolution: { type: String, required: false },
-        howHeard:{type: String, required: false}
+        howHeard: { type: String, required: false }
     },
     { timestamps: true }
 );

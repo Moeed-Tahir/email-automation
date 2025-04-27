@@ -21,8 +21,70 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import Cookies from "js-cookie";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 export default function Page() {
+
+  const [profileData, setProfileData] = useState({
+    linkedInProfileName: "",
+    linkedInProfileEmail: "",
+    companyName: "",
+    jobTitle: "",
+    industry: "",
+    charityCompany: "",
+    minimumBidDonation: "",
+    calendarLink: ""
+  });
+  const [formData, setFormData] = useState({ ...profileData });
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const userId = Cookies.get("UserId");
+
+        if (!userId) {
+          console.error("No userId found in cookies");
+          return;
+        }
+
+        const response = await axios.get(`/api/routes/ProfileInfo`, {
+          params: { userId, action: "getProfileInfo" },
+        });
+
+        setProfileData(response.data.user);
+        setFormData(response.data.user);
+
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const userId = Cookies.get("UserId");
+      if (!userId) {
+        console.error("No userId found in cookies");
+        return;
+      }
+
+      const response = await axios.post(`/api/routes/ProfileInfo?action=editProfileInfo&userId=${userId}`, {
+        updates: formData,
+      });
+
+      if (response.data.success) {
+        setProfileData(formData);
+        console.log("Profile updated successfully");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -53,10 +115,10 @@ export default function Page() {
             </span>
             <div className="flex flex-col items-start justify-start">
               <span className="text-lg font-semibold text-[#2C514C]">
-                John Doe
+                {formData.linkedInProfileName}
               </span>
               <span className="text-sm font-[400] text-gray-600">
-                Admin@gmail.com
+                {formData.linkedInProfileEmail}
               </span>
             </div>
           </div>
@@ -71,23 +133,22 @@ export default function Page() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
-                  <Input id="fullName" placeholder="John Doe" />
+                  <Input id="fullName" placeholder={`${formData.linkedInProfileName}`} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="john.doe@gmail.com"
-                  />
+                    placeholder={`${formData.linkedInProfileEmail}`} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="companyName">Company Name</Label>
-                  <Input id="companyName" placeholder="Charity Abc" />
+                  <Input id="companyName" placeholder={`${formData.companyName}`} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="jobTitle">Job Title</Label>
-                  <Input id="jobTitle" placeholder="Jr. Abc" />
+                  <Input id="jobTitle" placeholder={`${formData.jobTitle}`} />
                 </div>
                 <div className="space-y-2 md:col-span-1">
                   <Label htmlFor="industry">Industry</Label>
@@ -116,11 +177,11 @@ export default function Page() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="charityCompany">Charity Company</Label>
-                  <Input id="charityCompany" placeholder="Abc Company" />
+                  <Input id="charityCompany" placeholder={`${formData.charityCompany}`} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="minimumBid">Minimum Bid</Label>
-                  <Input id="minimumBid" placeholder="25$" />
+                  <Input id="minimumBid" placeholder={`${formData.minimumBidDonation}$`} />
                 </div>
               </div>
             </div>
@@ -137,7 +198,7 @@ export default function Page() {
                   <Link className="text-[rgba(44,81,76,1)] size-5 shrink-0" />
                   <Input
                     type="link"
-                    placeholder="Calendar Link"
+                    placeholder={`${formData.calendarLink}`}
                     className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg "
                   />
                 </div>
@@ -148,6 +209,7 @@ export default function Page() {
             <div className="flex flex-wrap gap-4">
               <Button
                 type="submit"
+                onClick={handleSubmit}
                 className="cursor-pointer bg-[#2C514C] hover:bg-transparent hover:font-medium hover:text-[#2C514C] border-2 border-[#2C514C] hover:border-[#2C514C] "
               >
                 Save Changes

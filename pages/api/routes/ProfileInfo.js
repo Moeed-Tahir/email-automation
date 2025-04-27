@@ -1,6 +1,8 @@
 import {
     addProfileInfo,
-    checkUser
+    checkUser,
+    getProfileInfo,
+    editProfileInfo
 } from "../controllers/ProfileInfo";
 
 export default async function handler(req, res) {
@@ -16,6 +18,10 @@ export default async function handler(req, res) {
             return await addProfileInfo(req, res);
         } else if (req.method === 'GET' && action === 'checkUser') {
             return await checkUser(req, res);
+        } else if (req.method === 'GET' && action === 'getProfileInfo') {
+            return await getProfileInfo(req, res);
+        } else if (req.method === 'POST' && action === 'editProfileInfo') {
+            return await editProfileInfo(req, res);
         } else {
             return res.status(405).json({ message: 'Method Not Allowed' });
         }

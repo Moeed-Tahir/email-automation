@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 
 const protectedPaths = [
   /^\/[^\/]+\/dashboard$/,
-  /^\/[^\/]+\/bidding-requests$/
+  /^\/[^\/]+\/bidding-requests$/,
+  /^\/[^\/]+\/bid-details$/,
+  /^\/[^\/]+\/profile$/
 ];
 
 export function middleware(request) {
@@ -36,6 +38,8 @@ export const config = {
     '/',
     '/:userId/dashboard',
     '/:userId/bidding-requests',
+    '/:userId/bid-details',
+    '/:userId/profile',
     '/login'
   ]
 };
