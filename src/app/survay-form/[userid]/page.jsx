@@ -1,363 +1,377 @@
 "use client";
 
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
+  User,
+  Mail,
+  BadgeDollarSign,
+  ChevronDown,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
 
-import { AppSidebar } from "@/components/app-sidebar";
-import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { BellIcon } from "lucide-react";
-import Image from "next/image";
+const SurveyForm = () => {
+  const [currentTab, setCurrentTab] = useState(0);
+  const [formData, setFormData] = useState({
+    bidAmount: "",
+    name: "",
+    email: "",
+    solutionDescription: "",
+    businessChallengeSolution: "",
+    businessProblem: "",
+    resultsTimeframe: "",
+    caseStudies: "",
+    offeringType: "",
+    performanceGuarantee: "",
+    DonationWilling: "",
+    escrowDonation: "",
+    charityDonation: "",
+  });
 
-export default function MeetingRequest() {
-  return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <nav className=" sticky top-0 z-10 bg-white flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
-          <div className="flex items-center gap-2 px-4 w-full ">
-            <SidebarTrigger className="-ml-1 cursor-pointer" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
+  const tabs = [
+    { title: "Bid & Contact" },
+    { title: "Solution Details" },
+    { title: "Business Impact" },
+    { title: "Commitment & Donation" },
+  ];
+
+  const isLastTab = currentTab === tabs.length - 1;
+  const isFirstTab = currentTab === 0;
+
+  const handleNext = () => {
+    if (!isLastTab) setCurrentTab(currentTab + 1);
+  };
+
+  const handleBack = () => {
+    if (!isFirstTab) setCurrentTab(currentTab - 1);
+  };
+
+  const handleSaveDraft = () => {
+    console.log("Draft Saved:", formData);
+    // Add draft saving logic here
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log("Form Submitted:", formData);
+    // Add API integration here
+  };
+
+  const progressWidth = ((currentTab + 1) / tabs.length) * 100;
+
+  const renderCurrentTab = () => {
+    switch (currentTab) {
+      case 0:
+        return (
+          <>
+            <p className="font-medium text-2xl mb-6">
+              Enter Your Name and Email
+            </p>
+            <InputField
+              label="Name"
+              type="text"
+              icon={<User />}
+              value={formData.name}
+              onChange={(val) => setFormData({ ...formData, name: val })}
             />
-            <div className="flex items-center  w-full">
-              <h1 className="hidden text-2xl font-semibold w-full md:flex ">
-                View Bid Details
-              </h1>
-              <h1 className="md:hidden text-2xl font-semibold w-full flex ">
-                Bid Details
-              </h1>
-            </div>
-          </div>
-          <div className="flex items-center justify-end w-full gap-2 mx-auto px-10 p-5">
-            <span className="p-2 bg-[#2C514C]/10 rounded-full">
-              <BellIcon className="fill-[#2C514C] size-6 text-[#2C514C]" />
-            </span>
-            <span className="hidden lg:block bg-[#2C514C]/10  rounded-full">
-              <Image
-                src="/user.svg"
-                alt="Logo"
-                width={42}
-                height={42}
-                className="shrink-0 "
-              />
-            </span>
-            <div className="flex flex-col items-start justify-start">
-              <span className="text-lg font-semibold text-[#2C514C]">
-                John Doe
-              </span>
-              <span className="text-sm font-[400] text-gray-600">
-                Admin@gmail.com
-              </span>
-            </div>
-          </div>
-        </nav>
+            <InputField
+              label="Email Address"
+              type="email"
+              icon={<Mail />}
+              value={formData.email}
+              onChange={(val) => setFormData({ ...formData, email: val })}
+            />
+            <InputField
+              label="Bid Amount ($)"
+              type="number"
+              icon={<BadgeDollarSign />}
+              value={formData.bidAmount}
+              onChange={(val) => setFormData({ ...formData, bidAmount: val })}
+            />
+          </>
+        );
+      case 1:
+        return (
+          <>
+            <p className="font-medium text-2xl mb-6">
+              Open-Ended Questions (Qualitative Insight)
+            </p>
+            <TextAreaField
+              label="Solution Description"
+              value={formData.solutionDescription}
+              onChange={(val) =>
+                setFormData({ ...formData, solutionDescription: val })
+              }
+            />
+            <TextAreaField
+              label="How it Solves Business Challenge"
+              value={formData.businessChallengeSolution}
+              onChange={(val) =>
+                setFormData({ ...formData, businessChallengeSolution: val })
+              }
+            />
+          </>
+        );
+      case 2:
+        return (
+          <>
+            <p className="font-medium text-2xl mb-6">
+              Close-Ended Questions (Qualitative Insight)
+            </p>
+            <RadioGroup
+              label="What specific business problem does your solution address?"
+              options={[
+                "Reducing operational costs",
+                "Increasing revenue",
+                "Enhancing customer experience",
+                "Improving productivity/efficiency",
+                "Regulatory compliance",
+              ]}
+              value={formData.businessProblem}
+              onChange={(val) =>
+                setFormData({ ...formData, businessProblem: val })
+              }
+            />
+            <RadioGroup
+              label="How long does it typically take for clients to see results with your solution?"
+              options={[
+                "Over 12 months",
+                "6-12 months",
+                "3-6 months",
+                "1-3 months",
+                "Immediate",
+              ]}
+              value={formData.resultsTimeframe}
+              onChange={(val) =>
+                setFormData({ ...formData, resultsTimeframe: val })
+              }
+            />
+            <RadioGroup
+              label="Do you have proven results or case studies in my industry that you would be willing to  provide?"
+              options={[
+                "No case studies available",
+                "One relevant case study",
+                "Multiple relevant case studies",
+              ]}
+              value={formData.caseStudies}
+              onChange={(val) => setFormData({ ...formData, caseStudies: val })}
+            />
+            <RadioGroup
+              label="How would you summarize your offering?"
+              options={[
+                "Product",
+                "Service",
+                "Consulting/Advisory",
+                "Comprehensive Solution",
+              ]}
+              value={formData.offeringType}
+              onChange={(val) =>
+                setFormData({ ...formData, offeringType: val })
+              }
+            />
+          </>
+        );
+      case 3:
+        return (
+          <>
+            <p className="font-medium text-2xl mb-6">
+              Close-Ended Questions (Qualitative Insight)
+            </p>
+            <RadioGroup
+              label="Are you willing to offer a performance-based guarantee or proof of concept?"
+              options={[
+                "No",
+                "Yes, but with conditions",
+                "Yes, unconditionally",
+              ]}
+              value={formData.performanceGuarantee}
+              onChange={(val) =>
+                setFormData({ ...formData, performanceGuarantee: val })
+              }
+            />
+            <RadioGroup
+              label="Are you willing to make a donation to my favorite charity if a meeting is accepted?"
+              options={["No", "Yes"]}
+              value={formData.DonationWilling}
+              onChange={(val) =>
+                setFormData({ ...formData, DonationWilling: val })
+              }
+            />
+            <RadioGroup
+              label="Would you be willing to escrow this donation amount to be released after the meeting  takes place?"
+              options={["No", "Yes"]}
+              value={formData.escrowDonation}
+              onChange={(val) =>
+                setFormData({ ...formData, escrowDonation: val })
+              }
+            />
+            <RadioGroup
+              label="How much would you be willing to donate?"
+              options={[
+                "$10-$50",
+                "$51-$100",
+                "$101-$200",
+                "$201-$300",
+                "$301-$400",
+                "$401-$500",
+              ]}
+              value={formData.charityDonation}
+              onChange={(val) =>
+                setFormData({ ...formData, charityDonation: val })
+              }
+            />
+          </>
+        );
+      default:
+        return null;
+    }
+  };
 
-        <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto py-8 space-y-8">
-          {/* Meeting Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl font-light">
-                <span>Dear </span>
-                <span className="text-[#2C514C] font-medium">
-                  <strong>Cooper Dorwart</strong>
-                </span>
-              </CardTitle>
-              <CardDescription className="text-xl">
-                You have received a meeting request from [Sales Rep's Name], who
-                is interested in connecting with you. Please review the details
-                below and choose to accept or decline the request.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-xl">
-              <div>
-                <p className="font-medium">Sales Rep Details:</p>
-                <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>Name: John</li>
-                  <li>Email: email@gmail.com</li>
-                  <li>
-                    Proposed Donation: <strong>$100</strong>
-                  </li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
+  return (
+    <div className="max-w-7xl mx-auto p-8 bg-white mt-10 relative overflow-hidden flex flex-col justify-between gap-10">
+      {/* Progress bar */}
+      <div className="w-full h-2 bg-[rgba(75,70,92,0.08)] rounded-full overflow-hidden mb-8">
+        <motion.div
+          className="h-full"
+          style={{ backgroundColor: "rgba(44, 81, 76, 1)" }}
+          initial={{ width: 0 }}
+          animate={{ width: `${progressWidth}%` }}
+          transition={{ duration: 0.4 }}
+        />
+      </div>
 
-          {/* Survey Form */}
-          <Card>
-            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <CardTitle className="text-xl">Survey From Sales Rep</CardTitle>
-              </div>
-              <Button
-                variant="default"
-                className="bg-[#2C514C] hover:bg-transparent cursor-pointer border-2 border-[#2C514C] text-white hover:text-[#2C514C]"
+      {/* Form */}
+      <form onSubmit={handleSubmit}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-6"
+          >
+            {renderCurrentTab()}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Buttons */}
+        <div className="flex justify-between mt-10 flex-wrap gap-4">
+          <button
+            type="button"
+            onClick={handleBack}
+            disabled={isFirstTab}
+            className="px-6 py-3 rounded-lg bg-[rgba(44,81,76,1)] text-white hover:bg-gray-400 disabled:opacity-50 transition cursor-pointer flex items-center justify-center"
+          >
+            <ChevronLeft size={16} className="mr-2" />
+            Back
+          </button>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              className="px-6 py-3 rounded-lg bg-[#f0f0f0] text-gray-700 hover:bg-[#e0e0e0] transition cursor-pointer"
+            >
+              Save Draft
+            </button>
+            {isLastTab ? (
+              <button
+                type="submit"
+                className="px-6 py-3 rounded-lg text-white transition cursor-pointer"
+                style={{ backgroundColor: "rgba(44, 81, 76, 1)" }}
               >
-                Survey Score 9/10
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              {/* Open-Ended Questions */}
-              <div>
-                <h3 className="text-[23px] font-semibold mb-2">
-                  Open-Ended Questions
-                </h3>
-                <div className="grid gap-6">
-                  <div>
-                    <Label>Description of your solution</Label>
-                    <Textarea
-                      placeholder="Describe your solution..."
-                      className="mt-2"
-                    />
-                  </div>
-                  <div>
-                    <Label>Describe your solution and key features</Label>
-                    <Textarea
-                      placeholder="Describe key features..."
-                      className="mt-2"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Closed-Ended Questions */}
-              <div className="pt-6 border-t">
-                <h3 className="text-lg font-semibold mb-4">
-                  Closed-Ended Questions
-                </h3>
-                <div className="grid gap-6">
-                  {/* Specific Business Problem */}
-                  <div>
-                    <Label>
-                      What specific business problem does your solution address?
-                    </Label>
-                    <div className="flex flex-col gap-2 mt-2">
-                      {[
-                        "Reducing operational costs",
-                        "Increasing revenue",
-                        "Enhancing customer experience",
-                        "Improving productivity/efficiency",
-                        "Regulatory compliance",
-                      ].map((problem, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <Checkbox id={`problem-${index}`} />
-                          <Label
-                            htmlFor={`problem-${index}`}
-                            className="text-gray-500"
-                          >
-                            {problem}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Time to See Results */}
-                  <div>
-                    <Label>
-                      How long does it typically take for clients to see results
-                      with your solution?
-                    </Label>
-                    <RadioGroup className="mt-2">
-                      {[
-                        "Over 12 months",
-                        "6-12 months",
-                        "3-6 months",
-                        "1-3 months",
-                        "Immediate",
-                      ].map((time, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem value={time} id={`time-${index}`} />
-                          <Label
-                            htmlFor={`time-${index}`}
-                            className="text-gray-500"
-                          >
-                            {time}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  {/* Case Studies */}
-                  <div>
-                    <Label>
-                      Do you have proven results or case studies in my industry
-                      that you would be willing to provide?
-                    </Label>
-                    <RadioGroup className="mt-2">
-                      {[
-                        "No case studies available",
-                        "One relevant case study",
-                        "Multiple relevant case studies",
-                      ].map((study, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem value={study} id={`study-${index}`} />
-                          <Label
-                            htmlFor={`study-${index}`}
-                            className="text-gray-500"
-                          >
-                            {study}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  {/* Offering Summary */}
-                  <div>
-                    <Label>How would you summarize your offering?</Label>
-                    <RadioGroup className="mt-2">
-                      {[
-                        "Product",
-                        "Service",
-                        "Consulting/Advisory",
-                        "Comprehensive Solution",
-                      ].map((offer, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem value={offer} id={`offer-${index}`} />
-                          <Label
-                            htmlFor={`offer-${index}`}
-                            className="text-gray-500"
-                          >
-                            {offer}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  {/* Performance Guarantee */}
-                  <div>
-                    <Label>
-                      Are you willing to offer a performance-based guarantee or
-                      proof of concept?
-                    </Label>
-                    <RadioGroup className="mt-2">
-                      {[
-                        "No",
-                        "Yes, but with conditions",
-                        "Yes, unconditionally",
-                      ].map((guarantee, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem
-                            value={guarantee}
-                            id={`guarantee-${index}`}
-                          />
-                          <Label
-                            htmlFor={`guarantee-${index}`}
-                            className="text-gray-500"
-                          >
-                            {guarantee}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  {/* Donation Willingness */}
-                  <div>
-                    <Label>
-                      Are you willing to make a donation to my favorite charity
-                      if a meeting is accepted?
-                    </Label>
-                    <RadioGroup className="mt-2">
-                      {["Yes", "No"].map((donation, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem
-                            value={donation}
-                            id={`donation-${index}`}
-                          />
-                          <Label
-                            htmlFor={`donation-${index}`}
-                            className="text-gray-500"
-                          >
-                            {donation}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  {/* Escrow Willingness */}
-                  <div>
-                    <Label>
-                      Would you be willing to escrow this donation amount to be
-                      released after the meeting takes place?
-                    </Label>
-                    <RadioGroup className="mt-2">
-                      {["Yes", "No"].map((escrow, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem
-                            value={escrow}
-                            id={`escrow-${index}`}
-                          />
-                          <Label
-                            htmlFor={`escrow-${index}`}
-                            className="text-gray-500"
-                          >
-                            {escrow}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  {/* Donation Amount */}
-                  <div>
-                    <Label>How much would you be willing to donate?</Label>
-                    <RadioGroup className="mt-2">
-                      {[
-                        "$10-$50",
-                        "$51-$100",
-                        "$101-$200",
-                        "$201-$300",
-                        "$301-$500",
-                        "Over $500",
-                      ].map((amount, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem
-                            value={amount}
-                            id={`amount-${index}`}
-                          />
-                          <Label
-                            htmlFor={`amount-${index}`}
-                            className="text-gray-500"
-                          >
-                            {amount}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex justify-end pt-6">
-                <Button className="bg-[#2C514C] hover:bg-transparent cursor-pointer border-2 border-[#2C514C] text-white hover:text-[#2C514C]">
-                  Submit Survey
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                Submit
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleNext}
+                className="px-6 py-3 rounded-lg text-white transition cursor-pointer flex items-center justify-center"
+                style={{ backgroundColor: "rgba(44, 81, 76, 1)" }}
+              >
+                Next <ChevronRight size={16} className="ml-2" />
+              </button>
+            )}
+          </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </form>
+    </div>
   );
-}
+};
+
+// Input field component
+const InputField = ({ label, type, icon, value, onChange }) => (
+  <div className="space-y-2">
+    <label
+      className="block font-semibold"
+      style={{ color: "rgba(65, 62, 94, 1)", fontSize: "18px" }}
+    >
+      {label}
+    </label>
+    <div className="relative">
+      <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-[#2C514C]">
+        {icon}
+      </span>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none"
+      />
+    </div>
+  </div>
+);
+
+// TextArea field component
+const TextAreaField = ({ label, value, onChange }) => (
+  <div className="space-y-2">
+    <label
+      className="block font-semibold"
+      style={{ color: "rgba(65, 62, 94, 1)", fontSize: "18px" }}
+    >
+      {label}
+    </label>
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      rows={5}
+      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none"
+    />
+  </div>
+);
+
+// Radio group component
+const RadioGroup = ({ label, options, value, onChange }) => (
+  <div className="space-y-2">
+    <label
+      className="block font-medium"
+      style={{ color: "rgba(33, 37, 41, 1)", fontSize: "16px" }}
+    >
+      {label}
+    </label>
+    <div className="space-y-2">
+      {options.map((option) => (
+        <div key={option} className="flex items-center">
+          <input
+            type="radio"
+            id={option}
+            name={label}
+            value={option}
+            checked={value === option}
+            onChange={(e) => onChange(e.target.value)}
+            className="h-4 w-4 text-[rgba(112,122,136,1)] border-gray-900"
+          />
+          <label
+            htmlFor={option}
+            className="ml-3 text-sm text-[rgba(112,122,136,1)] cursor-pointer"
+          >
+            {option}
+          </label>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+export default SurveyForm;

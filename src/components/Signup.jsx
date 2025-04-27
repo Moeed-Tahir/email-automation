@@ -377,26 +377,29 @@ const SignupFlow = () => {
 
                   <div className="md:space-y-6 lg:space-y-5">
                     <div className="space-y-2">
-                      <Label className="text-base sm:text-lg font-medium">
+                      {/* <Label className="text-base sm:text-lg font-medium">
                         Describe your solution and its key features.
-                      </Label>
+                      </Label> */}
                       <Textarea
                         className="w-full min-h-[100px] resize-none text-base sm:text-lg p-4 focus-visible:ring-0"
                         onChange={handleInputChange}
                         value={formData.motivation}
                         name="motivation"
-                        placeholder="Enter your response here..."
+                        placeholder="Enter an open-ended question here..."
                         rows={4}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-base sm:text-lg font-medium">
+                      {/* <Label className="text-base sm:text-lg font-medium">
                         What motivated you to participate in this program?
-                      </Label>
+                      </Label> */}
                       <Textarea
                         className="w-full min-h-[100px] resize-none text-base sm:text-lg p-4 focus-visible:ring-0"
-                        placeholder="Enter your response here..."
+                        placeholder="Enter an open-ended question here..."
+                        onChange={handleInputChange}
+                        value={formData.howHeard}
+                        name="howHeard"
                         rows={4}
                       />
                     </div>
