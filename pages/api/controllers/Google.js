@@ -5,7 +5,7 @@ const connectToDatabase = require('../lib/db');
 
 const CLIENT_ID = process.env.CLIENT_ID || '34860616241-1kcc767m6k6isr2tnmpq4levhjb5lm7k.apps.googleusercontent.com';
 const CLIENT_SECRET = process.env.CLIENT_SECRET || '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';
-const REDIRECT_URI = 'https://email-automation-ivory.vercel.app/api/routes/Google?action=handleOAuth2Callback';
+const REDIRECT_URI = 'http://localhost:3000/api/routes/Google?action=handleOAuth2Callback';
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   throw new Error('Missing required environment variables: CLIENT_ID and CLIENT_SECRET');
@@ -72,11 +72,11 @@ exports.handleOAuth2Callback = async (req, res) => {
     await user.save();
     startEmailMonitoring(userEmail);
 
-    res.redirect(`https://email-automation-ivory.vercel.app/login/?currentStep=3`);
+    res.redirect(`http://localhost:3000/login/?currentStep=3`);
 
   } catch (error) {
     console.error('OAuth2 Error:', error);
-    res.redirect(`https://email-automation-ivory.vercel.app/auth-error?message=${encodeURIComponent(error.message)}`);
+    res.redirect(`http://localhost:3000/auth-error?message=${encodeURIComponent(error.message)}`);
 
   }
 };
@@ -85,7 +85,7 @@ async function refreshAccessTokenIfNeeded(tokens) {
   const oAuth2Client = new google.auth.OAuth2(
     CLIENT_ID,
     CLIENT_SECRET,
-    'https://email-automation-ivory.vercel.app/api/routes/Google?action=handleOAuth2Callback'
+    'http://localhost:3000/api/routes/Google?action=handleOAuth2Callback'
   );
 
   oAuth2Client.setCredentials({
@@ -340,7 +340,7 @@ async function checkAndProcessEmails(userEmail) {
             console.log(`Processing email from ${fromEmail} with subject: ${messageData.data.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)'
               }`);
 
-            await sendResponseEmail(userEmail, fromEmail, tokens);
+            await sendResponseEmail(userEmail, fromEmail, tokens,user.userId);
 
             await gmail.users.messages.modify({
               userId: 'me',
@@ -360,7 +360,7 @@ async function checkAndProcessEmails(userEmail) {
   }
 }
 
-async function sendResponseEmail(userEmail, toEmail, tokens) {
+async function sendResponseEmail(userEmail, toEmail, tokens,userId) {
   try {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -378,7 +378,7 @@ async function sendResponseEmail(userEmail, toEmail, tokens) {
       from: userEmail,
       to: toEmail,
       subject: 'Re: Hello World',
-      text: 'Thank you for your email containing "Hello World". This is an automated response.',
+      text: `This is the survey Form http://localhost:3000/survey-form/${userId}`,
     };
 
     await transporter.sendMail(mailOptions);

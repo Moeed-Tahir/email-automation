@@ -12,8 +12,10 @@ import {
 import Image from "next/image";
 import DashboardTable from "@/components/dashboard-table";
 import Link from "next/link";
+import Cookies from "js-cookie";
 
 export default function Page() {
+  const userId = Cookies.get("UserId");
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -159,7 +161,7 @@ export default function Page() {
                 <Link href="/bidding-requests"> View All </Link>
               </Button>
             </div>
-            <DashboardTable />
+            <DashboardTable userId={userId} />
           </div>
         </div>
       </SidebarInset>

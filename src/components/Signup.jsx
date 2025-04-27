@@ -71,7 +71,7 @@ const SignupFlow = () => {
 
     if (code) {
       axios
-        .get("https://email-automation-ivory.vercel.app/api/routes/LinkedIn", {
+        .get("http://localhost:3000/api/routes/LinkedIn", {
           params: {
             action: "linkedInCallback",
             code: code,
@@ -158,7 +158,7 @@ const SignupFlow = () => {
       case 2:
         const handleGmailAuth = () => {
           const email = Cookies.get("userEmail");
-          window.location.href = `https://email-automation-ivory.vercel.app/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
+          window.location.href = `http://localhost:3000/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
         };
 
         return (

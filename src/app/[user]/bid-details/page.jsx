@@ -22,8 +22,53 @@ import {
 } from "@/components/ui/sidebar";
 import { BellIcon } from "lucide-react";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function MeetingRequest() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId");
+  const [surveyData, setSurveyData] = useState(null);
+
+  useEffect(() => {
+    const fetchSurveyData = async () => {
+      if (userId) {
+        try {
+          const response = await axios.get(`/api/routes/SurvayForm`, {
+            params: {
+              action: "fetchSurvayData",
+              userId: userId,
+            },
+          });
+
+          if (response.data.success) {
+            setSurveyData(response.data.data[0] || null);
+          } else {
+            console.error("Failed to fetch survey data:", response.data.message);
+          }
+        } catch (error) {
+          console.error("Error fetching survey data:", error);
+        }
+      }
+    };
+
+    fetchSurveyData();
+  }, [userId]);
+
+  if (!surveyData) {
+    return <div>Loading...</div>;
+  }
+
+  const businessProblems = [
+    "Reducing operational costs",
+    "Increasing revenue",
+    "Enhancing customer experience",
+    "Improving productivity/efficiency",
+    "Regulatory compliance",
+  ];
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -69,7 +114,6 @@ export default function MeetingRequest() {
         </nav>
 
         <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto py-8 space-y-8">
-          {/* Meeting Info */}
           <Card>
             <CardHeader>
               <CardTitle className="text-xl font-light">
@@ -79,7 +123,7 @@ export default function MeetingRequest() {
                 </span>
               </CardTitle>
               <CardDescription className="text-xl">
-                You have received a meeting request from [Sales Rep's Name], who
+                You have received a meeting request from {surveyData.name}, who
                 is interested in connecting with you. Please review the details
                 below and choose to accept or decline the request.
               </CardDescription>
@@ -88,10 +132,10 @@ export default function MeetingRequest() {
               <div>
                 <p className="font-medium">Sales Rep Details:</p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
-                  <li>Name: John</li>
-                  <li>Email: email@gmail.com</li>
+                  <li>Name: {surveyData.name}</li>
+                  <li>Email: {surveyData.email}</li>
                   <li>
-                    Proposed Donation: <strong>$100</strong>
+                    Proposed Donation: <strong>${surveyData.bidAmount}</strong>
                   </li>
                 </ul>
               </div>
@@ -123,6 +167,8 @@ export default function MeetingRequest() {
                     <Textarea
                       placeholder="Describe your solution..."
                       className="mt-2"
+                      value={surveyData.questionOneSolution}
+                      readOnly
                     />
                   </div>
                   <div>
@@ -130,6 +176,8 @@ export default function MeetingRequest() {
                     <Textarea
                       placeholder="Describe key features..."
                       className="mt-2"
+                      value={surveyData.questionTwoSolution}
+                      readOnly
                     />
                   </div>
                 </div>
@@ -147,15 +195,13 @@ export default function MeetingRequest() {
                       What specific business problem does your solution address?
                     </Label>
                     <div className="flex flex-col gap-2 mt-2">
-                      {[
-                        "Reducing operational costs",
-                        "Increasing revenue",
-                        "Enhancing customer experience",
-                        "Improving productivity/efficiency",
-                        "Regulatory compliance",
-                      ].map((problem, index) => (
+                      {businessProblems.map((problem, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <Checkbox id={`problem-${index}`} />
+                          <Checkbox 
+                            id={`problem-${index}`} 
+                            checked={surveyData.businessProblems?.includes(problem)}
+                            disabled
+                          />
                           <Label
                             htmlFor={`problem-${index}`}
                             className="text-gray-500"
@@ -173,7 +219,7 @@ export default function MeetingRequest() {
                       How long does it typically take for clients to see results
                       with your solution?
                     </Label>
-                    <RadioGroup className="mt-2">
+                    <RadioGroup className="mt-2" value={surveyData.resultsTimeframe}>
                       {[
                         "Over 12 months",
                         "6-12 months",
@@ -182,7 +228,11 @@ export default function MeetingRequest() {
                         "Immediate",
                       ].map((time, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem value={time} id={`time-${index}`} />
+                          <RadioGroupItem 
+                            value={time} 
+                            id={`time-${index}`} 
+                            disabled
+                          />
                           <Label
                             htmlFor={`time-${index}`}
                             className="text-gray-500"
@@ -200,14 +250,18 @@ export default function MeetingRequest() {
                       Do you have proven results or case studies in my industry
                       that you would be willing to provide?
                     </Label>
-                    <RadioGroup className="mt-2">
+                    <RadioGroup className="mt-2" value={surveyData.caseStudies}>
                       {[
                         "No case studies available",
                         "One relevant case study",
                         "Multiple relevant case studies",
                       ].map((study, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem value={study} id={`study-${index}`} />
+                          <RadioGroupItem 
+                            value={study} 
+                            id={`study-${index}`} 
+                            disabled
+                          />
                           <Label
                             htmlFor={`study-${index}`}
                             className="text-gray-500"
@@ -222,7 +276,7 @@ export default function MeetingRequest() {
                   {/* Offering Summary */}
                   <div>
                     <Label>How would you summarize your offering?</Label>
-                    <RadioGroup className="mt-2">
+                    <RadioGroup className="mt-2" value={surveyData.offeringType}>
                       {[
                         "Product",
                         "Service",
@@ -230,7 +284,11 @@ export default function MeetingRequest() {
                         "Comprehensive Solution",
                       ].map((offer, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <RadioGroupItem value={offer} id={`offer-${index}`} />
+                          <RadioGroupItem 
+                            value={offer} 
+                            id={`offer-${index}`} 
+                            disabled
+                          />
                           <Label
                             htmlFor={`offer-${index}`}
                             className="text-gray-500"
@@ -248,7 +306,7 @@ export default function MeetingRequest() {
                       Are you willing to offer a performance-based guarantee or
                       proof of concept?
                     </Label>
-                    <RadioGroup className="mt-2">
+                    <RadioGroup className="mt-2" value={surveyData.performanceGuarantee}>
                       {[
                         "No",
                         "Yes, but with conditions",
@@ -258,6 +316,7 @@ export default function MeetingRequest() {
                           <RadioGroupItem
                             value={guarantee}
                             id={`guarantee-${index}`}
+                            disabled
                           />
                           <Label
                             htmlFor={`guarantee-${index}`}
@@ -276,12 +335,13 @@ export default function MeetingRequest() {
                       Are you willing to make a donation to my favorite charity
                       if a meeting is accepted?
                     </Label>
-                    <RadioGroup className="mt-2">
+                    <RadioGroup className="mt-2" value={surveyData.DonationWilling}>
                       {["Yes", "No"].map((donation, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <RadioGroupItem
                             value={donation}
                             id={`donation-${index}`}
+                            disabled
                           />
                           <Label
                             htmlFor={`donation-${index}`}
@@ -300,12 +360,13 @@ export default function MeetingRequest() {
                       Would you be willing to escrow this donation amount to be
                       released after the meeting takes place?
                     </Label>
-                    <RadioGroup className="mt-2">
+                    <RadioGroup className="mt-2" value={surveyData.escrowDonation}>
                       {["Yes", "No"].map((escrow, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <RadioGroupItem
                             value={escrow}
                             id={`escrow-${index}`}
+                            disabled
                           />
                           <Label
                             htmlFor={`escrow-${index}`}
@@ -321,7 +382,7 @@ export default function MeetingRequest() {
                   {/* Donation Amount */}
                   <div>
                     <Label>How much would you be willing to donate?</Label>
-                    <RadioGroup className="mt-2">
+                    <RadioGroup className="mt-2" value={surveyData.charityDonation}>
                       {[
                         "$10-$50",
                         "$51-$100",
@@ -334,6 +395,7 @@ export default function MeetingRequest() {
                           <RadioGroupItem
                             value={amount}
                             id={`amount-${index}`}
+                            disabled
                           />
                           <Label
                             htmlFor={`amount-${index}`}
@@ -348,10 +410,19 @@ export default function MeetingRequest() {
                 </div>
               </div>
 
-              {/* Submit Button */}
-              <div className="flex justify-end pt-6">
-                <Button className="bg-[#2C514C] hover:bg-transparent cursor-pointer border-2 border-[#2C514C] text-white hover:text-[#2C514C]">
-                  Submit Survey
+              {/* Action Buttons */}
+              <div className="flex justify-end pt-6 gap-4">
+                <Button 
+                  className="bg-red-500 hover:bg-transparent cursor-pointer border-2 border-red-500 text-white hover:text-red-500"
+                  onClick={() => router.push('/')}
+                >
+                  Decline Request
+                </Button>
+                <Button 
+                  className="bg-[#2C514C] hover:bg-transparent cursor-pointer border-2 border-[#2C514C] text-white hover:text-[#2C514C]"
+                  onClick={() => router.push('/')}
+                >
+                  Accept Request
                 </Button>
               </div>
             </CardContent>

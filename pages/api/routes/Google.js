@@ -8,7 +8,6 @@ import {
 } from "../controllers/Google";
 
 export default async function handler(req, res) {
-    console.log("METHOD:", req.method);
 
     const { action } = req.query;
 

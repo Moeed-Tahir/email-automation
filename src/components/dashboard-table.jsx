@@ -21,16 +21,66 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownWideNarrow, ChevronsUpDown, FunnelIcon } from "lucide-react";
 import { data } from "../lib/constant";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
-const DashboardTable = () => {
+const DashboardTable = ({ userId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [statusFilters, setStatusFilters] = useState([]);
   const [_, setShowSortMenu] = useState(false);
   const itemsPerPage = 8;
+  const router = useRouter();
+  const [existingSurveys, setExistingSurveys] = useState([]);
+
+  useEffect(() => {
+    const fetchExistingSurveys = async () => {
+      try {
+        const response = await axios.get(`/api/routes/SurvayForm`, {
+          params: {
+            action: "fetchSurvayData",
+            userId: userId
+          }
+        });
+
+        if (response.data.success) {
+          setExistingSurveys(response.data.data || []);
+
+          if (response.data.data && response.data.data.length > 0) {
+            const latestSurvey = response.data.data[0];
+            setFormData({
+              bidAmount: latestSurvey.bidAmount || "",
+              name: latestSurvey.name || "",
+              email: latestSurvey.email || "",
+              solutionDescription: latestSurvey.questionOneSolution || "",
+              businessChallengeSolution: latestSurvey.questionTwoSolution || "",
+              businessProblem: latestSurvey.businessProblem || "",
+              resultsTimeframe: latestSurvey.resultsTimeframe || "",
+              caseStudies: latestSurvey.caseStudies || "",
+              offeringType: latestSurvey.offeringType || "",
+              performanceGuarantee: latestSurvey.performanceGuarantee || "",
+              DonationWilling: latestSurvey.DonationWilling || "",
+              escrowDonation: latestSurvey.escrowDonation || "",
+              charityDonation: latestSurvey.charityDonation || "",
+            });
+          }
+        } else {
+          console.error("API returned unsuccessful:", response.data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching existing surveys:", error);
+        if (error.response) {
+          console.error("Error response data:", error.response.data);
+        }
+      }
+    };
+
+    if (userId) {
+      fetchExistingSurveys();
+    }
+  }, [userId]);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -253,40 +303,41 @@ const DashboardTable = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentData.map((item) => (
-              <TableRow key={item.id}>
+            {existingSurveys.map((survey) => (
+              <TableRow key={survey._id}>
                 <TableCell className="min-w-[200px]">
-                  <div className="font-medium">{item.name}</div>
+                  <div className="font-medium">{survey.name}</div>
                   <div className="text-sm text-muted-foreground">
-                    {item.email}
+                    {survey.email}
                   </div>
                 </TableCell>
-                <TableCell className="min-w-[150px]">{item.date}</TableCell>
-                <TableCell className="min-w-[120px]">{item.score}</TableCell>
+                <TableCell className="min-w-[150px]">{new Date(survey.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell className="min-w-[120px]">{survey.bidAmount}</TableCell>
                 <TableCell className="min-w-[120px]">
                   <Badge
                     variant="outline"
                     className="bg-gray-200 p-2 px-3 rounded-sm"
                   >
-                    {item.bid}
+                    {survey.bidAmount}
                   </Badge>
                 </TableCell>
                 <TableCell className="min-w-[150px]">
-                  {getStatusBadge(item.status)}
+                  {getStatusBadge(survey.DonationWilling ? "Accept" : "Reject")}
                 </TableCell>
-                <TableCell className=" min-w-[300px] lg:min-w-[250px] flex flex-wrap gap-2">
+                <TableCell className="min-w-[300px] lg:min-w-[250px] flex flex-wrap gap-2">
                   <Button
                     size="sm"
+                    onClick={() => router.push(`/${survey.userId}/bid-details?userId=${survey.userId}`)}
                     className="bg-[#FF950029] text-[#FF9500] hover:bg-[#FF950029] hover:text-[#FF9500]"
                   >
                     View Details
                   </Button>
-                  <Button size="sm" onClick={() => handleAccept(item.email)} className="bg-[#28C76F29] text-[#28C76F]">
+                  <Button size="sm" onClick={() => handleAccept(survey.email)} className="bg-[#28C76F29] text-[#28C76F]">
                     Accept
                   </Button>
                   <Button
                     size="sm"
-                    onClick={() => handleReject(item.email)}
+                    onClick={() => handleReject(survey.email)}
                     className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA545529] hover:text-[#EA5455]"
                   >
                     Reject

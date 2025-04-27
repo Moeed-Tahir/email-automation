@@ -8,6 +8,10 @@ const protectedPaths = [
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   const userEmail = request.cookies.get('userEmail')?.value;
   const userId = request.cookies.get('UserId')?.value;
   const token = request.cookies.get('Token')?.value;
@@ -29,6 +33,7 @@ export function middleware(request) {
 
 export const config = {
   matcher: [
+    '/',
     '/:userId/dashboard',
     '/:userId/bidding-requests',
     '/login'
