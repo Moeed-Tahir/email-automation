@@ -378,7 +378,7 @@ async function sendResponseEmail(userEmail, toEmail, tokens,userId) {
       from: userEmail,
       to: toEmail,
       subject: 'Re: Hello World',
-      text: `This is the survey Form http://localhost:3000/survey-form/${userId}`,
+      text: `This is the survey Form http://localhost:3000/survay-form/${userId}`,
     };
 
     await transporter.sendMail(mailOptions);
