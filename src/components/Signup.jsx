@@ -71,7 +71,7 @@ const SignupFlow = () => {
 
     if (code) {
       axios
-        .get("http://localhost:3000/api/routes/LinkedIn", {
+        .get(`${process.env.NEXT_PUBLIC_REQUEST_URL}/api/routes/LinkedIn`, {
           params: {
             action: "linkedInCallback",
             code: code,
@@ -158,7 +158,7 @@ const SignupFlow = () => {
       case 2:
         const handleGmailAuth = () => {
           const email = Cookies.get("userEmail");
-          window.location.href = `http://localhost:3000/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
+          window.location.href = `${process.env.NEXT_PUBLIC_REQUEST_URL}/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
         };
 
         return (

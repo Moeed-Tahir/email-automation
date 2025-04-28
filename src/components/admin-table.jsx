@@ -85,38 +85,26 @@ const AdminTable = ({ tableData }) => {
     setShowSortMenu(false);
   };
 
-  const handleAccept = async (requestId, representativeEmail) => {
+  const handleAccept = async (request) => {
     try {
-      const fromEmail = Cookies.get("userEmail");
-      if (!fromEmail) {
-        throw new Error("User email not found in cookies");
-      }
+         console.log("request",request);
 
-      // First update the status in the database
-      const updateResponse = await axios.put('/api/meeting-requests', {
-        id: requestId,
-        status: "Accepted"
-      });
-
-      if (updateResponse.data.success) {
-        // Then send the acceptance email
-        const emailResponse = await axios.post('/api/routes/Google?action=sendAcceptEmailToAdmin', {
-          sendFromEmail: fromEmail,
-          sendToEmail: representativeEmail,
+        const emailResponse = await axios.post('/api/routes/Admin?action=sendAcceptEmailFromAdmin', {
+          executiveEmail: request.executiveEmail,
+          executiveName: request.executiveName,
+          salesRepresentiveEmail:request.salesRepresentiveEmail,
+          salesRepresentiveName:request.salesRepresentiveName ,
+          objectId:request._id,
+          donation:request.donation,
+          userId:request.userId
         });
 
         if (emailResponse.data.message) {
           alert('Meeting request accepted successfully');
-          // Update local state to reflect acceptance
-          setExistingSurveys(prev => prev.map(item => 
-            item._id === requestId ? { ...item, status: "Accepted" } : item
-          ));
         } else {
           throw new Error(emailResponse.data.message || 'Failed to send acceptance email');
         }
-      } else {
-        throw new Error(updateResponse.data.message || 'Failed to update request status');
-      }
+      
     } catch (error) {
       console.error('Error accepting request:', error);
       alert('Failed to accept request');
@@ -137,7 +125,6 @@ const AdminTable = ({ tableData }) => {
       });
 
       if (updateResponse.data.success) {
-        // Then send the rejection email
         const emailResponse = await axios.post('/api/routes/Google?action=sendRejectEmailToAdmin', {
           sendFromEmail: fromEmail,
           sendToEmail: representativeEmail,
@@ -145,7 +132,6 @@ const AdminTable = ({ tableData }) => {
 
         if (emailResponse.data.message) {
           alert('Meeting request rejected successfully');
-          // Update local state to reflect rejection
           setExistingSurveys(prev => prev.map(item => 
             item._id === requestId ? { ...item, status: "Rejected" } : item
           ));
@@ -338,7 +324,7 @@ const AdminTable = ({ tableData }) => {
                   ${request.donation}
                 </TableCell>
                 <TableCell className="min-w-[150px]">
-                  {getStatusBadge(request.status || "Pending")}
+                  {request.status || "Pending"}
                 </TableCell>
                 <TableCell className="min-w-[250px] flex flex-wrap gap-2">
                   {request.receiptFormLink && (
@@ -357,7 +343,7 @@ const AdminTable = ({ tableData }) => {
                   <Button 
                     size="sm" 
                     className="gap-1 bg-[#28C76F29] text-[#28C76F] hover:bg-[#28C76F29]"
-                    onClick={() => handleAccept(request._id, request.salesRepresentiveEmail)}
+                    onClick={() => handleAccept(request)}
                     disabled={request.status === "Accepted"}
                   >
                     <Check className="h-4 w-4" />

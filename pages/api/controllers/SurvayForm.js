@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const User = require("../models/User");
 const SurvayForm = require("../models/SurvayForm");
 const connectToDatabase = require("../lib/db");
+const nodemailer = require('nodemailer');
+const dotenv = require("dotenv");
+dotenv.config();
 
 const getQuestionFromUserId = async (req, res) => {
     try {
@@ -72,7 +75,7 @@ const sendSurvayForm = async (req, res) => {
 
         const newSurvey = new SurvayForm(surveyData);
         await newSurvey.save();
-
+        sendEmailFromCompany(email)
         return res.status(201).json({
             message: "Survey submitted successfully",
             data: newSurvey
@@ -80,6 +83,88 @@ const sendSurvayForm = async (req, res) => {
     } catch (error) {
         console.error("Error submitting survey:", error);
         return res.status(500).json({ message: "Server error" });
+    }
+};
+
+const sendEmailFromCompany = async (sendEmailTo) => {
+    try {
+
+        if (!sendEmailTo) {
+            return res.status(400).json({ message: "sendEmailTo are required" });
+        }
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'moeedtahir29@gmail.com',
+                pass: 'bdam zyum ygcv ntqq',
+            },
+        });
+
+        const mailOptions = {
+            from: 'Email-Automation',
+            to: sendEmailTo,
+            subject: 'Thank You for Completing the Survey!',
+            html: `
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+              <tr>
+                <td align="center">
+                  <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+                    
+                    <tr>
+                      <td align="left" style="padding: 20px;">
+                        <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
+                      </td>
+                    </tr>
+        
+                    <tr>
+                      <td style="padding: 0 20px;">
+                        <h1 style="font-size: 22px; font-weight: 600; color: #2D3748; padding-bottom: 10px; margin: 0;">
+                          Thank You!
+                        </h1>
+                      </td>
+                    </tr>
+        
+                    <tr>
+                      <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                        <p>Hi,</p>
+                        <p>Thank you for taking the time to complete our survey. Your feedback is greatly appreciated!</p>
+                      </td>
+                    </tr>
+        
+                  </table>
+        
+                  <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
+                    <tr>
+                      <td align="center" style="font-size: 12px; color: #A0AEC0;">
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                          <tr>
+                            <td align="left">
+                              <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
+                            </td>
+                            <td align="right">
+                              <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                              <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                              <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+        
+                </td>
+              </tr>
+            </table>
+          `
+        };
+
+
+        await transporter.sendMail(mailOptions);
+
+    } catch (error) {
+        console.error("Error sending email:", error);
+        res.status(500).json({ message: "Failed to send email", error: error.message });
     }
 };
 
@@ -125,21 +210,21 @@ const fetchSurvayData = async (req, res) => {
 const getBidInfo = async (req, res) => {
     try {
         const allBids = await mongoose.models.SurvayForm.find({});
-        
+
         const validBids = allBids.filter(bid => bid.bidAmount && !isNaN(parseFloat(bid.bidAmount)));
-        
+
         const totalBidAmount = validBids.reduce((sum, bid) => sum + parseFloat(bid.bidAmount), 0);
-        
-        const highestBid = validBids.length > 0 
+
+        const highestBid = validBids.length > 0
             ? Math.max(...validBids.map(bid => parseFloat(bid.bidAmount)))
             : 0;
-        
-        const averageBid = validBids.length > 0 
-            ? totalBidAmount / validBids.length 
+
+        const averageBid = validBids.length > 0
+            ? totalBidAmount / validBids.length
             : 0;
-        
+
         const pendingBidsCount = allBids.filter(bid => bid.status === "Pending").length;
-        
+
         const response = {
             totalBidAmount: totalBidAmount.toFixed(2),
             highestBidAmount: highestBid.toFixed(2),
@@ -148,7 +233,7 @@ const getBidInfo = async (req, res) => {
             totalBidsCount: allBids.length,
             validBidsCount: validBids.length
         };
-        
+
         res.status(200).json(response);
     } catch (error) {
         console.error("Error fetching bid information:", error);
@@ -156,4 +241,5 @@ const getBidInfo = async (req, res) => {
     }
 };
 
-module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData,getBidInfo };
+
+module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData, getBidInfo };

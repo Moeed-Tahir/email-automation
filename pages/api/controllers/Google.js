@@ -2,12 +2,14 @@ const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const SurvayForm = require('../models/SurvayForm');
+const dotenv = require("dotenv");
+dotenv.config();
 
 const connectToDatabase = require('../lib/db');
 
-const CLIENT_ID = process.env.CLIENT_ID || '34860616241-1kcc767m6k6isr2tnmpq4levhjb5lm7k.apps.googleusercontent.com';
-const CLIENT_SECRET = process.env.CLIENT_SECRET || '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';
-const REDIRECT_URI = 'http://localhost:3000/api/routes/Google?action=handleOAuth2Callback';
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID ;
+const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const REDIRECT_URI = `${process.env.REQUEST_URL}/api/routes/Google?action=handleOAuth2Callback`;
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   throw new Error('Missing required environment variables: CLIENT_ID and CLIENT_SECRET');
@@ -74,11 +76,11 @@ exports.handleOAuth2Callback = async (req, res) => {
     await user.save();
     startEmailMonitoring(userEmail);
 
-    res.redirect(`http://localhost:3000/login/?currentStep=3`);
+    res.redirect(`${process.env.REQUEST_URL}/login/?currentStep=3`);
 
   } catch (error) {
     console.error('OAuth2 Error:', error);
-    res.redirect(`http://localhost:3000/auth-error?message=${encodeURIComponent(error.message)}`);
+    res.redirect(`${process.env.REQUEST_URL}/auth-error?message=${encodeURIComponent(error.message)}`);
 
   }
 };
@@ -87,7 +89,7 @@ async function refreshAccessTokenIfNeeded(tokens) {
   const oAuth2Client = new google.auth.OAuth2(
     CLIENT_ID,
     CLIENT_SECRET,
-    'http://localhost:3000/api/routes/Google?action=handleOAuth2Callback'
+    `${process.env.REQUEST_URL}/api/routes/Google?action=handleOAuth2Callback`
   );
 
   oAuth2Client.setCredentials({
@@ -261,7 +263,7 @@ async function startEmailMonitoring(userEmail) {
     } catch (error) {
       console.error(`Error in email monitoring for ${userEmail}:`, error);
     }
-  }, 3 * 60 * 1000);
+  }, 1 * 60 * 1000);
 
   await checkAndProcessEmails(userEmail);
 }
@@ -413,7 +415,7 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
                 <!-- Button -->
                 <tr>
                   <td align="center" style="padding: 20px;">
-                    <a href="http://localhost:3000/survay-form/\${userId}" 
+                    <a href=${process.env.REQUEST_URL}/survay-form/${userId}?userId=${userId}"
                        style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
                       Complete Survey
                     </a>
@@ -447,7 +449,7 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
         </table>
       `
     };
-    
+
 
     await transporter.sendMail(mailOptions);
     console.log(`Sent response email from ${userEmail} to ${toEmail}`);
@@ -573,7 +575,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                 <!-- Button -->
                 <tr>
                   <td align="center" style="padding: 20px;">
-                    <a href=http://localhost:3000/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}
+                    <a href=${process.env.REQUEST_URL}/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}
                        style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
                       Upload Receipt
                     </a>
@@ -672,8 +674,58 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
     const mailOptions = {
       from: sendFromEmail,
       to: sendToEmail,
-      subject: "This is the Reject Subject",
-      text: "This is the Reject text",
+      subject: "Meeting Rejected with Micheal",
+      html: `
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+                <!-- Logo -->
+                <tr>
+                  <td align="left" style="padding: 20px;">
+                    <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
+                  </td>
+                </tr>
+    
+                <!-- Heading -->
+                <tr>
+                  <td style="padding: 0 20px;">
+                    <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
+                      Meeting Rejected with Micheal
+                    </h1>
+                  </td>
+                </tr>
+    
+                <!-- Message -->
+                <tr>
+            </tr>
+  
+              </table>
+    
+              <!-- Footer -->
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
+                <tr>
+                  <td align="center" style="font-size: 12px; color: #A0AEC0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="left">
+                          <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
+                        </td>
+                        <td align="right">
+                          <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+    
+            </td>
+          </tr>
+        </table>
+      `
     };
 
     await transporter.sendMail(mailOptions);

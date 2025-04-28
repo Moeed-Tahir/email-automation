@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const SurveyForm = ({ userId }) => {
   const [currentTab, setCurrentTab] = useState(0);
@@ -33,7 +34,7 @@ const SurveyForm = ({ userId }) => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-
+  const router = useRouter();
   const tabs = [
     { title: "Bid & Contact" },
     { title: "Solution Details" },
@@ -171,6 +172,8 @@ const SurveyForm = ({ userId }) => {
         if (response.ok) {
           const data = await response.json();
           alert("Survey submitted successfully!");
+          router.push("/login");
+          
         } else {
           console.error("Error submitting form");
           alert("Error submitting survey. Please try again.");

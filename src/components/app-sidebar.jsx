@@ -6,7 +6,7 @@ import {
   HandCoins,
   HeartHandshake,
   LayoutDashboardIcon,
-  ScrollText,
+  LogOut,
   Settings,
 } from "lucide-react";
 import Image from "next/image";
@@ -26,33 +26,31 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
+
+
+const userId = Cookies.get("UserId");
 const data = {
   dashboard: [
     {
       title: "Dashboard",
-      url: "/user/dashboard",
+      url: `/${userId}/dashboard`,
       icon: LayoutDashboardIcon,
     },
     {
       title: "Bidding Requests",
-      url: "/user/bidding-requests",
+      url: `/${userId}/bidding-requests`,
       icon: HandCoins,
     },
     {
       title: "Donations",
-      url: "#",
+      url: `/${userId}/donation`,
       icon: HeartHandshake,
-    },
-    {
-      title: "History",
-      url: "#",
-      icon: ScrollText,
     },
   ],
   settings: [
     {
       title: "Settings",
-      url: "/user/profile",
+      url: `/${userId}/profile`,
       icon: Settings,
     },
     {
@@ -63,7 +61,7 @@ const data = {
     {
       title: "Logout",
       url: "#",
-      icon: CircleHelp,
+      icon: LogOut,
     },
   ],
 };
@@ -77,7 +75,6 @@ export function AppSidebar({ ...props }) {
     Cookies.remove("userName");
     Cookies.remove("UserId");
     Cookies.remove("Token");
-    
     router.push("/login");
   };
 
@@ -92,8 +89,7 @@ export function AppSidebar({ ...props }) {
             <SidebarMenuButton asChild>
               <Link
                 href="/admin/dashboard"
-                className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors bg-white text-[#2C514C]
-                        }`}
+                className="flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors bg-white text-[#2C514C]"
               >
                 <LayoutDashboardIcon className="size-4 shrink-0" />
                 <span className="font-medium text-[16px]">Dashboard</span>
@@ -115,11 +111,10 @@ export function AppSidebar({ ...props }) {
                         <SidebarMenuItem key={i}>
                           <SidebarMenuButton
                             onClick={handleLogout}
-                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${
-                              isActive
+                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${isActive
                                 ? "bg-white text-[#2C514C]"
                                 : "text-white hover:bg-white hover:text-[#2C514C]"
-                            }`}
+                              }`}
                           >
                             <t.icon className="size-4 shrink-0" />
                             <span className="font-medium text-[16px]">
@@ -134,11 +129,10 @@ export function AppSidebar({ ...props }) {
                         <SidebarMenuButton asChild>
                           <Link
                             href={t.url}
-                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${
-                              isActive
+                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${isActive
                                 ? "bg-white text-[#2C514C]"
                                 : "text-white hover:bg-white hover:text-[#2C514C]"
-                            }`}
+                              }`}
                           >
                             <t.icon className="size-4 shrink-0" />
                             <span className="font-medium text-[16px]">

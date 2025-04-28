@@ -1,12 +1,12 @@
 "use client";
 
 import SurveyForm from '@/components/SurvayForm';
-import { useParams } from 'next/navigation';
+import {  useSearchParams } from 'next/navigation';
 
 const Page = () => {
-  const params = useParams();
-  const userId = params.userid;
-
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId");
+  
   return <SurveyForm userId={userId} />;
 };
 

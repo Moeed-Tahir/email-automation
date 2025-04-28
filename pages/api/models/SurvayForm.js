@@ -1,7 +1,13 @@
 const mongoose = require("mongoose");
+const generateRandomId = () => Math.random().toString(36).substr(2, 9);
 
 const survayFormSchema = new mongoose.Schema(
     {
+        survayId: {
+            type: String,
+            default: generateRandomId,
+            unique: true,
+        },
         userId: { type: String, required: false },
         bidAmount: { type: String, required: false },
         name: { type: String, required: false },

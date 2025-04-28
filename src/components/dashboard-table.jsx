@@ -168,7 +168,7 @@ const DashboardTable = ({ userId }) => {
 
       const response = await axios.post('/api/routes/Google?action=sendRejectEmailToAdmin', {
         sendFromEmail: fromEmail,
-        sendToEmail: representativeEmail,
+        sendToEmail: representativeEmail.email,
       });
 
       if (response.data.message) {
