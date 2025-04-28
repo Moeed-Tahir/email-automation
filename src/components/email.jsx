@@ -6,7 +6,7 @@ export default function ConfirmationPage() {
     <div className="min-h-fit flex flex-col items-center py-12 px-8 max-w-2xl mx-auto bg-[#F2F5F8]">
       {/* Logo */}
       <div className="mb-8 flex items-start justify-start w-full">
-        <img src="/Email-logo.svg" alt="Logo" className="h-10" />
+        <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" className="h-10" />
       </div>
 
       {/* Card */}
@@ -57,7 +57,7 @@ export default function ConfirmationPage() {
               <br />
               Best,
             </p>
-            <p>[Your Platform Name] Team</p>
+            <p>[Email-Automation] Team</p>
           </div>
 
           {/* Button */}
@@ -71,7 +71,7 @@ export default function ConfirmationPage() {
 
       {/* Footer */}
       <div className="flex items-center justify-between w-full max-w-2xl mt-8 text-gray-500 text-xs px-4">
-        <img src="/Email-logo.svg" alt="Footer Logo" className="h-6" />
+        <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" className="h-6" />
         <div className="flex space-x-4">
           <a href="#">
             <img src="/twitter.svg" alt="Twitter" className="h-5" />

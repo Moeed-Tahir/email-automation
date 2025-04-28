@@ -380,8 +380,74 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
       from: userEmail,
       to: toEmail,
       subject: 'Re: Hello World',
-      text: `This is the survey Form http://localhost:3000/survay-form/${userId}`,
+      html: `
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+                
+                <!-- Logo -->
+                <tr>
+                  <td align="left" style="padding: 20px;">
+                    <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
+                  </td>
+                </tr>
+    
+                <!-- Heading -->
+                <tr>
+                  <td style="padding: 0 20px;">
+                    <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
+                      Survey Form
+                    </h1>
+                  </td>
+                </tr>
+    
+                <!-- Message -->
+                <tr>
+                  <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                    <p>Hello,</p>
+                    <p>We would appreciate your feedback! Please fill out our short survey by clicking the button below:</p>
+                  </td>
+                </tr>
+    
+                <!-- Button -->
+                <tr>
+                  <td align="center" style="padding: 20px;">
+                    <a href="http://localhost:3000/survay-form/\${userId}" 
+                       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
+                      Complete Survey
+                    </a>
+                  </td>
+                </tr>
+    
+              </table>
+    
+              <!-- Footer -->
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
+                <tr>
+                  <td align="center" style="font-size: 12px; color: #A0AEC0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="left">
+                          <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
+                        </td>
+                        <td align="right">
+                          <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+    
+            </td>
+          </tr>
+        </table>
+      `
     };
+    
 
     await transporter.sendMail(mailOptions);
     console.log(`Sent response email from ${userEmail} to ${toEmail}`);
@@ -400,7 +466,7 @@ exports.stopMonitoring = (userEmail) => {
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId } = req.body;
+    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name } = req.body;
 
     const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
     if (!user) {
@@ -455,27 +521,93 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
     const mailOptions = {
       from: sendFromEmail,
       to: sendToEmail,
-      subject: "This is the Accept Subject",
+      subject: "Meeting Confirmed with Micheal",
       html: `
-        <div style="text-align: center;">
-          <p>Hello,</p>
-          <p>Click the button below to upload your receipt:</p>
-          <a href="http://localhost:3000/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}" 
-             style="
-               display: inline-block;
-               padding: 10px 20px;
-               font-size: 16px;
-               color: white;
-               background-color: #4CAF50;
-               text-decoration: none;
-               border-radius: 5px;
-               margin-top: 10px;
-             ">
-             Upload Receipt
-          </a>
-        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+                <!-- Logo -->
+                <tr>
+                  <td align="left" style="padding: 20px;">
+                    <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
+                  </td>
+                </tr>
+    
+                <!-- Heading -->
+                <tr>
+                  <td style="padding: 0 20px;">
+                    <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
+                      Meeting Confirmed with Micheal
+                    </h1>
+                  </td>
+                </tr>
+    
+                <!-- Message -->
+                <tr>
+                  <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                    <p>Dear <strong>${name}</strong>,</p>
+                    <p>Great news! Micheal has accepted your meeting request. You can now schedule your meeting using the link below:</p>
+                    <p>Please complete your donation to [Executive's Selected Charity] as per the agreed amount of <strong>{bidAmount}</strong>.</p>
+    
+                    <!-- Business Executive Details -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F7FAFC; padding: 16px; border-radius: 6px; margin-top: 20px;">
+                      <tr>
+                        <td style="padding: 10px;">
+                          <p style="margin: 0; font-weight: 600;">📌 Business Executive Details:</p>
+                          <ul style="margin: 10px 0 0 20px; padding: 0;">
+                            <li><strong>Name:</strong> John</li>
+                            <li><strong>Company:</strong> Company Abc</li>
+                            <li><strong>Proposed Donation:</strong> <strong>${bidAmount}</strong></li>
+                          </ul>
+                        </td>
+                      </tr>
+                    </table>
+    
+                    <!-- Closing -->
+                    <p style="margin-top: 20px;">Thank you for your generosity and participation!<br>Best,</p>
+                    <p>[Email-Automation] Team</p>
+                  </td>
+                </tr>
+    
+                <!-- Button -->
+                <tr>
+                  <td align="center" style="padding: 20px;">
+                    <a href=http://localhost:3000/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}
+                       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
+                      Upload Receipt
+                    </a>
+                  </td>
+                </tr>
+    
+              </table>
+    
+              <!-- Footer -->
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
+                <tr>
+                  <td align="center" style="font-size: 12px; color: #A0AEC0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="left">
+                          <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
+                        </td>
+                        <td align="right">
+                          <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+    
+            </td>
+          </tr>
+        </table>
       `
     };
+
 
     await transporter.sendMail(mailOptions);
 

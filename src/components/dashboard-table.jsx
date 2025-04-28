@@ -144,7 +144,9 @@ const DashboardTable = ({ userId }) => {
         sendToEmail: survey.email,
         dashboardUserId: survey.userId,
         mainUserId: mainUserId,
-        objectId:survey._id
+        objectId:survey._id,
+        bidAmount:survey.bidAmount,
+        name:survey.name
       });
 
       if (response.data.message) {
