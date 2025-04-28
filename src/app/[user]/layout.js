@@ -63,9 +63,9 @@ export default function Layout({ children }) {
                         </div>
                     </div>
                     <div className="flex items-center justify-end w-full gap-2 mx-auto pl-10 p-5">
-                        <span className="p-2 bg-[#2C514C]/10 rounded-full">
+                        {/* <span className="p-2 bg-[#2C514C]/10 rounded-full">
                             <BellIcon className="fill-[#2C514C] size-6 text-[#2C514C]" />
-                        </span>
+                        </span> */}
                         <Link className="flex items-center gap-2 py-1 px-3 border-1 rounded-md" href="/user/profile">
                             <span className="hidden lg:block bg-[#2C514C]/10  rounded-full">
                                 <Image
