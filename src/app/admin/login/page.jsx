@@ -1,14 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-function Login({ userType = "employee" }) {
+function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });

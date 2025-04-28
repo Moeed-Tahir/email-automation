@@ -16,10 +16,6 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { SidebarInset } from "@/components/ui/sidebar";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import { BellIcon } from "lucide-react";
-import Image from "next/image";
 
 export default function Page() {
   const [profileData, setProfileData] = useState({

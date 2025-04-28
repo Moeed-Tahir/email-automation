@@ -14,7 +14,7 @@ import axios from "axios";
 import Link from "next/link";
 
 
-export default function layout({ children }) {
+export default function Layout({ children }) {
 
     const [profileData, setProfileData] = useState({
         linkedInProfileName: "",
