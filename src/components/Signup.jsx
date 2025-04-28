@@ -340,10 +340,10 @@ const SignupFlow = () => {
 
             Cookies.set('UserId', response.data.user.userId, { path: '/', expires: 7 });
             Cookies.set('Token', response.data.token, { path: '/', expires: 7 });
+            Cookies.set('userName', response.data.token, { path: '/', expires: 7 });
+            Cookies.set('userName', response.data.userName, { path: '/', expires: 7 });
 
-            setTimeout(() => {
-              router.push(`/${response.data.user.userId}/dashboard`);
-            }, 100);
+            router.push(`/${response.data.user.userId}/dashboard`);
 
           } catch (error) {
             console.error("Error occurred:", error);

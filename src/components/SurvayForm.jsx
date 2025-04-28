@@ -10,7 +10,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 
-const SurveyForm = ({userId}) => {
+const SurveyForm = ({ userId }) => {
   const [currentTab, setCurrentTab] = useState(0);
   const [userQuestions, setUserQuestions] = useState({
     questionOne: "",
@@ -31,6 +31,8 @@ const SurveyForm = ({userId}) => {
     escrowDonation: "",
     charityDonation: "",
   });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const tabs = [
     { title: "Bid & Contact" },
@@ -38,13 +40,59 @@ const SurveyForm = ({userId}) => {
     { title: "Business Impact" },
     { title: "Commitment & Donation" },
   ];
-  
 
   const isLastTab = currentTab === tabs.length - 1;
   const isFirstTab = currentTab === 0;
 
+  const validateCurrentTab = () => {
+    const newErrors = {};
+    
+    switch (currentTab) {
+      case 0:
+        if (!formData.name.trim()) newErrors.name = "Name is required";
+        if (!formData.email.trim()) {
+          newErrors.email = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = "Invalid email format";
+        }
+        if (!formData.bidAmount.trim()) {
+          newErrors.bidAmount = "Bid amount is required";
+        } else if (isNaN(formData.bidAmount) || parseFloat(formData.bidAmount) <= 0) {
+          newErrors.bidAmount = "Bid amount must be a positive number";
+        }
+        break;
+      case 1:
+        if (!formData.solutionDescription.trim()) newErrors.solutionDescription = "Solution description is required";
+        if (!formData.businessChallengeSolution.trim()) newErrors.businessChallengeSolution = "Business challenge solution is required";
+        break;
+      case 2:
+        if (!formData.businessProblem) newErrors.businessProblem = "Please select an option";
+        if (!formData.resultsTimeframe) newErrors.resultsTimeframe = "Please select an option";
+        if (!formData.caseStudies) newErrors.caseStudies = "Please select an option";
+        if (!formData.offeringType) newErrors.offeringType = "Please select an option";
+        break;
+      case 3:
+        if (!formData.performanceGuarantee) newErrors.performanceGuarantee = "Please select an option";
+        if (!formData.DonationWilling) newErrors.DonationWilling = "Please select an option";
+        if (formData.DonationWilling === "Yes" && !formData.escrowDonation) {
+          newErrors.escrowDonation = "Please select an option";
+        }
+        if (formData.DonationWilling === "Yes" && !formData.charityDonation) {
+          newErrors.charityDonation = "Please select an option";
+        }
+        break;
+      default:
+        break;
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleNext = () => {
-    if (!isLastTab) setCurrentTab(currentTab + 1);
+    if (validateCurrentTab() && !isLastTab) {
+      setCurrentTab(currentTab + 1);
+    }
   };
 
   const handleBack = () => {
@@ -53,36 +101,88 @@ const SurveyForm = ({userId}) => {
 
   const handleSaveDraft = () => {
     console.log("Draft Saved:", formData);
-    // Add draft saving logic here
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const calculateTotalScore = (formData) => {
+    let score = 0;
   
-  try {
-    const response = await fetch('/api/routes/SurvayForm?action=sendSurvayForm', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
-        ...formData
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      alert("Survey submitted successfully!");
-    } else {
-      console.error("Error submitting form");
-      alert("Error submitting survey. Please try again.");
+    if (formData.performanceGuarantee === "No") {
+      score += 1;
+    } else if (formData.performanceGuarantee === "Yes, but with conditions") {
+      score += 5;
+    } else if (formData.performanceGuarantee === "Yes, unconditionally") {
+      score += 10;
     }
-  } catch (error) {
-    console.error("Error submitting form:", error);
-    alert("Error submitting survey. Please try again.");
-  }
-};
+  
+    if (formData.DonationWilling === "No") {
+      score += 1;
+    } else if (formData.DonationWilling === "Yes") {
+      score += 10;
+    }
+  
+    if (formData.DonationWilling === "Yes") {
+      if (formData.escrowDonation === "No") {
+        score += 1;
+      } else if (formData.escrowDonation === "Yes") {
+        score += 10;
+      }
+    }
+  
+    if (formData.DonationWilling === "Yes" && formData.charityDonation) {
+      const donationAmount = formData.charityDonation;
+      if (donationAmount === "$10-$50") {
+        score += 2;
+      } else if (donationAmount === "$51-$100") {
+        score += 4;
+      } else if (donationAmount === "$101-$200") {
+        score += 6;
+      } else if (donationAmount === "$201-$300") {
+        score += 8;
+      } else if (donationAmount === "$301-$400") {
+        score += 10;
+      } else if (donationAmount === "$401-$500") {
+        score += 12;
+      }
+    }
+  
+    return score.toString();
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (validateCurrentTab()) {
+      try {
+        setLoading(true);
+        const totalScore = calculateTotalScore(formData);
+
+        const response = await fetch('/api/routes/SurvayForm?action=sendSurvayForm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId,
+            ...formData,
+            totalScore
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          alert("Survey submitted successfully!");
+        } else {
+          console.error("Error submitting form");
+          alert("Error submitting survey. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        alert("Error submitting survey. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchUserQuestions = async () => {
@@ -94,19 +194,16 @@ const handleSubmit = async (e) => {
           },
           body: JSON.stringify({ userId }),
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setUserQuestions({
             questionOne: data.questionOne || "",
             questionTwo: data.questionTwo || ""
           });
-          
         }
       } catch (error) {
         console.error("Error fetching user questions:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -131,6 +228,7 @@ const handleSubmit = async (e) => {
               icon={<User />}
               value={formData.name}
               onChange={(val) => setFormData({ ...formData, name: val })}
+              error={errors.name}
             />
             <InputField
               label="Email Address"
@@ -138,6 +236,7 @@ const handleSubmit = async (e) => {
               icon={<Mail />}
               value={formData.email}
               onChange={(val) => setFormData({ ...formData, email: val })}
+              error={errors.email}
             />
             <InputField
               label="Bid Amount ($)"
@@ -145,6 +244,7 @@ const handleSubmit = async (e) => {
               icon={<BadgeDollarSign />}
               value={formData.bidAmount}
               onChange={(val) => setFormData({ ...formData, bidAmount: val })}
+              error={errors.bidAmount}
             />
           </>
         );
@@ -160,7 +260,7 @@ const handleSubmit = async (e) => {
               onChange={(val) =>
                 setFormData({ ...formData, solutionDescription: val })
               }
-
+              error={errors.solutionDescription}
             />
             <TextAreaField
               label={`${userQuestions.questionTwo}`}
@@ -168,6 +268,7 @@ const handleSubmit = async (e) => {
               onChange={(val) =>
                 setFormData({ ...formData, businessChallengeSolution: val })
               }
+              error={errors.businessChallengeSolution}
             />
           </>
         );
@@ -190,6 +291,7 @@ const handleSubmit = async (e) => {
               onChange={(val) =>
                 setFormData({ ...formData, businessProblem: val })
               }
+              error={errors.businessProblem}
             />
             <RadioGroup
               label="How long does it typically take for clients to see results with your solution?"
@@ -204,9 +306,10 @@ const handleSubmit = async (e) => {
               onChange={(val) =>
                 setFormData({ ...formData, resultsTimeframe: val })
               }
+              error={errors.resultsTimeframe}
             />
             <RadioGroup
-              label="Do you have proven results or case studies in my industry that you would be willing to  provide?"
+              label="Do you have proven results or case studies in my industry that you would be willing to provide?"
               options={[
                 "No case studies available",
                 "One relevant case study",
@@ -214,6 +317,7 @@ const handleSubmit = async (e) => {
               ]}
               value={formData.caseStudies}
               onChange={(val) => setFormData({ ...formData, caseStudies: val })}
+              error={errors.caseStudies}
             />
             <RadioGroup
               label="How would you summarize your offering?"
@@ -227,6 +331,7 @@ const handleSubmit = async (e) => {
               onChange={(val) =>
                 setFormData({ ...formData, offeringType: val })
               }
+              error={errors.offeringType}
             />
           </>
         );
@@ -247,6 +352,7 @@ const handleSubmit = async (e) => {
               onChange={(val) =>
                 setFormData({ ...formData, performanceGuarantee: val })
               }
+              error={errors.performanceGuarantee}
             />
             <RadioGroup
               label="Are you willing to make a donation to my favorite charity if a meeting is accepted?"
@@ -255,30 +361,36 @@ const handleSubmit = async (e) => {
               onChange={(val) =>
                 setFormData({ ...formData, DonationWilling: val })
               }
+              error={errors.DonationWilling}
             />
-            <RadioGroup
-              label="Would you be willing to escrow this donation amount to be released after the meeting  takes place?"
-              options={["No", "Yes"]}
-              value={formData.escrowDonation}
-              onChange={(val) =>
-                setFormData({ ...formData, escrowDonation: val })
-              }
-            />
-            <RadioGroup
-              label="How much would you be willing to donate?"
-              options={[
-                "$10-$50",
-                "$51-$100",
-                "$101-$200",
-                "$201-$300",
-                "$301-$400",
-                "$401-$500",
-              ]}
-              value={formData.charityDonation}
-              onChange={(val) =>
-                setFormData({ ...formData, charityDonation: val })
-              }
-            />
+              <>
+                <RadioGroup
+                  label="Would you be willing to escrow this donation amount to be released after the meeting takes place?"
+                  options={["No", "Yes"]}
+                  value={formData.escrowDonation}
+                  onChange={(val) =>
+                    setFormData({ ...formData, escrowDonation: val })
+                  }
+                  error={errors.escrowDonation}
+                />
+                <RadioGroup
+                  label="How much would you be willing to donate?"
+                  options={[
+                    "$10-$50",
+                    "$51-$100",
+                    "$101-$200",
+                    "$201-$300",
+                    "$301-$400",
+                    "$401-$500",
+                  ]}
+                  value={formData.charityDonation}
+                  onChange={(val) =>
+                    setFormData({ ...formData, charityDonation: val })
+                  }
+                  error={errors.charityDonation}
+                />
+              </>
+            
           </>
         );
       default:
@@ -336,10 +448,11 @@ const handleSubmit = async (e) => {
             {isLastTab ? (
               <button
                 type="submit"
-                className="px-6 py-3 rounded-lg text-white transition cursor-pointer"
+                disabled={loading}
+                className="px-6 py-3 rounded-lg text-white transition cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 style={{ backgroundColor: "rgba(44, 81, 76, 1)" }}
               >
-                Submit
+                {loading ? "Submitting..." : "Submit"}
               </button>
             ) : (
               <button
@@ -359,7 +472,7 @@ const handleSubmit = async (e) => {
 };
 
 // Input field component
-const InputField = ({ label, type, icon, value, onChange }) => (
+const InputField = ({ label, type, icon, value, onChange, error }) => (
   <div className="space-y-2">
     <label
       className="block font-semibold"
@@ -375,14 +488,15 @@ const InputField = ({ label, type, icon, value, onChange }) => (
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none"
+        className={`w-full pl-10 p-3 border ${error ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
       />
     </div>
+    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
   </div>
 );
 
 // TextArea field component
-const TextAreaField = ({ label, value, onChange }) => (
+const TextAreaField = ({ label, value, onChange, error }) => (
   <div className="space-y-2">
     <label
       className="block font-semibold"
@@ -394,17 +508,18 @@ const TextAreaField = ({ label, value, onChange }) => (
       value={value}
       onChange={(e) => onChange(e.target.value)}
       rows={5}
-      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none"
+      className={`w-full p-3 border ${error ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
     />
+    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
   </div>
 );
 
 // Radio group component
-const RadioGroup = ({ label, options, value, onChange }) => (
+const RadioGroup = ({ label, options, value, onChange, error }) => (
   <div className="space-y-2">
     <label
-      className="block font-medium"
-      style={{ color: "rgba(33, 37, 41, 1)", fontSize: "16px" }}
+      className={`block font-medium ${error ? "text-red-500" : "text-[rgba(33, 37, 41, 1)]"}`}
+      style={{ fontSize: "16px" }}
     >
       {label}
     </label>
@@ -418,7 +533,7 @@ const RadioGroup = ({ label, options, value, onChange }) => (
             value={option}
             checked={value === option}
             onChange={(e) => onChange(e.target.value)}
-            className="h-4 w-4 text-[rgba(112,122,136,1)] border-gray-900"
+            className={`h-4 w-4 ${error ? "text-red-500" : "text-[rgba(112,122,136,1)]"} border-gray-900`}
           />
           <label
             htmlFor={option}
@@ -429,6 +544,7 @@ const RadioGroup = ({ label, options, value, onChange }) => (
         </div>
       ))}
     </div>
+    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
   </div>
 );
 

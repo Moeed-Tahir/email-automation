@@ -5,9 +5,34 @@ import Image from "next/image";
 import DashboardTable from "@/components/dashboard-table";
 import Link from "next/link";
 import Cookies from "js-cookie";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function Page() {
   const userId = Cookies.get("UserId");
+  const userName = Cookies.get("userName");
+  const [bidInfo, setBidInfo] = useState({
+    totalBidAmount: "0",
+    highestBidAmount: "0",
+    averageBidAmount: "0",
+    pendingBidsCount: 0,
+    totalBidsCount: 0,
+    validBidsCount: 0
+  });
+
+  useEffect(() => {
+    const fetchBidInfo = async () => {
+      try {
+        const response = await axios.get("/api/routes/SurvayForm?action=getBidInfo");
+        setBidInfo(response.data);
+      } catch(error) {
+        console.error("Error occurred", error);
+      }
+    };
+
+    fetchBidInfo();
+  }, []);
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 w-full">
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
@@ -15,14 +40,14 @@ export default function Page() {
           <div className="flex flex-col gap-2 w-full p-2">
             <div className="flex flex-col">
               <span className="text-lg font-medium w-full">
-                Congratulations John 🎉
+                {`Congratulations ${userName || "User"} 🎉`}
               </span>
               <span className="text-[15px] font-[400] text-gray-400">
                 This month you earned
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[20px] font-medium">$48.9k</span>
+              <span className="text-[20px] font-medium">${bidInfo.totalBidAmount}</span>
             </div>
             <div className="flex items-center gap-2">
               <Button className="text-sm font-semibold bg-[#2C514C] border-2 hover:text-[#2C514C] border-[#2C514C] hover:bg-transparent cursor-pointer">
@@ -50,7 +75,7 @@ export default function Page() {
                 height={30}
               />
             </span>
-            <h2 className="text-[22px] font-medium text-[#4B465C]">42</h2>
+            <h2 className="text-[22px] font-medium text-[#4B465C]">{bidInfo.totalBidsCount}</h2>
           </div>
           <div className="w-full">
             <p className="text-[15px] font-semibold">Total Bids Received</p>
@@ -72,7 +97,7 @@ export default function Page() {
                 height={30}
               />
             </span>
-            <h2 className="text-[22px] font-medium text-[#4B465C]">8</h2>
+            <h2 className="text-[22px] font-medium text-[#4B465C]">${bidInfo.highestBidAmount}</h2>
           </div>
           <div className="w-full">
             <p className="text-[15px] font-semibold">Highest Bid</p>
@@ -94,7 +119,7 @@ export default function Page() {
                 height={30}
               />
             </span>
-            <h2 className="text-[22px] font-medium text-[#4B465C]">27</h2>
+            <h2 className="text-[22px] font-medium text-[#4B465C]">${bidInfo.averageBidAmount}</h2>
           </div>
           <div className="w-full">
             <p className="text-[15px] font-semibold">Average Bid</p>
@@ -116,7 +141,7 @@ export default function Page() {
                 height={30}
               />
             </span>
-            <h2 className="text-[22px] font-medium text-[#4B465C]">13</h2>
+            <h2 className="text-[22px] font-medium text-[#4B465C]">{bidInfo.pendingBidsCount}</h2>
           </div>
           <div className="w-full">
             <p className="text-[15px] font-semibold text-[#FF9F43]">

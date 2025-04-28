@@ -3,8 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { DownloadIcon } from "lucide-react";
 import DashboardTable from "@/components/dashboard-table";
+import Cookies from "js-cookie";
 
 export default function Page() {
+  const userId = Cookies.get("UserId");
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 w-full">
       <div className="flex flex-col md:flex-row w-full md:items-center justify-start gap-4 md:gap-14 border-b pb-3 md:pl-13">

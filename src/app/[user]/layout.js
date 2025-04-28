@@ -15,6 +15,8 @@ import Link from "next/link";
 
 
 export default function Layout({ children }) {
+    const userEmail = Cookies.get("userEmail");
+    const userName = Cookies.get("userName");
 
     const [profileData, setProfileData] = useState({
         linkedInProfileName: "",
@@ -78,10 +80,10 @@ export default function Layout({ children }) {
                             </span>
                             <div className="flex flex-col items-start justify-start">
                                 <span className="text-lg font-semibold text-[#2C514C]">
-                                    {profileData.linkedInProfileName || "User"}
+                                    {userName || "User"}
                                 </span>
                                 <span className="text-sm font-[400] text-gray-600">
-                                    {profileData.linkedInProfileEmail || "user@emailautomation.com"}
+                                    {userEmail || "user@emailautomation.com"}
                                 </span>
                             </div>
                         </Link>

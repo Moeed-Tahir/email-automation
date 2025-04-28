@@ -1,6 +1,8 @@
 const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
+const SurvayForm = require('../models/SurvayForm');
+
 const connectToDatabase = require('../lib/db');
 
 const CLIENT_ID = process.env.CLIENT_ID || '34860616241-1kcc767m6k6isr2tnmpq4levhjb5lm7k.apps.googleusercontent.com';
@@ -340,7 +342,7 @@ async function checkAndProcessEmails(userEmail) {
             console.log(`Processing email from ${fromEmail} with subject: ${messageData.data.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)'
               }`);
 
-            await sendResponseEmail(userEmail, fromEmail, tokens,user.userId);
+            await sendResponseEmail(userEmail, fromEmail, tokens, user.userId);
 
             await gmail.users.messages.modify({
               userId: 'me',
@@ -360,7 +362,7 @@ async function checkAndProcessEmails(userEmail) {
   }
 }
 
-async function sendResponseEmail(userEmail, toEmail, tokens,userId) {
+async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
   try {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -399,17 +401,17 @@ exports.stopMonitoring = (userEmail) => {
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { sendFromEmail, sendToEmail,dashboardUserId,mainUserId} = req.body;
-    console.log("req.body",req.body)
+    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId } = req.body;
+
     const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    
+
     if (!user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'User has not authorized Gmail access' 
+      return res.status(400).json({
+        success: false,
+        message: 'User has not authorized Gmail access'
       });
     }
 
@@ -419,11 +421,24 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
       expiry_date: parseInt(user.gmailExpiryDate, 10),
     });
 
-    if (tokens.access_token !== user.gmailAccessToken || 
-        tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
+    if (tokens.access_token !== user.gmailAccessToken ||
+      tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
       user.gmailAccessToken = tokens.access_token;
       user.gmailExpiryDate = tokens.expiry_date;
       await user.save();
+    }
+
+    const updatedForm = await SurvayForm.findByIdAndUpdate(
+      objectId,
+      { status: "Accept" },
+      { new: true }
+    );
+
+    if (!updatedForm) {
+      return res.status(404).json({
+        success: false,
+        message: 'Survey form not found'
+      });
     }
 
     const transporter = nodemailer.createTransport({
@@ -462,39 +477,39 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
         </div>
       `
     };
-    
 
     await transporter.sendMail(mailOptions);
 
     res.json({
       success: true,
-      message: 'Email sent successfully',
+      message: 'Email sent successfully and survey status updated',
+      updatedForm
     });
-    
-  } catch(error) {
-    console.error('Error sending email:', error);
+
+  } catch (error) {
+    console.error('Error sending email or updating status:', error);
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to send email',
+      message: error.message || 'Failed to send email or update status',
     });
   }
 };
 
 exports.sendRejectEmailToAdmin = async (req, res) => {
   try {
-    const { sendFromEmail, sendToEmail} = req.body;
-    
+    const { sendFromEmail, sendToEmail } = req.body;
+
     await connectToDatabase();
-    
+
     const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
-    
+
     if (!user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'User has not authorized Gmail access' 
+      return res.status(400).json({
+        success: false,
+        message: 'User has not authorized Gmail access'
       });
     }
 
@@ -504,8 +519,8 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
       expiry_date: parseInt(user.gmailExpiryDate, 10),
     });
 
-    if (tokens.access_token !== user.gmailAccessToken || 
-        tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
+    if (tokens.access_token !== user.gmailAccessToken ||
+      tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
       user.gmailAccessToken = tokens.access_token;
       user.gmailExpiryDate = tokens.expiry_date;
       await user.save();
@@ -536,8 +551,8 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
       success: true,
       message: 'Email sent successfully',
     });
-    
-  } catch(error) {
+
+  } catch (error) {
     console.error('Error sending email:', error);
     res.status(500).json({
       success: false,

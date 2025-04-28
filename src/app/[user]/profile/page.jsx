@@ -273,7 +273,7 @@ export default function Page() {
             <Button
               type="submit"
               onClick={handleSubmit}
-              className="cursor-pointer bg-[#2C514C] hover:bg-transparent hover:font-medium hover:text-[#2C514C] border-2 border-[#2C514C] hover:border-[#2C514C] "
+              className="cursor-pointer bg-[rgb(44,81,76)] hover:bg-transparent hover:font-medium hover:text-[#2C514C] border-2 border-[#2C514C] hover:border-[#2C514C] "
             >
               Save Changes
             </Button>

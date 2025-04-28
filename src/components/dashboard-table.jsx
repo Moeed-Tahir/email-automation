@@ -131,11 +131,11 @@ const DashboardTable = ({ userId }) => {
     setShowSortMenu(false);
   };
 
-  const handleAccept = async (representativeEmail, userId) => {
+  const handleAccept = async (survey) => {
     try {
       const fromEmail = Cookies.get("userEmail");
       const mainUserId = Cookies.get("UserId");
-      console.log("userId", userId);
+      console.log("userId", survey._id);
 
       if (!fromEmail) {
         throw new Error("User email not found in cookies");
@@ -143,9 +143,10 @@ const DashboardTable = ({ userId }) => {
 
       const response = await axios.post('/api/routes/Google?action=sendAcceptEmailToAdmin', {
         sendFromEmail: fromEmail,
-        sendToEmail: representativeEmail.email,
-        dashboardUserId: representativeEmail.userId,
-        mainUserId: mainUserId
+        sendToEmail: survey.email,
+        dashboardUserId: survey.userId,
+        mainUserId: mainUserId,
+        objectId:survey._id
       });
 
       if (response.data.message) {
@@ -320,7 +321,7 @@ const DashboardTable = ({ userId }) => {
                   </div>
                 </TableCell>
                 <TableCell className="min-w-[150px]">{new Date(survey.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell className="min-w-[120px]">{survey.bidAmount}</TableCell>
+                <TableCell className="min-w-[120px]">{survey.totalScore || "-"}</TableCell>
                 <TableCell className="min-w-[120px]">
                   <Badge
                     variant="outline"
@@ -340,7 +341,7 @@ const DashboardTable = ({ userId }) => {
                   >
                     View Details
                   </Button>
-                  <Button size="sm" onClick={() => handleAccept({ email: survey.email, userId: survey.userId })}
+                  <Button size="sm" onClick={() => handleAccept(survey)}
                     className="bg-[#28C76F29] text-[#28C76F]">
                     Accept
                   </Button>

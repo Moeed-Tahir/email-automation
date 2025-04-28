@@ -29,6 +29,7 @@ const getQuestionFromUserId = async (req, res) => {
 
 const sendSurvayForm = async (req, res) => {
     try {
+        await connectToDatabase();
         const {
             userId,
             bidAmount,
@@ -43,7 +44,8 @@ const sendSurvayForm = async (req, res) => {
             performanceGuarantee,
             DonationWilling,
             escrowDonation,
-            charityDonation
+            charityDonation,
+            totalScore
         } = req.body;
 
         if (!userId) {
@@ -64,7 +66,8 @@ const sendSurvayForm = async (req, res) => {
             performanceGuarantee,
             DonationWilling: DonationWilling,
             escrowDonation: escrowDonation,
-            charityDonation
+            charityDonation,
+            totalScore
         };
 
         const newSurvey = new SurvayForm(surveyData);
@@ -102,6 +105,7 @@ const fetchSurvayData = async (req, res) => {
                 data: []
             });
         }
+        console.log("surveyData",surveyData);
 
         return res.status(200).json({
             success: true,
@@ -119,4 +123,38 @@ const fetchSurvayData = async (req, res) => {
     }
 };
 
-module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData };
+const getBidInfo = async (req, res) => {
+    try {
+        const allBids = await mongoose.models.SurvayForm.find({});
+        
+        const validBids = allBids.filter(bid => bid.bidAmount && !isNaN(parseFloat(bid.bidAmount)));
+        
+        const totalBidAmount = validBids.reduce((sum, bid) => sum + parseFloat(bid.bidAmount), 0);
+        
+        const highestBid = validBids.length > 0 
+            ? Math.max(...validBids.map(bid => parseFloat(bid.bidAmount)))
+            : 0;
+        
+        const averageBid = validBids.length > 0 
+            ? totalBidAmount / validBids.length 
+            : 0;
+        
+        const pendingBidsCount = allBids.filter(bid => bid.status === "Pending").length;
+        
+        const response = {
+            totalBidAmount: totalBidAmount.toFixed(2),
+            highestBidAmount: highestBid.toFixed(2),
+            averageBidAmount: averageBid.toFixed(2),
+            pendingBidsCount: pendingBidsCount,
+            totalBidsCount: allBids.length,
+            validBidsCount: validBids.length
+        };
+        
+        res.status(200).json(response);
+    } catch (error) {
+        console.error("Error fetching bid information:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData,getBidInfo };

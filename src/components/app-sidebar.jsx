@@ -9,13 +9,11 @@ import {
   ScrollText,
   Settings,
 } from "lucide-react";
-
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
+import { usePathname, useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import logo from "../../public/Logo.svg";
-
 import {
   Sidebar,
   SidebarContent,
@@ -62,11 +60,26 @@ const data = {
       url: "#",
       icon: CircleHelp,
     },
+    {
+      title: "Logout",
+      url: "#",
+      icon: CircleHelp,
+    },
   ],
 };
 
 export function AppSidebar({ ...props }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    Cookies.remove("userEmail");
+    Cookies.remove("userName");
+    Cookies.remove("UserId");
+    Cookies.remove("Token");
+    
+    router.push("/login");
+  };
 
   return (
     <Sidebar collapsible="icon" {...props} className="z-20">
@@ -97,6 +110,25 @@ export function AppSidebar({ ...props }) {
                 <SidebarMenu>
                   {data[item].map((t, i) => {
                     const isActive = pathname === t.url;
+                    if (t.title === "Logout") {
+                      return (
+                        <SidebarMenuItem key={i}>
+                          <SidebarMenuButton
+                            onClick={handleLogout}
+                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${
+                              isActive
+                                ? "bg-white text-[#2C514C]"
+                                : "text-white hover:bg-white hover:text-[#2C514C]"
+                            }`}
+                          >
+                            <t.icon className="size-4 shrink-0" />
+                            <span className="font-medium text-[16px]">
+                              {t.title}
+                            </span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    }
                     return (
                       <SidebarMenuItem key={i}>
                         <SidebarMenuButton asChild>
