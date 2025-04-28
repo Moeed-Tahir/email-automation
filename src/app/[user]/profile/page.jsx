@@ -16,6 +16,7 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { SidebarInset } from "@/components/ui/sidebar";
+import ConfirmationPage from "@/components/email";
 
 export default function Page() {
   const [profileData, setProfileData] = useState({
@@ -125,7 +126,6 @@ export default function Page() {
 
       <div className="flex flex-1 flex-col w-full mx-auto py-3 px-5 space-y-10">
         <div className="flex flex-1 flex-col w-full mx-auto py-4 px-6 space-y-10 border rounded-xl">
-          {/* Personal Information Section */}
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Personal Information</h2>
 
@@ -203,12 +203,10 @@ export default function Page() {
                     <SelectItem value="Healthcare">Healthcare</SelectItem>
                   </SelectContent>
                 </Select>
-
               </div>
             </div>
           </div>
 
-          {/* Donation Information Section */}
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Donation Information</h2>
 
@@ -242,7 +240,6 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Schedule Section */}
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Schedule</h2>
 
@@ -266,7 +263,6 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Save Changes Buttons */}
           <div className="flex flex-wrap gap-4">
             <Button
               type="submit"
@@ -280,7 +276,6 @@ export default function Page() {
             </Button>
           </div>
 
-          {/* Delete Account Section */}
           <div className="space-y-6 pt-10 border-t">
             <h2 className="text-2xl font-semibold ">Delete Account</h2>
 
