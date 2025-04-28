@@ -1,4 +1,5 @@
 "use client";
+import AdminTable from "@/components/admin-table";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -12,7 +13,7 @@ import Image from "next/image";
 export default function page() {
   return (
     <SidebarProvider>
-      <AppSidebar isAdmin = {true} />
+      <AppSidebar isAdmin={true} />
       <SidebarInset>
         <nav className=" sticky top-0 z-10 bg-white flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
           <div className="flex items-center gap-2 px-4">
@@ -22,7 +23,9 @@ export default function page() {
               className="mr-2 data-[orientation=vertical]:h-4"
             />
             <div className="flex-1">
-              <h1 className="text-2xl font-semibold text-nowrap">Admin Dashboard</h1>
+              <h1 className="text-2xl font-semibold text-nowrap">
+                Admin Dashboard
+              </h1>
             </div>
           </div>
           <div className="flex items-center justify-end w-full gap-2 mx-auto px-10 p-5">
@@ -48,6 +51,10 @@ export default function page() {
             </div>
           </div>
         </nav>
+
+        <div className="p-4">
+          <AdminTable />
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
