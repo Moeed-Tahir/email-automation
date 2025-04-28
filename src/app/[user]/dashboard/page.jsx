@@ -51,7 +51,7 @@ export default function Page() {
             </div>
             <div className="flex items-center gap-2">
               <Button className="text-sm font-semibold bg-[#2C514C] border-2 hover:text-[#2C514C] border-[#2C514C] hover:bg-transparent cursor-pointer">
-                <Link href="/bidding-requests">View Bids </Link>
+                <Link href={`/${userId}/bidding-requests`}>View Bids </Link>
               </Button>
             </div>
           </div>
@@ -159,7 +159,7 @@ export default function Page() {
       <div className="flex flex-col w-full bg-white rounded-xl p-4 border">
         <div className="flex items-center justify-end w-full ">
           <Button className="text-sm font-semibold text-[#2C514C] border-none bg-transparent hover:bg-transparent shadow-none cursor-pointer">
-            <Link href="/bidding-requests"> View All </Link>
+            <Link href={`/${userId}/bidding-requests`}> View All </Link>
           </Button>
         </div>
         <DashboardTable userId={userId} />
