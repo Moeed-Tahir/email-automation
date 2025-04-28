@@ -51,7 +51,7 @@ const linkedInCallback = async (req, res) => {
         Authorization: `Bearer ${access_token}`,
       },
     });
-
+        
     const { sub, name, email, picture } = profileRes.data;
     let user = await User.findOne({ linkedInProfileEmail: email });
 

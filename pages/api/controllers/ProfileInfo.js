@@ -29,13 +29,35 @@ const addProfileInfo = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    return res.status(200).json({ message: "Profile updated successfully", user,token });
+    return res.status(200).json({ message: "Profile updated successfully", user, token });
 
   } catch (error) {
     console.error("Error adding sales representative info:", error);
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 }
+
+const getProfileInfo = async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId in query" });
+    }
+
+    const user = await User.findOne({ userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error fetching profile info:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 const checkUser = async (req, res) => {
   try {
@@ -76,7 +98,7 @@ const checkUser = async (req, res) => {
     } else if (!finalInfoComplete) {
       return res.status(200).json({ currentStep: 2, message: "Profile Info step incomplete" });
     } else {
-      
+
 
       return res.status(200).json({
         currentStep: "completed",
@@ -92,8 +114,50 @@ const checkUser = async (req, res) => {
   }
 };
 
+const editProfileInfo = async (req, res) => {
+  try {
+    await connectToDatabase();
+
+    const { userId } = req.query;
+    const updates = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { userId: userId },
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+
+  } catch (error) {
+    console.error("Error editing profile:", error);
+
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error.name === 'CastError') {
+      return res.status(400).json({ error: "Invalid user ID format" });
+    }
+
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 
 module.exports = {
   addProfileInfo,
-  checkUser
+  checkUser,
+  getProfileInfo,
+  editProfileInfo
 };
