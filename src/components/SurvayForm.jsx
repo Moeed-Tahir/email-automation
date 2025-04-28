@@ -6,7 +6,6 @@ import {
   User,
   Mail,
   BadgeDollarSign,
-  ChevronDown,
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
