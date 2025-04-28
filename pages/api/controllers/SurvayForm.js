@@ -105,7 +105,6 @@ const fetchSurvayData = async (req, res) => {
                 data: []
             });
         }
-        console.log("surveyData",surveyData);
 
         return res.status(200).json({
             success: true,

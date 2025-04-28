@@ -29,7 +29,6 @@ export default function Page() {
     calendarLink: "",
   });
   const [formData, setFormData] = useState({ ...profileData });
-  console.log("formData", formData);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -73,7 +72,6 @@ export default function Page() {
 
       if (response.data.success) {
         setProfileData(formData);
-        console.log("Profile updated successfully");
       }
     } catch (error) {
       console.error("Error updating profile:", error);

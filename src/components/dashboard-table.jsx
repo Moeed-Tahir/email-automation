@@ -34,7 +34,6 @@ const DashboardTable = ({ userId }) => {
   const itemsPerPage = 8;
   const router = useRouter();
   const [existingSurveys, setExistingSurveys] = useState([]);
-  console.log("existingSurveys", existingSurveys);
 
   useEffect(() => {
     const fetchExistingSurveys = async () => {
@@ -135,7 +134,6 @@ const DashboardTable = ({ userId }) => {
     try {
       const fromEmail = Cookies.get("userEmail");
       const mainUserId = Cookies.get("UserId");
-      console.log("userId", survey._id);
 
       if (!fromEmail) {
         throw new Error("User email not found in cookies");

@@ -120,7 +120,6 @@ const editProfileInfo = async (req, res) => {
 
     const { userId } = req.query;
     const { updates } = req.body;
-    console.log("updates",updates);
 
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });

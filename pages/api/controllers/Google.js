@@ -394,7 +394,6 @@ exports.stopMonitoring = (userEmail) => {
   if (activeMonitors[userEmail]) {
     clearInterval(activeMonitors[userEmail]);
     delete activeMonitors[userEmail];
-    console.log(`Stopped monitoring for ${userEmail}`);
   }
 };
 
