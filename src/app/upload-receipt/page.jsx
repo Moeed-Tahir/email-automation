@@ -1,9 +1,20 @@
 "use client";
-import React, { useState } from "react";
+import axios from "axios";
+import { useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+
+const supabaseUrl = "https://rixdrbokebnvidwyzvzo.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpeGRyYm9rZWJudmlkd3l6dnpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2MjMzMzIsImV4cCI6MjA0ODE5OTMzMn0.Zhnz5rLRoIhtHyF52pFjzYijNdxgZBvEr9LtOxR2Lhw";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const ReceiptUpload = () => {
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const searchParams = useSearchParams();
+  const mainUserId = searchParams.get('mainUserId');
+  const [profileData, setProfileData] = useState({});
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -28,24 +39,103 @@ const ReceiptUpload = () => {
     }
   };
 
+  const sendToAdmin = async () => {
+    if (!file || !profileData) return;
+
+    try {
+      const filePath = `receipts/${Date.now()}-${file.name}`;
+      const { data, error } = await supabase.storage
+        .from("new-project")
+        .upload(filePath, file);
+
+      if (error) {
+        console.error("Error uploading file to Supabase:", error.message);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("new-project")
+        .getPublicUrl(filePath);
+
+      const receiptFormLink = publicUrlData?.publicUrl;
+
+      await axios.post("/api/routes/Admin?action=uploadReciptData", {
+        executiveEmail: profileData?.linkedInProfileEmail || "",
+        executiveName: profileData?.linkedInProfileName || "",
+        salesRepresentiveEmail: profileData?.linkedInProfileEmail || "",
+        salesRepresentiveName: profileData?.linkedInProfileName || "",
+        donation: profileData?.minimumBidDonation || "",
+        receiptFormLink,
+      });
+
+      alert("Receipt successfully uploaded and sent to admin!");
+      setFile(null);
+
+    } catch (error) {
+      console.error("Error in sendToAdmin:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  };
+
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        if (!mainUserId) {
+          console.error("No userId found in search params");
+          return;
+        }
+
+        const response = await axios.get(`/api/routes/ProfileInfo`, {
+          params: { userId: mainUserId, action: "getProfileInfo" },
+        });
+
+        setProfileData(response.data.user);
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      }
+    };
+    if (mainUserId) {
+      fetchProfileData();
+    }
+  }, [mainUserId]);
+
   return (
     <div className="w-full min-h-screen flex items-center justify-center">
       <div className="max-w-7xl mx-auto p-6 bg-white">
         <h1 className="text-4xl font-semibold text-black mb-6">
-          Upload Your receipt here
+          Upload Your Receipt Here
         </h1>
 
         <div className="mb-6 text-[16px]">
-          <p className="text-gray-700 mb-2">Dear John</p>
+          <p className="text-gray-700 mb-2">
+            {`Dear ${profileData?.linkedInProfileName || "Guest"}`}
+          </p>
           <p className="text-gray-700 mb-4">
             Great news! Michael has accepted your meeting request. You can now
             schedule your meeting using the link below:
           </p>
 
+          {profileData?.calendarLink && (
+            <a
+              href={profileData.calendarLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 underline mb-4 block"
+            >
+              Schedule Your Meeting
+            </a>
+          )}
+
           <p className="text-gray-700 mb-4">
             Please complete your donation to{" "}
-            <span className="font-semibold">Executives Selected Charity</span>{" "}
-            as per the agreed amount of <span className="font-bold">$100</span>
+            <span className="font-semibold">
+              {profileData?.charityCompany || "Selected Charity"}
+            </span>{" "}
+            as per the agreed amount of{" "}
+            <span className="font-bold">
+              ${profileData?.minimumBidDonation || "Amount not specified"}
+            </span>
           </p>
         </div>
 
@@ -55,10 +145,11 @@ const ReceiptUpload = () => {
             <span className="font-semibold">Business Executive Details:</span>
           </div>
           <ul className="list-disc pl-6 text-gray-700">
-            <li>Name: John</li>
-            <li>Company: Company Aix</li>
-            <li>LinkedIn Profile: My Profile</li>
-            <li>Proposed Donations: $100</li>
+            <li>Name: {profileData?.linkedInProfileName || "N/A"}</li>
+            <li>Company: {profileData?.companyName || "N/A"}</li>
+            <li>Email: {profileData?.linkedInProfileEmail || "N/A"}</li>
+            <li>Job Title: {profileData?.jobTitle || "N/A"}</li>
+            <li>Proposed Donation: ${profileData?.minimumBidDonation || "N/A"}</li>
           </ul>
         </div>
 
@@ -70,9 +161,8 @@ const ReceiptUpload = () => {
         </div>
 
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center mb-4 ${
-            isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
-          }`}
+          className={`border-2 border-dashed rounded-lg p-8 text-center mb-4 ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
+            }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -81,7 +171,7 @@ const ReceiptUpload = () => {
             type="file"
             id="file-upload"
             className="hidden"
-            accept=".pdf,.docx,.doc,.docx,.png,.jpg,.jpeg"
+            accept=".pdf,.docx,.doc,.png,.jpg,.jpeg"
             onChange={handleFileChange}
           />
           <label htmlFor="file-upload" className="cursor-pointer">
@@ -104,11 +194,11 @@ const ReceiptUpload = () => {
                 {file
                   ? file.name
                   : isDragging
-                  ? "Drop your file here"
-                  : "Click or drag file to this area to upload"}
+                    ? "Drop your file here"
+                    : "Click or drag file to this area to upload"}
               </p>
               <p className="text-sm text-gray-500">
-                Formats accepted are .pdf, .docx, .doc, .docx, .png, .jpg, .jpeg
+                Formats accepted are .pdf, .docx, .png, .jpg, .jpeg
               </p>
             </div>
           </label>
@@ -119,6 +209,7 @@ const ReceiptUpload = () => {
             Cancel
           </button>
           <button
+            onClick={sendToAdmin}
             className="px-6 py-3 rounded-lg bg-[rgba(44,81,76,1)] text-white hover:bg-gray-400 disabled:opacity-50 transition cursor-pointer flex items-center justify-center"
             disabled={!file}
           >

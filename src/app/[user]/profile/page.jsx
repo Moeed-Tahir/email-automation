@@ -29,6 +29,7 @@ export default function Page() {
     calendarLink: "",
   });
   const [formData, setFormData] = useState({ ...profileData });
+  console.log("formData", formData);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -78,6 +79,15 @@ export default function Page() {
       console.error("Error updating profile:", error);
     }
   };
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+
   return (
     <SidebarInset>
       {/* <nav className=" sticky top-0 z-10 bg-white flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
@@ -126,7 +136,13 @@ export default function Page() {
                 <Label htmlFor="fullName">Full Name</Label>
                 <Input
                   id="fullName"
-                  placeholder={`${formData.linkedInProfileName}`}
+                  value={formData.linkedInProfileName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      linkedInProfileName: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -134,32 +150,62 @@ export default function Page() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder={`${formData.linkedInProfileEmail}`}
+                  value={formData.linkedInProfileEmail}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      linkedInProfileEmail: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="companyName">Company Name</Label>
                 <Input
                   id="companyName"
-                  placeholder={`${formData.companyName}`}
+                  value={formData.companyName}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      companyName: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="jobTitle">Job Title</Label>
-                <Input id="jobTitle" placeholder={`${formData.jobTitle}`} />
+                <Input
+                  id="jobTitle"
+                  value={formData.jobTitle}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      jobTitle: e.target.value,
+                    }))
+                  }
+                />
               </div>
               <div className="space-y-2 md:col-span-1">
                 <Label htmlFor="industry">Industry</Label>
-                <Select>
+                <Select
+                  value={formData.industry}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      industry: value,
+                    }))
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select Industry" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="m@example.com">m@example.com</SelectItem>
-                    <SelectItem value="m@google.com">m@google.com</SelectItem>
-                    <SelectItem value="m@support.com">m@support.com</SelectItem>
+                    <SelectItem value="Tech">Tech</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Healthcare">Healthcare</SelectItem>
                   </SelectContent>
                 </Select>
+
               </div>
             </div>
           </div>
@@ -173,14 +219,26 @@ export default function Page() {
                 <Label htmlFor="charityCompany">Charity Company</Label>
                 <Input
                   id="charityCompany"
-                  placeholder={`${formData.charityCompany}`}
+                  value={formData.charityCompany}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      charityCompany: e.target.value,
+                    }))
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="minimumBid">Minimum Bid</Label>
                 <Input
-                  id="minimumBid"
-                  placeholder={`${formData.minimumBidDonation}$`}
+                  id="minimumBidDonation"
+                  value={formData.minimumBidDonation}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      minimumBidDonation: e.target.value,
+                    }))
+                  }
                 />
               </div>
             </div>
@@ -197,9 +255,14 @@ export default function Page() {
               <div className="flex items-center px-2 gap-2 border rounded-lg w-full bg-white">
                 <Link className="text-[rgba(44,81,76,1)] size-5 shrink-0" />
                 <Input
-                  type="link"
-                  placeholder={`${formData.calendarLink}`}
-                  className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg "
+                  id="calendarLink"
+                  value={formData.calendarLink}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      calendarLink: e.target.value,
+                    }))
+                  }
                 />
               </div>
             </div>

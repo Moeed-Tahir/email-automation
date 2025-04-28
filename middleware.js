@@ -7,18 +7,29 @@ const protectedPaths = [
   /^\/[^\/]+\/profile$/
 ];
 
+const adminProtectedPath = /^\/admin\/dashboard$/;
+
 export function middleware(request) {
   const { pathname } = request.nextUrl;
+
+  const userEmail = request.cookies.get('userEmail')?.value;
+  const userId = request.cookies.get('UserId')?.value;
+  const token = request.cookies.get('Token')?.value;
+  const adminAccessible = request.cookies.get('adminAccessible')?.value === 'true';
+
+  const isAuthenticated = userEmail && userId && token;
 
   if (pathname === '/') {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  const userEmail = request.cookies.get('userEmail')?.value;
-  const userId = request.cookies.get('UserId')?.value;
-  const token = request.cookies.get('Token')?.value;
+  if (pathname === '/admin/login' && adminAccessible) {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+  }
 
-  const isAuthenticated = userEmail && userId && token;
+  if (pathname === '/admin/dashboard' && !adminAccessible) {
+    return NextResponse.redirect(new URL('/admin/login', request.url));
+  }
 
   if (pathname === '/login' && isAuthenticated) {
     return NextResponse.redirect(new URL(`/${userId}/dashboard`, request.url));
@@ -40,6 +51,8 @@ export const config = {
     '/:userId/bidding-requests',
     '/:userId/bid-details',
     '/:userId/profile',
-    '/login'
+    '/login',
+    '/admin/login',
+    '/admin/dashboard'
   ]
 };

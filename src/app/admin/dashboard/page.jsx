@@ -7,10 +7,27 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import axios from "axios";
 import { BellIcon } from "lucide-react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export default function page() {
+  const [tableData, setTableData] = useState([]);
+
+  useEffect(() => {
+    const fetchAdminData = async () => {
+      try {
+        const response = await axios.get("/api/routes/Admin?action=fetchReciptData");
+        setTableData(response.data.receipts);
+      } catch (error) {
+        console.log("Error is occured", error);
+      }
+    }
+
+    fetchAdminData();
+  }, []);
+
   return (
     <SidebarProvider>
       <AppSidebar isAdmin={true} />
@@ -53,7 +70,7 @@ export default function page() {
         </nav>
 
         <div className="p-4">
-          <AdminTable />
+          <AdminTable tableData={tableData} />
         </div>
       </SidebarInset>
     </SidebarProvider>

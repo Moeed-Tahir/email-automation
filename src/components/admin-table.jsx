@@ -17,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { data } from "../lib/constant";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownWideNarrow, ChevronsUpDown, FunnelIcon, FileText, Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -25,7 +24,7 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-const AdminTable = () => {
+const AdminTable = ({ tableData }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [statusFilters, setStatusFilters] = useState([]);
@@ -33,10 +32,12 @@ const AdminTable = () => {
   const itemsPerPage = 8;
   const router = useRouter();
   const [existingSurveys, setExistingSurveys] = useState([]);
-
+  
   useEffect(() => {
-    setExistingSurveys(data);
-  }, []);
+    if (tableData) {
+      setExistingSurveys(tableData);
+    }
+  }, [tableData]);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -84,26 +85,37 @@ const AdminTable = () => {
     setShowSortMenu(false);
   };
 
-  const handleAccept = async (representativeEmail) => {
+  const handleAccept = async (requestId, representativeEmail) => {
     try {
       const fromEmail = Cookies.get("userEmail");
       if (!fromEmail) {
         throw new Error("User email not found in cookies");
       }
 
-      const response = await axios.post('/api/routes/Google?action=sendAcceptEmailToAdmin', {
-        sendFromEmail: fromEmail,
-        sendToEmail: representativeEmail,
+      // First update the status in the database
+      const updateResponse = await axios.put('/api/meeting-requests', {
+        id: requestId,
+        status: "Accepted"
       });
 
-      if (response.data.message) {
-        alert('Meeting request accepted successfully');
-        // Update local state to reflect acceptance
-        setExistingSurveys(prev => prev.map(item => 
-          item.email === representativeEmail ? { ...item, status: "Accepted" } : item
-        ));
+      if (updateResponse.data.success) {
+        // Then send the acceptance email
+        const emailResponse = await axios.post('/api/routes/Google?action=sendAcceptEmailToAdmin', {
+          sendFromEmail: fromEmail,
+          sendToEmail: representativeEmail,
+        });
+
+        if (emailResponse.data.message) {
+          alert('Meeting request accepted successfully');
+          // Update local state to reflect acceptance
+          setExistingSurveys(prev => prev.map(item => 
+            item._id === requestId ? { ...item, status: "Accepted" } : item
+          ));
+        } else {
+          throw new Error(emailResponse.data.message || 'Failed to send acceptance email');
+        }
       } else {
-        throw new Error(response.data.message || 'Failed to accept request');
+        throw new Error(updateResponse.data.message || 'Failed to update request status');
       }
     } catch (error) {
       console.error('Error accepting request:', error);
@@ -111,26 +123,37 @@ const AdminTable = () => {
     }
   };
 
-  const handleReject = async (representativeEmail) => {
+  const handleReject = async (requestId, representativeEmail) => {
     try {
       const fromEmail = Cookies.get("userEmail");
       if (!fromEmail) {
         throw new Error("User email not found in cookies");
       }
 
-      const response = await axios.post('/api/routes/Google?action=sendRejectEmailToAdmin', {
-        sendFromEmail: fromEmail,
-        sendToEmail: representativeEmail,
+      // First update the status in the database
+      const updateResponse = await axios.put('/api/meeting-requests', {
+        id: requestId,
+        status: "Rejected"
       });
 
-      if (response.data.message) {
-        alert('Meeting request rejected successfully');
-        // Update local state to reflect rejection
-        setExistingSurveys(prev => prev.map(item => 
-          item.email === representativeEmail ? { ...item, status: "Rejected" } : item
-        ));
+      if (updateResponse.data.success) {
+        // Then send the rejection email
+        const emailResponse = await axios.post('/api/routes/Google?action=sendRejectEmailToAdmin', {
+          sendFromEmail: fromEmail,
+          sendToEmail: representativeEmail,
+        });
+
+        if (emailResponse.data.message) {
+          alert('Meeting request rejected successfully');
+          // Update local state to reflect rejection
+          setExistingSurveys(prev => prev.map(item => 
+            item._id === requestId ? { ...item, status: "Rejected" } : item
+          ));
+        } else {
+          throw new Error(emailResponse.data.message || 'Failed to send rejection email');
+        }
       } else {
-        throw new Error(response.data.message || 'Failed to reject request');
+        throw new Error(updateResponse.data.message || 'Failed to update request status');
       }
     } catch (error) {
       console.error('Error rejecting request:', error);
@@ -147,12 +170,24 @@ const AdminTable = () => {
     if (!sortConfig.key) return 0;
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
+    
+    if (sortConfig.key === "createdAt") {
+      // Handle date comparison
+      return sortConfig.direction === "asc" 
+        ? new Date(aValue) - new Date(bValue) 
+        : new Date(bValue) - new Date(aValue);
+    }
+    
     if (typeof aValue === "string" && typeof bValue === "string") {
       return sortConfig.direction === "asc"
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
     }
-    return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
+    
+    // Handle numeric comparison for donation
+    const numA = parseFloat(aValue);
+    const numB = parseFloat(bValue);
+    return sortConfig.direction === "asc" ? numA - numB : numB - numA;
   });
 
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -213,8 +248,8 @@ const AdminTable = () => {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {[
-                { label: "Date (Oldest First)", key: "date", dir: "asc" },
-                { label: "Date (Newest First)", key: "date", dir: "desc" },
+                { label: "Date (Oldest First)", key: "createdAt", dir: "asc" },
+                { label: "Date (Newest First)", key: "createdAt", dir: "desc" },
                 { label: "Donation (Low - High)", key: "donation", dir: "asc" },
                 { label: "Donation (High - Low)", key: "donation", dir: "desc" },
               ].map((opt) => (
@@ -237,20 +272,28 @@ const AdminTable = () => {
             <TableRow className="bg-white sticky top-0 z-10">
               <TableHead
                 className="cursor-pointer"
-                onClick={() => handleHeaderSort("name")}
+                onClick={() => handleHeaderSort("salesRepresentiveName")}
               >
                 <div className="flex items-center justify-between">
                   Sales Representative{" "}
                   <ChevronsUpDown className="size-4 text-gray-500" />
                 </div>
               </TableHead>
-              <TableHead>Executive</TableHead>
               <TableHead
                 className="cursor-pointer"
-                onClick={() => handleHeaderSort("date")}
+                onClick={() => handleHeaderSort("executiveName")}
               >
                 <div className="flex items-center justify-between">
-                  Proposed Date{" "}
+                  Executive{" "}
+                  <ChevronsUpDown className="size-4 text-gray-500" />
+                </div>
+              </TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleHeaderSort("createdAt")}
+              >
+                <div className="flex items-center justify-between">
+                  Request Date{" "}
                   <ChevronsUpDown className="size-4 text-gray-500" />
                 </div>
               </TableHead>
@@ -271,47 +314,50 @@ const AdminTable = () => {
             {currentData.map((request) => (
               <TableRow key={request._id}>
                 <TableCell className="min-w-[200px]">
-                  <div className="font-medium">{request.name}</div>
+                  <div className="font-medium">{request.salesRepresentiveName}</div>
                   <div className="text-sm text-muted-foreground">
-                    {request.email}
+                    {request.salesRepresentiveEmail}
                   </div>
                 </TableCell>
                 <TableCell className="min-w-[200px]">
-                  <div className="font-medium">{request.name}</div>
+                  <div className="font-medium">{request.executiveName}</div>
                   <div className="text-sm text-muted-foreground">
-                    {request.email}
+                    {request.executiveEmail}
                   </div>
                 </TableCell>
                 <TableCell className="min-w-[150px]">
-                  {new Date(request.date).toLocaleDateString('en-US', {
+                  {new Date(request.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
-                    day: 'numeric'
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
                   })}
                 </TableCell>
                 <TableCell className="min-w-[120px]">
-                  ${request.donationAmount}
+                  ${request.donation}
                 </TableCell>
                 <TableCell className="min-w-[150px]">
                   {getStatusBadge(request.status || "Pending")}
                 </TableCell>
                 <TableCell className="min-w-[250px] flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1"
-                    onClick={() => {
-                      // View receipt logic here
-                      console.log(`View receipt for ${request.email}`);
-                    }}
-                  >
-                    <FileText className="h-4 w-4" />
-                    Receipt
-                  </Button>
+                  {request.receiptFormLink && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1"
+                      onClick={() => {
+                        window.open(request.receiptFormLink, '_blank');
+                      }}
+                    >
+                      <FileText className="h-4 w-4" />
+                      Receipt
+                    </Button>
+                  )}
                   <Button 
                     size="sm" 
                     className="gap-1 bg-[#28C76F29] text-[#28C76F] hover:bg-[#28C76F29]"
-                    onClick={() => handleAccept(request.email)}
+                    onClick={() => handleAccept(request._id, request.salesRepresentiveEmail)}
                     disabled={request.status === "Accepted"}
                   >
                     <Check className="h-4 w-4" />
@@ -321,7 +367,7 @@ const AdminTable = () => {
                     size="sm"
                     variant="destructive"
                     className="gap-1 bg-[#EA545529] text-[#EA5455] hover:bg-[#EA545529]"
-                    onClick={() => handleReject(request.email)}
+                    onClick={() => handleReject(request._id, request.salesRepresentiveEmail)}
                     disabled={request.status === "Rejected"}
                   >
                     <X className="h-4 w-4" />

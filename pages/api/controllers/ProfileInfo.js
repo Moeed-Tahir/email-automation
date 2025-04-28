@@ -119,7 +119,8 @@ const editProfileInfo = async (req, res) => {
     await connectToDatabase();
 
     const { userId } = req.query;
-    const updates = req.body;
+    const { updates } = req.body;
+    console.log("updates",updates);
 
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });
@@ -130,6 +131,7 @@ const editProfileInfo = async (req, res) => {
       { $set: updates },
       { new: true, runValidators: true }
     );
+    console.log("updatedUser",updatedUser);
 
     if (!updatedUser) {
       return res.status(404).json({ error: "User not found" });

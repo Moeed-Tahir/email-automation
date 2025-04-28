@@ -14,7 +14,8 @@ const survayFormSchema = new mongoose.Schema(
         performanceGuarantee: { type: String, required: false },
         DonationWilling: { type: String, required: false },
         escrowDonation: { type: String, required: false },
-        charityDonation: { type: String, required: false }
+        charityDonation: { type: String, required: false },
+        status: { type: String, required: false, default: "Pending" },
     },
     { timestamps: true }
 );

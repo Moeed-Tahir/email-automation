@@ -34,6 +34,7 @@ const DashboardTable = ({ userId }) => {
   const itemsPerPage = 8;
   const router = useRouter();
   const [existingSurveys, setExistingSurveys] = useState([]);
+  console.log("existingSurveys", existingSurveys);
 
   useEffect(() => {
     const fetchExistingSurveys = async () => {
@@ -64,6 +65,8 @@ const DashboardTable = ({ userId }) => {
               DonationWilling: latestSurvey.DonationWilling || "",
               escrowDonation: latestSurvey.escrowDonation || "",
               charityDonation: latestSurvey.charityDonation || "",
+              status: latestSurvey.status,
+              userId: latestSurvey.userId || " "
             });
           }
         } else {
@@ -128,16 +131,21 @@ const DashboardTable = ({ userId }) => {
     setShowSortMenu(false);
   };
 
-  const handleAccept = async (representativeEmail) => {
+  const handleAccept = async (representativeEmail, userId) => {
     try {
       const fromEmail = Cookies.get("userEmail");
+      const mainUserId = Cookies.get("UserId");
+      console.log("userId", userId);
+
       if (!fromEmail) {
         throw new Error("User email not found in cookies");
       }
 
       const response = await axios.post('/api/routes/Google?action=sendAcceptEmailToAdmin', {
         sendFromEmail: fromEmail,
-        sendToEmail: representativeEmail,
+        sendToEmail: representativeEmail.email,
+        dashboardUserId: representativeEmail.userId,
+        mainUserId: mainUserId
       });
 
       if (response.data.message) {
@@ -322,7 +330,7 @@ const DashboardTable = ({ userId }) => {
                   </Badge>
                 </TableCell>
                 <TableCell className="min-w-[150px]">
-                  {getStatusBadge(survey.DonationWilling ? "Accept" : "Reject")}
+                  {survey.status}
                 </TableCell>
                 <TableCell className="min-w-[300px] lg:min-w-[250px] flex flex-wrap gap-2">
                   <Button
@@ -332,7 +340,8 @@ const DashboardTable = ({ userId }) => {
                   >
                     View Details
                   </Button>
-                  <Button size="sm" onClick={() => handleAccept(survey.email)} className="bg-[#28C76F29] text-[#28C76F]">
+                  <Button size="sm" onClick={() => handleAccept({ email: survey.email, userId: survey.userId })}
+                    className="bg-[#28C76F29] text-[#28C76F]">
                     Accept
                   </Button>
                   <Button

@@ -398,10 +398,9 @@ exports.stopMonitoring = (userEmail) => {
 
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
-    const { sendFromEmail, sendToEmail} = req.body;
-    
     await connectToDatabase();
-    
+    const { sendFromEmail, sendToEmail,dashboardUserId,mainUserId} = req.body;
+    console.log("req.body",req.body)
     const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -443,8 +442,27 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
       from: sendFromEmail,
       to: sendToEmail,
       subject: "This is the Accept Subject",
-      text: "This is the Reject text",
+      html: `
+        <div style="text-align: center;">
+          <p>Hello,</p>
+          <p>Click the button below to upload your receipt:</p>
+          <a href="http://localhost:3000/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}" 
+             style="
+               display: inline-block;
+               padding: 10px 20px;
+               font-size: 16px;
+               color: white;
+               background-color: #4CAF50;
+               text-decoration: none;
+               border-radius: 5px;
+               margin-top: 10px;
+             ">
+             Upload Receipt
+          </a>
+        </div>
+      `
     };
+    
 
     await transporter.sendMail(mailOptions);
 
