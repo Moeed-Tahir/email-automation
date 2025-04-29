@@ -7,7 +7,7 @@ dotenv.config();
 
 const connectToDatabase = require('../lib/db');
 
-const CLIENT_ID = process.env.GOOGLE_CLIENT_ID ;
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = `${process.env.REQUEST_URL}/api/routes/Google?action=handleOAuth2Callback`;
 
@@ -252,7 +252,7 @@ exports.getEmails = async (req, res) => {
   }
 };
 
-async function startEmailMonitoring(userEmail) {
+exports.startEmailMonitoring = async (userEmail) => {
   if (activeMonitors[userEmail]) {
     clearInterval(activeMonitors[userEmail]);
   }
@@ -413,14 +413,14 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
                 </tr>
     
                 <!-- Button -->
-                <tr>
-                  <td align="center" style="padding: 20px;">
-                    <a href=${process.env.REQUEST_URL}/survay-form/${userId}?userId=${userId}"
-                       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
-                      Complete Survey
-                    </a>
-                  </td>
-                </tr>
+<tr>
+  <td align="left" style="padding: 20px;">
+    <a href="${process.env.REQUEST_URL}/survay-form/${userId}?userId=${userId}"
+       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
+      Complete Survey
+    </a>
+  </td>
+</tr>
     
               </table>
     
@@ -433,10 +433,10 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
                         <td align="left">
                           <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
                         </td>
-                        <td align="right">
-                          <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                         <td align="right">
+                          <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
                         </td>
                       </tr>
                     </table>
@@ -468,7 +468,7 @@ exports.stopMonitoring = (userEmail) => {
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name } = req.body;
+    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId } = req.body;
 
     const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
     if (!user) {
@@ -574,13 +574,13 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
     
                 <!-- Button -->
                 <tr>
-                  <td align="center" style="padding: 20px;">
-                    <a href=${process.env.REQUEST_URL}/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}
-                       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
-                      Upload Receipt
-                    </a>
-                  </td>
-                </tr>
+  <td align="left" style="padding: 20px;">
+    <a href="${process.env.REQUEST_URL}/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}&surveyId=${surveyId}"
+       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
+      Upload Receipt
+    </a>
+  </td>
+</tr>
     
               </table>
     
@@ -594,9 +594,9 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                           <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
                         </td>
                         <td align="right">
-                          <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
                         </td>
                       </tr>
                     </table>
@@ -711,10 +711,10 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
                         <td align="left">
                           <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
                         </td>
-                        <td align="right">
-                          <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                         <td align="right">
+                          <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
                         </td>
                       </tr>
                     </table>

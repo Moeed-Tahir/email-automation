@@ -23,7 +23,7 @@ export default function Page() {
   useEffect(() => {
     const fetchBidInfo = async () => {
       try {
-        const response = await axios.get("/api/routes/SurvayForm?action=getBidInfo");
+        const response = await axios.post("/api/routes/SurvayForm?action=getBidInfo",{userId});
         setBidInfo(response.data);
       } catch(error) {
         console.error("Error occurred", error);

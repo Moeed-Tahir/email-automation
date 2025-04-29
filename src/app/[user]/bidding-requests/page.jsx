@@ -18,7 +18,7 @@ export default function Page() {
         </div>
 
         <div className="md:h-[calc(100vh-250px)] lg:h-[calc(100vh-250px)] overflow-auto lg:overflow-hidden mb-5">
-          <DashboardTable />
+          <DashboardTable userId={userId} />
         </div>
       </div>
     </div>

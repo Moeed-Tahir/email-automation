@@ -77,9 +77,18 @@ const SignupFlow = () => {
             code: code,
           },
         })
-        .then((res) => {
-          Cookies.set("userEmail", res.data.userEmail); // set cookie
-          nextStep();
+        .then((response) => {
+          if(response.data.message === "Login successful! Please complete your profile by filling the next steps."){
+            nextStep();
+          }else if(response.data.message === "Welcome back! You're logged in successfully."){
+            Cookies.set('UserId', response.data.userId, { path: '/', expires: 7 });
+            Cookies.set('Token', response.data.token, { path: '/', expires: 7 });
+            Cookies.set('userName', response.data.linkedInProfileName, { path: '/', expires: 7 });
+            Cookies.set('userEmail', response.data.linkedInProfileEmail, { path: '/', expires: 7 });
+            Cookies.set('userPhoto', response.data.linkedInProfilePhoto, { path: '/', expires: 7 });
+            router.push("/");
+          }
+
         })
         .catch((err) => {
           console.error("Login error:", err);
@@ -340,8 +349,9 @@ const SignupFlow = () => {
 
             Cookies.set('UserId', response.data.user.userId, { path: '/', expires: 7 });
             Cookies.set('Token', response.data.token, { path: '/', expires: 7 });
-            Cookies.set('userName', response.data.token, { path: '/', expires: 7 });
             Cookies.set('userName', response.data.userName, { path: '/', expires: 7 });
+            Cookies.set('userEmail', response.data.userEmail, { path: '/', expires: 7 });
+            Cookies.set('userPhoto', response.data.userPhoto, { path: '/', expires: 7 });
 
             router.push(`/${response.data.user.userId}/dashboard`);
 

@@ -14,6 +14,8 @@ const ReceiptUpload = () => {
   const [isDragging, setIsDragging] = useState(false);
   const searchParams = useSearchParams();
   const mainUserId = searchParams.get('mainUserId');
+  const surveyId = searchParams.get('surveyId');
+
   
   const [profileData, setProfileData] = useState({});
 
@@ -67,7 +69,8 @@ const ReceiptUpload = () => {
         salesRepresentiveName: profileData?.linkedInProfileName || "",
         donation: profileData?.minimumBidDonation || "",
         receiptFormLink,
-        userId:mainUserId
+        userId:mainUserId,
+        surveyId:surveyId
       });
 
       alert("Receipt successfully uploaded and sent to admin!");

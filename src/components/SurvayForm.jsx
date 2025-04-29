@@ -45,68 +45,17 @@ const SurveyForm = ({ userId }) => {
   const isLastTab = currentTab === tabs.length - 1;
   const isFirstTab = currentTab === 0;
 
-  const validateCurrentTab = () => {
-    const newErrors = {};
-    
-    switch (currentTab) {
-      case 0:
-        if (!formData.name.trim()) newErrors.name = "Name is required";
-        if (!formData.email.trim()) {
-          newErrors.email = "Email is required";
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = "Invalid email format";
-        }
-        if (!formData.bidAmount.trim()) {
-          newErrors.bidAmount = "Bid amount is required";
-        } else if (isNaN(formData.bidAmount) || parseFloat(formData.bidAmount) <= 0) {
-          newErrors.bidAmount = "Bid amount must be a positive number";
-        }
-        break;
-      case 1:
-        if (!formData.solutionDescription.trim()) newErrors.solutionDescription = "Solution description is required";
-        if (!formData.businessChallengeSolution.trim()) newErrors.businessChallengeSolution = "Business challenge solution is required";
-        break;
-      case 2:
-        if (!formData.businessProblem) newErrors.businessProblem = "Please select an option";
-        if (!formData.resultsTimeframe) newErrors.resultsTimeframe = "Please select an option";
-        if (!formData.caseStudies) newErrors.caseStudies = "Please select an option";
-        if (!formData.offeringType) newErrors.offeringType = "Please select an option";
-        break;
-      case 3:
-        if (!formData.performanceGuarantee) newErrors.performanceGuarantee = "Please select an option";
-        if (!formData.DonationWilling) newErrors.DonationWilling = "Please select an option";
-        if (formData.DonationWilling === "Yes" && !formData.escrowDonation) {
-          newErrors.escrowDonation = "Please select an option";
-        }
-        if (formData.DonationWilling === "Yes" && !formData.charityDonation) {
-          newErrors.charityDonation = "Please select an option";
-        }
-        break;
-      default:
-        break;
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleNext = () => {
-    if (validateCurrentTab() && !isLastTab) {
-      setCurrentTab(currentTab + 1);
-    }
+    setCurrentTab(currentTab + 1);
   };
 
   const handleBack = () => {
     if (!isFirstTab) setCurrentTab(currentTab - 1);
   };
 
-  const handleSaveDraft = () => {
-    console.log("Draft Saved:", formData);
-  };
-
   const calculateTotalScore = (formData) => {
     let score = 0;
-  
+
     if (formData.performanceGuarantee === "No") {
       score += 1;
     } else if (formData.performanceGuarantee === "Yes, but with conditions") {
@@ -114,13 +63,13 @@ const SurveyForm = ({ userId }) => {
     } else if (formData.performanceGuarantee === "Yes, unconditionally") {
       score += 10;
     }
-  
+
     if (formData.DonationWilling === "No") {
       score += 1;
     } else if (formData.DonationWilling === "Yes") {
       score += 10;
     }
-  
+
     if (formData.DonationWilling === "Yes") {
       if (formData.escrowDonation === "No") {
         score += 1;
@@ -128,7 +77,7 @@ const SurveyForm = ({ userId }) => {
         score += 10;
       }
     }
-  
+
     if (formData.DonationWilling === "Yes" && formData.charityDonation) {
       const donationAmount = formData.charityDonation;
       if (donationAmount === "$10-$50") {
@@ -145,45 +94,42 @@ const SurveyForm = ({ userId }) => {
         score += 12;
       }
     }
-  
+
     return score.toString();
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (validateCurrentTab()) {
-      try {
-        setLoading(true);
-        const totalScore = calculateTotalScore(formData);
 
-        const response = await fetch('/api/routes/SurvayForm?action=sendSurvayForm', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId,
-            ...formData,
-            totalScore
-          }),
-        });
+    try {
+      setLoading(true);
+      const totalScore = calculateTotalScore(formData);
 
-        if (response.ok) {
-          const data = await response.json();
-          alert("Survey submitted successfully!");
-          router.push("/login");
-          
-        } else {
-          console.error("Error submitting form");
-          alert("Error submitting survey. Please try again.");
-        }
-      } catch (error) {
-        console.error("Error submitting form:", error);
+      const response = await fetch('/api/routes/SurvayForm?action=sendSurvayForm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          ...formData,
+          totalScore
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert("Survey submitted successfully!");
+        router.push("/successful");
+      } else {
+        console.error("Error submitting form");
         alert("Error submitting survey. Please try again.");
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Error submitting survey. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -366,34 +312,34 @@ const SurveyForm = ({ userId }) => {
               }
               error={errors.DonationWilling}
             />
-              <>
-                <RadioGroup
-                  label="Would you be willing to escrow this donation amount to be released after the meeting takes place?"
-                  options={["No", "Yes"]}
-                  value={formData.escrowDonation}
-                  onChange={(val) =>
-                    setFormData({ ...formData, escrowDonation: val })
-                  }
-                  error={errors.escrowDonation}
-                />
-                <RadioGroup
-                  label="How much would you be willing to donate?"
-                  options={[
-                    "$10-$50",
-                    "$51-$100",
-                    "$101-$200",
-                    "$201-$300",
-                    "$301-$400",
-                    "$401-$500",
-                  ]}
-                  value={formData.charityDonation}
-                  onChange={(val) =>
-                    setFormData({ ...formData, charityDonation: val })
-                  }
-                  error={errors.charityDonation}
-                />
-              </>
-            
+            <>
+              <RadioGroup
+                label="Would you be willing to escrow this donation amount to be released after the meeting takes place?"
+                options={["No", "Yes"]}
+                value={formData.escrowDonation}
+                onChange={(val) =>
+                  setFormData({ ...formData, escrowDonation: val })
+                }
+                error={errors.escrowDonation}
+              />
+              <RadioGroup
+                label="How much would you be willing to donate?"
+                options={[
+                  "$10-$50",
+                  "$51-$100",
+                  "$101-$200",
+                  "$201-$300",
+                  "$301-$400",
+                  "$401-$500",
+                ]}
+                value={formData.charityDonation}
+                onChange={(val) =>
+                  setFormData({ ...formData, charityDonation: val })
+                }
+                error={errors.charityDonation}
+              />
+            </>
+
           </>
         );
       default:
@@ -415,7 +361,7 @@ const SurveyForm = ({ userId }) => {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(e) => e.preventDefault()}>
         <AnimatePresence mode="wait">
           <motion.div
             key={currentTab}
@@ -441,16 +387,10 @@ const SurveyForm = ({ userId }) => {
             Back
           </button>
           <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={handleSaveDraft}
-              className="px-6 py-3 rounded-lg bg-[#f0f0f0] text-gray-700 hover:bg-[#e0e0e0] transition cursor-pointer"
-            >
-              Save Draft
-            </button>
+
             {isLastTab ? (
               <button
-                type="submit"
+                onClick={handleSubmit}
                 disabled={loading}
                 className="px-6 py-3 rounded-lg text-white transition cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 style={{ backgroundColor: "rgba(44, 81, 76, 1)" }}

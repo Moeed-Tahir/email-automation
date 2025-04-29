@@ -26,8 +26,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-
-
 const userId = Cookies.get("UserId");
 const data = {
   dashboard: [
@@ -66,16 +64,25 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }) {
+export function AppSidebar({ isAdmin = false, ...props }) {
   const pathname = usePathname();
   const router = useRouter();
 
   const handleLogout = () => {
+    // Clear all user cookies
     Cookies.remove("userEmail");
     Cookies.remove("userName");
     Cookies.remove("UserId");
     Cookies.remove("Token");
     router.push("/login");
+  };
+
+  const handleAdminLogout = () => {
+    // Clear admin-specific cookies
+    Cookies.remove("adminToken");
+    Cookies.remove("adminId");
+    Cookies.remove("adminAccessible");
+    router.push("/admin/login");
   };
 
   return (
@@ -84,18 +91,40 @@ export function AppSidebar({ ...props }) {
         <Image src={logo} alt="Logo" width={130} height={130} />
       </SidebarHeader>
       <SidebarContent className="bg-[#2C514C]">
-        {props.isAdmin ? (
-          <SidebarMenuItem className="px-3">
-            <SidebarMenuButton asChild>
-              <Link
-                href="/admin/dashboard"
-                className="flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors bg-white text-[#2C514C]"
-              >
-                <LayoutDashboardIcon className="size-4 shrink-0" />
-                <span className="font-medium text-[16px]">Dashboard</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+        {isAdmin ? (
+          <SidebarGroup>
+            <SidebarGroupLabel className="capitalize text-white">
+              Admin
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href="/admin/dashboard"
+                      className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${
+                        pathname === "/admin/dashboard"
+                          ? "bg-white text-[#2C514C]"
+                          : "text-white hover:bg-white hover:text-[#2C514C]"
+                      }`}
+                    >
+                      <LayoutDashboardIcon className="size-4 shrink-0" />
+                      <span className="font-medium text-[16px]">Dashboard</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={handleAdminLogout}
+                    className="flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors text-white hover:bg-white hover:text-[#2C514C]"
+                  >
+                    <LogOut className="size-4 shrink-0" />
+                    <span className="font-medium text-[16px]">Logout</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         ) : (
           Object.keys(data).map((item, idx) => (
             <SidebarGroup key={idx}>
@@ -111,10 +140,11 @@ export function AppSidebar({ ...props }) {
                         <SidebarMenuItem key={i}>
                           <SidebarMenuButton
                             onClick={handleLogout}
-                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${isActive
+                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${
+                              isActive
                                 ? "bg-white text-[#2C514C]"
                                 : "text-white hover:bg-white hover:text-[#2C514C]"
-                              }`}
+                            }`}
                           >
                             <t.icon className="size-4 shrink-0" />
                             <span className="font-medium text-[16px]">
@@ -129,10 +159,11 @@ export function AppSidebar({ ...props }) {
                         <SidebarMenuButton asChild>
                           <Link
                             href={t.url}
-                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${isActive
+                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${
+                              isActive
                                 ? "bg-white text-[#2C514C]"
                                 : "text-white hover:bg-white hover:text-[#2C514C]"
-                              }`}
+                            }`}
                           >
                             <t.icon className="size-4 shrink-0" />
                             <span className="font-medium text-[16px]">

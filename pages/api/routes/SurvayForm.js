@@ -20,7 +20,7 @@ export default async function handler(req, res) {
             return await sendSurvayForm(req, res);
         } else if (req.method === 'GET' && action === 'fetchSurvayData') {
             return await fetchSurvayData(req, res);
-        } else if (req.method === 'GET' && action === 'getBidInfo') {
+        } else if (req.method === 'POST' && action === 'getBidInfo') {
             return await getBidInfo(req, res);
         } else {
             return res.status(405).json({ message: 'Method Not Allowed' });

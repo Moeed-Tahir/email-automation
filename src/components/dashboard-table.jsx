@@ -146,7 +146,8 @@ const DashboardTable = ({ userId }) => {
         mainUserId: mainUserId,
         objectId:survey._id,
         bidAmount:survey.bidAmount,
-        name:survey.name
+        name:survey.name,
+        surveyId:survey.survayId
       });
 
       if (response.data.message) {

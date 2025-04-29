@@ -2,70 +2,82 @@ const connectToDatabase = require('../lib/db');
 const Admin = require('../models/Admin');
 const nodemailer = require('nodemailer');
 const Donation = require('../models/Donation');
+const SurvayForm = require('../models/SurvayForm');
+
 const dotenv = require("dotenv");
 dotenv.config();
 
 const uploadReciptData = async (req, res) => {
-    try {
-        await connectToDatabase();
-        const { executiveEmail, executiveName, salesRepresentiveEmail, salesRepresentiveName, donation, receiptFormLink, userId } = req.body;
+  try {
+    await connectToDatabase();
 
-        const newAdminForm = await Admin.create({
-            executiveEmail,
-            executiveName,
-            salesRepresentiveEmail,
-            salesRepresentiveName,
-            donation,
-            receiptFormLink,
-            userId
-        });
+    const { executiveEmail, executiveName, donation, receiptFormLink, userId, surveyId } = req.body;
 
-        res.status(200).json({ message: "Receipt Form Send Successfully", newAdminForm });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server Error' });
+    const surveyData = await SurvayForm.findOne({ survayId: surveyId });
+
+    if (!surveyData) {
+      return res.status(404).json({ message: "Survey data not found for the given userId" });
     }
+
+    const salesRepresentiveEmail = surveyData.email;
+    const salesRepresentiveName = surveyData.name;
+
+    const newAdminForm = await Admin.create({
+      executiveEmail,
+      executiveName,
+      salesRepresentiveEmail,
+      salesRepresentiveName,
+      donation,
+      receiptFormLink,
+      userId
+    });
+
+    res.status(200).json({ message: "Receipt Form Sent Successfully", newAdminForm });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
 
 const fetchReciptData = async (req, res) => {
-    try {
-        await connectToDatabase();
+  try {
+    await connectToDatabase();
 
-        const receipts = await Admin.find();
+    const receipts = await Admin.find();
 
-        res.status(200).json({ message: "Receipts fetched successfully", receipts });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server Error' });
-    }
+    res.status(200).json({ message: "Receipts fetched successfully", receipts });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
 
 const sendAcceptEmailFromAdmin = async (req, res) => {
-    try {
-        await connectToDatabase();
-        const { salesRepresentiveEmail, salesRepresentiveName, executiveName, executiveEmail, objectId, donation, userId } = req.body;
+  try {
+    await connectToDatabase();
+    const { salesRepresentiveEmail, salesRepresentiveName, executiveName, executiveEmail, objectId, donation, userId } = req.body;
 
-        if (!salesRepresentiveEmail || !salesRepresentiveName || !executiveName || !executiveEmail || !objectId || !donation || !userId) {
-            return res.status(400).json({
-                success: false,
-                message: 'Missing required fields in request body'
-            });
-        }
+    if (!salesRepresentiveEmail || !salesRepresentiveName || !executiveName || !executiveEmail || !objectId || !donation || !userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields in request body'
+      });
+    }
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: 'moeedtahir29@gmail.com',
-                pass: 'bdam zyum ygcv ntqq',
-            },
-        });
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'moeedtahir29@gmail.com',
+        pass: 'bdam zyum ygcv ntqq',
+      },
+    });
 
-        const mailOptions = {
-            from: 'Email-Automation <moeedtahir29@gmail.com>',
-            to: executiveEmail,
-            cc: salesRepresentiveEmail,
-            subject: 'Meeting Confirmation and Payment Verification',
-            html: `
+    const mailOptions = {
+      from: 'Email-Automation <moeedtahir29@gmail.com>',
+      to: executiveEmail,
+      cc: salesRepresentiveEmail,
+      subject: 'Meeting Confirmation and Payment Verification',
+      html: `
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
           <tr>
             <td align="center">
@@ -126,13 +138,13 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
     
                 <!-- Button -->
                 <tr>
-                  <td align="center" style="padding: 20px;">
-                    <a href="#" 
-                       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
-                     Book a Meeting
-                    </a>
-                  </td>
-                </tr>
+  <td align="center" style="padding: 20px;">
+    <a href="#" 
+       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
+      Book a Meeting
+    </a>
+  </td>
+</tr>
     
               </table>
     
@@ -145,10 +157,10 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
                         <td align="left">
                           <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
                         </td>
-                        <td align="right">
-                          <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                         <td align="right">
+                          <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
                         </td>
                       </tr>
                     </table>
@@ -160,88 +172,88 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
           </tr>
         </table>
       `
-        };
+    };
 
-        await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 
-        const updatedForm = await Admin.findByIdAndUpdate(
-            objectId,
-            { status: "Accept" },
-            { new: true }
-        );
+    const updatedForm = await Admin.findByIdAndUpdate(
+      objectId,
+      { status: "Accept" },
+      { new: true }
+    );
 
-        if (!updatedForm) {
-            return res.status(404).json({
-                success: false,
-                message: 'Survey form not found'
-            });
-        }
-
-        await addDonation({
-            salesRepresentiveName,
-            salesRepresentiveEmail,
-            executiveEmail,
-            executiveName,
-            donation,
-            userId
-        });
-
-        res.json({
-            success: true,
-            message: 'Email sent successfully, survey status updated, and donation recorded',
-            updatedForm
-        });
-
-    } catch (error) {
-        console.error('Error sending email or updating status:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to send email or update status',
-        });
+    if (!updatedForm) {
+      return res.status(404).json({
+        success: false,
+        message: 'Survey form not found'
+      });
     }
+
+    await addDonation({
+      salesRepresentiveName,
+      salesRepresentiveEmail,
+      executiveEmail,
+      executiveName,
+      donation,
+      userId
+    });
+
+    res.json({
+      success: true,
+      message: 'Email sent successfully, survey status updated, and donation recorded',
+      updatedForm
+    });
+
+  } catch (error) {
+    console.error('Error sending email or updating status:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to send email or update status',
+    });
+  }
 };
 
 const addDonation = async (donationData) => {
-    try {
-        await connectToDatabase();
+  try {
+    await connectToDatabase();
 
-        const newDonation = await Donation.create({
-            salesRepresentiveName: donationData.salesRepresentiveName,
-            salesRepresentiveEmail: donationData.salesRepresentiveEmail,
-            executiveEmail: donationData.executiveEmail,
-            executiveName: donationData.executiveName,
-            donation: donationData.donation,
-            userId: donationData.userId
-        });
+    const newDonation = await Donation.create({
+      salesRepresentiveName: donationData.salesRepresentiveName,
+      salesRepresentiveEmail: donationData.salesRepresentiveEmail,
+      executiveEmail: donationData.executiveEmail,
+      executiveName: donationData.executiveName,
+      donation: donationData.donation,
+      userId: donationData.userId
+    });
 
-        return newDonation;
-    } catch (error) {
-        console.error("Error adding donation:", error);
-        throw error;
-    }
+    return newDonation;
+  } catch (error) {
+    console.error("Error adding donation:", error);
+    throw error;
+  }
 }
 
 const getDonation = async (req, res) => {
-    try {
-        await connectToDatabase();
-        const { userId } = req.body;
-        
-        const query = userId ? { userId } : {};
-        const donations = await Donation.find(query);
+  try {
+    await connectToDatabase();
+    const { userId } = req.body;
 
-        res.status(200).json({
-            success: true,
-            message: "Donations retrieved successfully",
-            data: donations
-        });
-    } catch (error) {
-        console.error("Error fetching donations:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to retrieve donations",
-            error: error.message
-        });
-    }
+    const query = userId ? { userId } : {};
+    const donations = await Donation.find(query);
+
+    res.status(200).json({
+      success: true,
+      message: "Donations retrieved successfully",
+      data: donations
+    });
+  } catch (error) {
+    console.error("Error fetching donations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve donations",
+      error: error.message
+    });
+  }
 }
 
 module.exports = { uploadReciptData, fetchReciptData, sendAcceptEmailFromAdmin, addDonation, getDonation };

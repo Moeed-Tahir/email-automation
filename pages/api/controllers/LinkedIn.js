@@ -1,8 +1,10 @@
 import axios from "axios";
 import connectToDatabase from "../lib/db";
+import { startEmailMonitoring } from "./Google";
 const User = require('../models/User');
 const dotenv = require("dotenv");
 dotenv.config();
+const jwt = require('jsonwebtoken');
 
 const CLIENT_ID = `${process.env.LINKEDIN_CLIENT_ID}`;
 const CLIENT_SECRET = `${process.env.LINKEDIN_CLIENT_SECRET}`;
@@ -46,11 +48,11 @@ const linkedInCallback = async (req, res) => {
       }
     );
 
-    const { access_token } = tokenRes.data;
+    const { access_token: linkedInAccessToken } = tokenRes.data;
 
     const profileRes = await axios.get("https://api.linkedin.com/v2/userinfo", {
       headers: {
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${linkedInAccessToken}`,
       },
     });
         
@@ -63,24 +65,50 @@ const linkedInCallback = async (req, res) => {
         linkedInProfileEmail: email,
         linkedInProfilePhoto: picture,
       });
+      await user.save();
+      await startEmailMonitoring(user.linkedInProfileEmail)
+      return res.json({
+        success: true,
+        message: "Login successful! Please complete your profile by filling the next steps.",
+        linkedInProfileEmail: user.linkedInProfileEmail,
+        isNewUser: true
+      });
     } else {
       user.linkedInProfileName = name;
       user.linkedInProfilePhoto = picture;
+      await user.save();
+      
+      const jwtToken = jwt.sign(
+        {
+          userId: user.userId,
+          email: user.linkedInProfileEmail,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '5h' }
+      );
+      await startEmailMonitoring(user.linkedInProfileEmail)
+
+      return res.json({
+        success: true,
+        message: "Welcome back! You're logged in successfully.",
+        token: jwtToken,
+        linkedInProfileName: user.linkedInProfileName,
+        linkedInProfileEmail: user.linkedInProfileEmail,
+        linkedInProfilePhoto: user.linkedInProfilePhoto,
+        userId: user.userId,
+        isNewUser: false
+      });
     }
-
-    await user.save();
-
-    res.json({
-      message: "LinkedIn login successful and user saved!",
-      userEmail: email
-    });
 
   } catch (error) {
     console.error(
       "LinkedIn API error:",
       error.response?.data || error.message
     );
-    res.status(500).send("Login failed");
+    res.status(500).json({
+      success: false,
+      message: "Login failed. Please try again."
+    });
   }
 };
 

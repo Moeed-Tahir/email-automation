@@ -17,6 +17,7 @@ import Link from "next/link";
 export default function Layout({ children }) {
     const userEmail = Cookies.get("userEmail");
     const userName = Cookies.get("userName");
+    const userPhoto = Cookies.get("userPhoto");
 
     const [profileData, setProfileData] = useState({
         linkedInProfileName: "",
@@ -71,7 +72,7 @@ export default function Layout({ children }) {
                         <Link className="flex items-center gap-2 py-1 px-3 border-1 rounded-md" href="/user/profile">
                             <span className="hidden lg:block bg-[#2C514C]/10  rounded-full">
                                 <Image
-                                    src="/user.svg"
+                                    src={`${userPhoto}`}
                                     alt="Logo"
                                     width={42}
                                     height={42}
