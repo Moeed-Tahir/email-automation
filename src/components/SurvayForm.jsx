@@ -46,6 +46,32 @@ const SurveyForm = ({ userId }) => {
   const isFirstTab = currentTab === 0;
 
   const handleNext = () => {
+    if (currentTab === 0) {
+      const newErrors = {};
+      
+      if (!formData.name.trim()) {
+        newErrors.name = "Name is required";
+      }
+      
+      if (!formData.email.trim()) {
+        newErrors.email = "Email is required";
+      } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+        newErrors.email = "Email is invalid";
+      }
+      
+      if (!formData.bidAmount) {
+        newErrors.bidAmount = "Bid amount is required";
+      } else if (isNaN(formData.bidAmount) || Number(formData.bidAmount) <= 0) {
+        newErrors.bidAmount = "Bid amount must be a positive number";
+      }
+      
+      setErrors(newErrors);
+      
+      if (Object.keys(newErrors).length > 0) {
+        return;
+      }
+    }
+    
     setCurrentTab(currentTab + 1);
   };
 
