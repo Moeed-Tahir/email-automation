@@ -1,4 +1,5 @@
 "use client";
+import { Suspense } from 'react';
 
 import SurveyForm from '@/components/SurvayForm';
 import {  useSearchParams } from 'next/navigation';
