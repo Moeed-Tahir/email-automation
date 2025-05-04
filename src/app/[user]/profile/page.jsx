@@ -17,6 +17,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { SidebarInset } from "@/components/ui/sidebar";
 import ConfirmationPage from "@/components/email";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const [profileData, setProfileData] = useState({
@@ -30,6 +31,8 @@ export default function Page() {
     calendarLink: "",
   });
   const [formData, setFormData] = useState({ ...profileData });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -79,51 +82,40 @@ export default function Page() {
     }
   };
 
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-  };
+  const deleteProfile = async (e) => {
+    e.preventDefault();
+    setIsDeleting(true);
+    try {
+      const userId = Cookies.get("UserId");
+      if (!userId) {
+        console.error("No userId found in cookies");
+        return;
+      }
+
+      const response = await axios.post(
+        `/api/routes/ProfileInfo?action=deleteProfileInfo`,
+        {
+          userId: userId,
+        }
+      );
+
+      if (response.data.message === "User Delete Successfully") {
+        alert("User Delete Successfully");
+        Cookies.remove("userEmail");
+        Cookies.remove("userName");
+        Cookies.remove("UserId");
+        Cookies.remove("Token");
+        router.push("/login");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <SidebarInset>
-      {/* <nav className=" sticky top-0 z-10 bg-white flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
-        <div className="flex items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1 cursor-pointer" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
-          <div className="flex-1">
-            <h1 className="text-2xl font-semibold">Profile</h1>
-          </div>
-        </div>
-        <div className="flex items-center justify-end w-full gap-2 mx-auto px-10 p-5">
-          <span className="p-2 bg-[#2C514C]/10 rounded-full">
-            <BellIcon className="fill-[#2C514C] size-6 text-[#2C514C]" />
-          </span>
-          <span className="hidden lg:block bg-[#2C514C]/10  rounded-full">
-            <Image
-              src="/user.svg"
-              alt="Logo"
-              width={42}
-              height={42}
-              className="shrink-0 "
-            />
-          </span>
-          <div className="flex flex-col items-start justify-start">
-            <span className="text-lg font-semibold text-[#2C514C]">
-              {formData.linkedInProfileName}
-            </span>
-            <span className="text-sm font-[400] text-gray-600">
-              {formData.linkedInProfileEmail}
-            </span>
-          </div>
-        </div>
-      </nav> */}
-
       <div className="flex flex-1 flex-col w-full mx-auto py-3 px-5 space-y-10">
         <div className="flex flex-1 flex-col w-full mx-auto py-4 px-6 space-y-10 border rounded-xl">
           <div className="space-y-6">
@@ -185,24 +177,17 @@ export default function Page() {
               </div>
               <div className="space-y-2 md:col-span-1">
                 <Label htmlFor="industry">Industry</Label>
-                <Select
+                <Input
+                  id="industry"
                   value={formData.industry}
-                  onValueChange={(value) =>
+                  onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      industry: value,
+                      industry: e.target.value,
                     }))
                   }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Tech">Tech</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare</SelectItem>
-                  </SelectContent>
-                </Select>
+                  placeholder="Enter your industry"
+                />
               </div>
             </div>
           </div>
@@ -297,10 +282,11 @@ export default function Page() {
             </div>
 
             <Button
+              onClick={deleteProfile}
               variant="destructive"
               className="cursor-pointer hover:bg-destructive/70"
             >
-              Deactivate Account
+              {isDeleting ? "Deleting..." : "Delete Account"}
             </Button>
           </div>
         </div>

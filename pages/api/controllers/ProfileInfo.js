@@ -155,9 +155,32 @@ const editProfileInfo = async (req, res) => {
   }
 };
 
+const deleteProfileInfo = async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ message: "Missing userId in query" });
+    }
+
+    const user = await User.findOneAndDelete({ userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ user,message:"User Delete Successfully" });
+  } catch (error) {
+    console.error("Error fetching profile info:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 module.exports = {
   addProfileInfo,
   checkUser,
   getProfileInfo,
   editProfileInfo,
+  deleteProfileInfo
 };
