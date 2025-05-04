@@ -15,7 +15,7 @@ const SurveyForm = ({ userId }) => {
   const [currentTab, setCurrentTab] = useState(0);
   const [userQuestions, setUserQuestions] = useState({
     questionOne: "",
-    questionTwo: ""
+    questionTwo: "",
   });
   const [formData, setFormData] = useState({
     bidAmount: "",
@@ -36,6 +36,7 @@ const SurveyForm = ({ userId }) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const tabs = [
+    { title: "Welcome" },
     { title: "Bid & Contact" },
     { title: "Solution Details" },
     { title: "Business Impact" },
@@ -46,32 +47,32 @@ const SurveyForm = ({ userId }) => {
   const isFirstTab = currentTab === 0;
 
   const handleNext = () => {
-    if (currentTab === 0) {
+    if (currentTab === 1) {
       const newErrors = {};
-      
+
       if (!formData.name.trim()) {
         newErrors.name = "Name is required";
       }
-      
+
       if (!formData.email.trim()) {
         newErrors.email = "Email is required";
       } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
         newErrors.email = "Email is invalid";
       }
-      
+
       if (!formData.bidAmount) {
         newErrors.bidAmount = "Bid amount is required";
       } else if (isNaN(formData.bidAmount) || Number(formData.bidAmount) <= 0) {
         newErrors.bidAmount = "Bid amount must be a positive number";
       }
-      
+
       setErrors(newErrors);
-      
+
       if (Object.keys(newErrors).length > 0) {
         return;
       }
     }
-    
+
     setCurrentTab(currentTab + 1);
   };
 
@@ -131,17 +132,20 @@ const SurveyForm = ({ userId }) => {
       setLoading(true);
       const totalScore = calculateTotalScore(formData);
 
-      const response = await fetch('/api/routes/SurvayForm?action=sendSurvayForm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          ...formData,
-          totalScore
-        }),
-      });
+      const response = await fetch(
+        "/api/routes/SurvayForm?action=sendSurvayForm",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            ...formData,
+            totalScore,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -162,19 +166,22 @@ const SurveyForm = ({ userId }) => {
   useEffect(() => {
     const fetchUserQuestions = async () => {
       try {
-        const response = await fetch('/api/routes/SurvayForm?action=getQuestionFromUserId', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId }),
-        });
+        const response = await fetch(
+          "/api/routes/SurvayForm?action=getQuestionFromUserId",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userId }),
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();
           setUserQuestions({
             questionOne: data.questionOne || "",
-            questionTwo: data.questionTwo || ""
+            questionTwo: data.questionTwo || "",
           });
         }
       } catch (error) {
@@ -192,6 +199,127 @@ const SurveyForm = ({ userId }) => {
   const renderCurrentTab = () => {
     switch (currentTab) {
       case 0:
+        return (
+          <div className="flex flex-col max-w-7xl mx-auto">
+            {/* Top Section with Image and Basic Info */}
+            <div className="flex items-start gap-6 mb-6">
+              {/* Profile Image (placeholder - replace with actual image) */}
+              <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                <svg
+                  className="w-12 h-12 text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+
+              {/* Name and Designation */}
+              <div className="flex-1">
+                <h1
+                  className="text-3xl font-bold"
+                  style={{ color: "rgba(44, 81, 76, 1)" }}
+                >
+                  Keith Wright
+                </h1>
+                <p className="text-lg text-gray-600">Executive at SweepLift</p>
+
+                {/* Response Status */}
+                <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-green-100 border border-green-200">
+                  <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                  <span className="text-sm font-medium text-green-800">
+                    Instent response
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* LinkedIn Profiles */}
+            <div className="flex gap-6 mb-8">
+              <div className="flex-1 p-4 border rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-2">
+                  Company Profile
+                </h3>
+                <div className="flex items-center">
+                  <svg
+                    className="w-5 h-5 text-blue-600 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                  </svg>
+                  <a
+                    href="https://linkedin.com/company/sweeplift"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    SweepLift
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex-1 p-4 border rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-2">
+                  Personal Profile
+                </h3>
+                <div className="flex items-center">
+                  <svg
+                    className="w-5 h-5 text-blue-600 mr-2"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                  </svg>
+                  <a
+                    href="https://linkedin.com/in/keithwright408"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    keithwright408
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Details Grid */}
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-3">Position</h3>
+                <p className="text-lg">CEO</p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-3">Department</h3>
+                <p className="text-lg">Sales</p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-3">Timezone</h3>
+                <p className="text-lg">America/New_York</p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold text-gray-700 mb-3">Address</h3>
+                <p className="text-lg">California, United States</p>
+              </div>
+            </div>
+
+            {/* Pitch Me Section */}
+            <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 mb-8">
+              <h3 className="text-xl font-bold mb-3">Pitch Me</h3>
+              <p className="mb-4">
+                Please fill out the form below to help me understand you.
+              </p>
+              <p className="text-sm italic text-gray-600">
+                Note: please use this instead of cold prospecting.
+              </p>
+            </div>
+          </div>
+        );
+      case 1:
         return (
           <>
             <p className="font-medium text-2xl mb-6">
@@ -223,7 +351,7 @@ const SurveyForm = ({ userId }) => {
             />
           </>
         );
-      case 1:
+      case 2:
         return (
           <>
             <p className="font-medium text-2xl mb-6">
@@ -247,7 +375,7 @@ const SurveyForm = ({ userId }) => {
             />
           </>
         );
-      case 2:
+      case 3:
         return (
           <>
             <p className="font-medium text-2xl mb-6">
@@ -310,7 +438,7 @@ const SurveyForm = ({ userId }) => {
             />
           </>
         );
-      case 3:
+      case 4:
         return (
           <>
             <p className="font-medium text-2xl mb-6">
@@ -365,7 +493,6 @@ const SurveyForm = ({ userId }) => {
                 error={errors.charityDonation}
               />
             </>
-
           </>
         );
       default:
@@ -413,7 +540,6 @@ const SurveyForm = ({ userId }) => {
             Back
           </button>
           <div className="flex gap-4">
-
             {isLastTab ? (
               <button
                 onClick={handleSubmit}
@@ -430,7 +556,8 @@ const SurveyForm = ({ userId }) => {
                 className="px-6 py-3 rounded-lg text-white transition cursor-pointer flex items-center justify-center"
                 style={{ backgroundColor: "rgba(44, 81, 76, 1)" }}
               >
-                Next <ChevronRight size={16} className="ml-2" />
+                {currentTab == 0 ? "Pitch me" : "Next"}{" "}
+                <ChevronRight size={16} className="ml-2" />
               </button>
             )}
           </div>
@@ -457,7 +584,9 @@ const InputField = ({ label, type, icon, value, onChange, error }) => (
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full pl-10 p-3 border ${error ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
+        className={`w-full pl-10 p-3 border ${
+          error ? "border-red-500" : "border-gray-300"
+        } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
       />
     </div>
     {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
@@ -477,7 +606,9 @@ const TextAreaField = ({ label, value, onChange, error }) => (
       value={value}
       onChange={(e) => onChange(e.target.value)}
       rows={5}
-      className={`w-full p-3 border ${error ? "border-red-500" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
+      className={`w-full p-3 border ${
+        error ? "border-red-500" : "border-gray-300"
+      } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
     />
     {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
   </div>
@@ -487,7 +618,9 @@ const TextAreaField = ({ label, value, onChange, error }) => (
 const RadioGroup = ({ label, options, value, onChange, error }) => (
   <div className="space-y-2">
     <label
-      className={`block font-medium ${error ? "text-red-500" : "text-[rgba(33, 37, 41, 1)]"}`}
+      className={`block font-medium ${
+        error ? "text-red-500" : "text-[rgba(33, 37, 41, 1)]"
+      }`}
       style={{ fontSize: "16px" }}
     >
       {label}
@@ -502,7 +635,9 @@ const RadioGroup = ({ label, options, value, onChange, error }) => (
             value={option}
             checked={value === option}
             onChange={(e) => onChange(e.target.value)}
-            className={`h-4 w-4 ${error ? "text-red-500" : "text-[rgba(112,122,136,1)]"} border-gray-900`}
+            className={`h-4 w-4 ${
+              error ? "text-red-500" : "text-[rgba(112,122,136,1)]"
+            } border-gray-900`}
           />
           <label
             htmlFor={option}
