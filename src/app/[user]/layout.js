@@ -17,7 +17,7 @@ import Link from "next/link";
 export default function Layout({ children }) {
     const userEmail = Cookies.get("userEmail");
     const userName = Cookies.get("userName");
-    const userPhoto = Cookies.get("userPhoto");
+    const userPhoto = Cookies.get("userPhoto") || "/user.svg";
 
     const [profileData, setProfileData] = useState({
         linkedInProfileName: "",
@@ -76,7 +76,7 @@ export default function Layout({ children }) {
                                     alt="Logo"
                                     width={42}
                                     height={42}
-                                    className="shrink-0 "
+                                    className="shrink-0 rounded-full"
                                 />
                             </span>
                             <div className="flex flex-col items-start justify-start">
