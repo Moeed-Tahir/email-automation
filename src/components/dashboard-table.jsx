@@ -41,8 +41,8 @@ const DashboardTable = ({ userId }) => {
         const response = await axios.get(`/api/routes/SurvayForm`, {
           params: {
             action: "fetchSurvayData",
-            userId: userId
-          }
+            userId: userId,
+          },
         });
 
         if (response.data.success) {
@@ -65,7 +65,7 @@ const DashboardTable = ({ userId }) => {
               escrowDonation: latestSurvey.escrowDonation || "",
               charityDonation: latestSurvey.charityDonation || "",
               status: latestSurvey.status,
-              userId: latestSurvey.userId || " "
+              userId: latestSurvey.userId || " ",
             });
           }
         } else {
@@ -139,24 +139,27 @@ const DashboardTable = ({ userId }) => {
         throw new Error("User email not found in cookies");
       }
 
-      const response = await axios.post('/api/routes/Google?action=sendAcceptEmailToAdmin', {
-        sendFromEmail: fromEmail,
-        sendToEmail: survey.email,
-        dashboardUserId: survey.userId,
-        mainUserId: mainUserId,
-        objectId:survey._id,
-        bidAmount:survey.bidAmount,
-        name:survey.name,
-        surveyId:survey.survayId
-      });
+      const response = await axios.post(
+        "/api/routes/Google?action=sendAcceptEmailToAdmin",
+        {
+          sendFromEmail: fromEmail,
+          sendToEmail: survey.email,
+          dashboardUserId: survey.userId,
+          mainUserId: mainUserId,
+          objectId: survey._id,
+          bidAmount: survey.bidAmount,
+          name: survey.name,
+          surveyId: survey.survayId,
+        }
+      );
 
       if (response.data.message) {
-        alert('Email sent successfully');
+        alert("Email sent successfully");
       } else {
-        throw new Error(result.message || 'Failed to send email');
+        throw new Error(result.message || "Failed to send email");
       }
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error("Error sending email:", error);
     }
   };
 
@@ -167,18 +170,21 @@ const DashboardTable = ({ userId }) => {
         throw new Error("User email not found in cookies");
       }
 
-      const response = await axios.post('/api/routes/Google?action=sendRejectEmailToAdmin', {
-        sendFromEmail: fromEmail,
-        sendToEmail: representativeEmail.email,
-      });
+      const response = await axios.post(
+        "/api/routes/Google?action=sendRejectEmailToAdmin",
+        {
+          sendFromEmail: fromEmail,
+          sendToEmail: representativeEmail.email,
+        }
+      );
 
       if (response.data.message) {
-        alert('Email sent successfully');
+        alert("Email sent successfully");
       } else {
-        throw new Error(result.message || 'Failed to send email');
+        throw new Error(result.message || "Failed to send email");
       }
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error("Error sending email:", error);
     }
   };
 
@@ -321,8 +327,12 @@ const DashboardTable = ({ userId }) => {
                     {survey.email}
                   </div>
                 </TableCell>
-                <TableCell className="min-w-[150px]">{new Date(survey.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell className="min-w-[120px]">{survey.totalScore || "-"}</TableCell>
+                <TableCell className="min-w-[150px]">
+                  {new Date(survey.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell className="min-w-[120px]">
+                  {survey.totalScore || "-"}
+                </TableCell>
                 <TableCell className="min-w-[120px]">
                   <Badge
                     variant="outline"
@@ -331,25 +341,30 @@ const DashboardTable = ({ userId }) => {
                     {survey.bidAmount}
                   </Badge>
                 </TableCell>
-                <TableCell className="min-w-[150px]">
-                  {survey.status}
-                </TableCell>
+                <TableCell className="min-w-[150px]">{survey.status}</TableCell>
                 <TableCell className="min-w-[300px] lg:min-w-[250px] flex flex-wrap gap-2">
                   <Button
                     size="sm"
-                    onClick={() => router.push(`/${survey.userId}/bid-details?userId=${survey.userId}`)}
-                    className="bg-[#FF950029] text-[#FF9500] hover:bg-[#FF950029] hover:text-[#FF9500]"
+                    onClick={() =>
+                      router.push(
+                        `/${survey.userId}/bid-details?userId=${survey.userId}`
+                      )
+                    }
+                    className="bg-[#FF950029] text-[#FF9500] hover:bg-[#FF9500] hover:text-white cursor-pointer"
                   >
                     View Details
                   </Button>
-                  <Button size="sm" onClick={() => handleAccept(survey)}
-                    className="bg-[#28C76F29] text-[#28C76F]">
+                  <Button
+                    size="sm"
+                    onClick={() => handleAccept(survey)}
+                    className="bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white transition-all duration-200"
+                  >
                     Accept
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => handleReject(survey.email)}
-                    className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA545529] hover:text-[#EA5455]"
+                    className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
                   >
                     Reject
                   </Button>

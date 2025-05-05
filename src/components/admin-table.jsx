@@ -331,7 +331,7 @@ const AdminTable = ({ tableData }) => {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="gap-1"
+                      className="gap-1 cursor-pointer bg-[#2C514C29] text-[#2C514C] hover:bg-[#2C514C29]"
                       onClick={() => {
                         window.open(request.receiptFormLink, '_blank');
                       }}
@@ -342,7 +342,7 @@ const AdminTable = ({ tableData }) => {
                   )}
                   <Button 
                     size="sm" 
-                    className="gap-1 bg-[#28C76F29] text-[#28C76F] hover:bg-[#28C76F29]"
+                    className="gap-1 bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white"
                     onClick={() => handleAccept(request)}
                     disabled={request.status === "Accepted"}
                   >
@@ -352,7 +352,7 @@ const AdminTable = ({ tableData }) => {
                   <Button
                     size="sm"
                     variant="destructive"
-                    className="gap-1 bg-[#EA545529] text-[#EA5455] hover:bg-[#EA545529]"
+                    className="gap-1 bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
                     onClick={() => handleReject(request._id, request.salesRepresentiveEmail)}
                     disabled={request.status === "Rejected"}
                   >
