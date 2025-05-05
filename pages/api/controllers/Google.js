@@ -74,7 +74,6 @@ exports.handleOAuth2Callback = async (req, res) => {
     user.gmailExpiryDate = tokens.expiry_date?.toString() || '';
 
     await user.save();
-    startEmailMonitoring(userEmail);
 
     res.redirect(`${process.env.REQUEST_URL}/login/?currentStep=3`);
 
@@ -253,6 +252,8 @@ exports.getEmails = async (req, res) => {
 };
 
 exports.startEmailMonitoring = async (userEmail) => {
+  console.log("userEmail", userEmail);
+
   if (activeMonitors[userEmail]) {
     clearInterval(activeMonitors[userEmail]);
   }
@@ -468,7 +469,7 @@ exports.stopMonitoring = (userEmail) => {
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId } = req.body;
+    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId, userName } = req.body;
 
     const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
     if (!user) {
@@ -523,7 +524,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
     const mailOptions = {
       from: sendFromEmail,
       to: sendToEmail,
-      subject: "Meeting Confirmed with Micheal",
+      subject: `Meeting Confirmed with ${userName}`,
       html: `
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
           <tr>
@@ -548,9 +549,9 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                 <!-- Message -->
                 <tr>
                   <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
-                    <p>Dear <strong>${name}</strong>,</p>
+                    <p>Dear <strong>${userName}</strong>,</p>
                     <p>Great news! Micheal has accepted your meeting request. You can now schedule your meeting using the link below:</p>
-                    <p>Please complete your donation to [Executive's Selected Charity] as per the agreed amount of <strong>{bidAmount}</strong>.</p>
+                    <p>Please complete your donation to [Executive's Selected Charity] as per the agreed amount of <strong>${bidAmount}</strong>.</p>
     
                     <!-- Business Executive Details -->
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F7FAFC; padding: 16px; border-radius: 6px; margin-top: 20px;">
@@ -558,8 +559,8 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                         <td style="padding: 10px;">
                           <p style="margin: 0; font-weight: 600;">📌 Business Executive Details:</p>
                           <ul style="margin: 10px 0 0 20px; padding: 0;">
-                            <li><strong>Name:</strong> John</li>
-                            <li><strong>Company:</strong> Company Abc</li>
+                            <li><strong>Name:</strong> ${name}</li>
+                            <li><strong>Email:</strong> ${sendToEmail}</li>
                             <li><strong>Proposed Donation:</strong> <strong>${bidAmount}</strong></li>
                           </ul>
                         </td>
@@ -575,7 +576,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                 <!-- Button -->
                 <tr>
   <td align="left" style="padding: 20px;">
-    <a href="${process.env.REQUEST_URL}/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}&surveyId=${surveyId}"
+    <a href="${process.env.REQUEST_URL}/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}&surveyId=${surveyId}&surveyObjectId=${objectId}"
        style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
       Upload Receipt
     </a>
@@ -630,7 +631,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
 
 exports.sendRejectEmailToAdmin = async (req, res) => {
   try {
-    const { sendFromEmail, sendToEmail } = req.body;
+    const { sendFromEmail, sendToEmail, objectId } = req.body;
 
     await connectToDatabase();
 
@@ -646,6 +647,8 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
       });
     }
 
+
+
     const tokens = await refreshAccessTokenIfNeeded({
       access_token: user.gmailAccessToken,
       refresh_token: user.gmailRefreshToken,
@@ -657,6 +660,19 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
       user.gmailAccessToken = tokens.access_token;
       user.gmailExpiryDate = tokens.expiry_date;
       await user.save();
+    }
+
+    const updatedForm = await SurvayForm.findByIdAndUpdate(
+      objectId,
+      { status: "Reject" },
+      { new: true }
+    );
+
+    if (!updatedForm) {
+      return res.status(404).json({
+        success: false,
+        message: 'Survey form not found'
+      });
     }
 
     const transporter = nodemailer.createTransport({

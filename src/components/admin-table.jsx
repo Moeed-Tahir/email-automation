@@ -24,15 +24,17 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
-const AdminTable = ({ tableData }) => {
+const AdminTable = ({ tableData, fetchAdminData }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [statusFilters, setStatusFilters] = useState([]);
+  const [isAcceptedOrRejected,setIsAcceptedOrRejected] = useState(false);
+  
   const [_, setShowSortMenu] = useState(false);
   const itemsPerPage = 8;
   const router = useRouter();
   const [existingSurveys, setExistingSurveys] = useState([]);
-  
+
   useEffect(() => {
     if (tableData) {
       setExistingSurveys(tableData);
@@ -86,64 +88,52 @@ const AdminTable = ({ tableData }) => {
   };
 
   const handleAccept = async (request) => {
+    setIsAcceptedOrRejected(true);
     try {
-         console.log("request",request);
+      const emailResponse = await axios.post('/api/routes/Admin?action=sendAcceptEmailFromAdmin', {
+        executiveEmail: request.executiveEmail,
+        executiveName: request.executiveName,
+        salesRepresentiveEmail: request.salesRepresentiveEmail,
+        salesRepresentiveName: request.salesRepresentiveName,
+        objectId: request._id,
+        donation: request.donation,
+        userId: request.userId
+      });
 
-        const emailResponse = await axios.post('/api/routes/Admin?action=sendAcceptEmailFromAdmin', {
-          executiveEmail: request.executiveEmail,
-          executiveName: request.executiveName,
-          salesRepresentiveEmail:request.salesRepresentiveEmail,
-          salesRepresentiveName:request.salesRepresentiveName ,
-          objectId:request._id,
-          donation:request.donation,
-          userId:request.userId
-        });
+      if (emailResponse.data.message) {
+        fetchAdminData();
+      } else {
+        throw new Error(emailResponse.data.message || 'Failed to send acceptance email');
+      }
 
-        if (emailResponse.data.message) {
-          alert('Meeting request accepted successfully');
-        } else {
-          throw new Error(emailResponse.data.message || 'Failed to send acceptance email');
-        }
-      
     } catch (error) {
       console.error('Error accepting request:', error);
-      alert('Failed to accept request');
+    }finally{
+      setIsAcceptedOrRejected(false);
     }
   };
 
-  const handleReject = async (requestId, representativeEmail) => {
+  const handleReject = async (request) => {
     try {
       const fromEmail = Cookies.get("userEmail");
       if (!fromEmail) {
         throw new Error("User email not found in cookies");
       }
 
-      // First update the status in the database
-      const updateResponse = await axios.put('/api/meeting-requests', {
-        id: requestId,
-        status: "Rejected"
+      const emailResponse = await axios.post('/api/routes/Google?action=sendRejectEmailFromAdmin', {
+        sendFromEmail: fromEmail,
+        sendToEmail: request.salesRepresentiveEmail,
+        objectId: request._id,
       });
 
-      if (updateResponse.data.success) {
-        const emailResponse = await axios.post('/api/routes/Google?action=sendRejectEmailToAdmin', {
-          sendFromEmail: fromEmail,
-          sendToEmail: representativeEmail,
-        });
-
-        if (emailResponse.data.message) {
-          alert('Meeting request rejected successfully');
-          setExistingSurveys(prev => prev.map(item => 
-            item._id === requestId ? { ...item, status: "Rejected" } : item
-          ));
-        } else {
-          throw new Error(emailResponse.data.message || 'Failed to send rejection email');
-        }
+      if (emailResponse.data.message) {
+        fetchAdminData();
       } else {
-        throw new Error(updateResponse.data.message || 'Failed to update request status');
+        throw new Error(emailResponse.data.message || 'Failed to send rejection email');
       }
+
     } catch (error) {
       console.error('Error rejecting request:', error);
-      alert('Failed to reject request');
     }
   };
 
@@ -156,20 +146,20 @@ const AdminTable = ({ tableData }) => {
     if (!sortConfig.key) return 0;
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
-    
+
     if (sortConfig.key === "createdAt") {
       // Handle date comparison
-      return sortConfig.direction === "asc" 
-        ? new Date(aValue) - new Date(bValue) 
+      return sortConfig.direction === "asc"
+        ? new Date(aValue) - new Date(bValue)
         : new Date(bValue) - new Date(aValue);
     }
-    
+
     if (typeof aValue === "string" && typeof bValue === "string") {
       return sortConfig.direction === "asc"
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
     }
-    
+
     // Handle numeric comparison for donation
     const numA = parseFloat(aValue);
     const numB = parseFloat(bValue);
@@ -340,25 +330,30 @@ const AdminTable = ({ tableData }) => {
                       Receipt
                     </Button>
                   )}
-                  <Button 
-                    size="sm" 
-                    className="gap-1 bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white"
-                    onClick={() => handleAccept(request)}
-                    disabled={request.status === "Accepted"}
-                  >
-                    <Check className="h-4 w-4" />
-                    Accept
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="gap-1 bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
-                    onClick={() => handleReject(request._id, request.salesRepresentiveEmail)}
-                    disabled={request.status === "Rejected"}
-                  >
-                    <X className="h-4 w-4" />
-                    Reject
-                  </Button>
+                  {request.status === "Pending" && (
+                    <>
+                      <Button
+                        size="sm"
+                        className="gap-1 bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white"
+                        onClick={() => handleAccept(request)}
+                        disabled={request.status === "Accepted"}
+                      >
+                        <Check className="h-4 w-4" />
+                        {isAcceptedOrRejected ? "Loading" : "Accept"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="gap-1 bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
+                        onClick={() => handleReject(request)}
+                        disabled={request.status === "Rejected"}
+                      >
+                        <X className="h-4 w-4" />
+                        {isAcceptedOrRejected ? "Loading" : "Reject"}
+                      </Button>
+                    </>
+                  )}
+
                 </TableCell>
               </TableRow>
             ))}

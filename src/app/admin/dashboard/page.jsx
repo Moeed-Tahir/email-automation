@@ -14,17 +14,15 @@ import { useEffect, useState } from "react";
 
 export default function page() {
   const [tableData, setTableData] = useState([]);
-
-  useEffect(() => {
-    const fetchAdminData = async () => {
-      try {
-        const response = await axios.get("/api/routes/Admin?action=fetchReciptData");
-        setTableData(response.data.receipts);
-      } catch (error) {
-        console.log("Error is occured", error);
-      }
+  const fetchAdminData = async () => {
+    try {
+      const response = await axios.get("/api/routes/Admin?action=fetchReciptData");
+      setTableData(response.data.receipts);
+    } catch (error) {
+      console.log("Error is occured", error);
     }
-
+  }
+  useEffect(() => {
     fetchAdminData();
   }, []);
 
@@ -70,7 +68,7 @@ export default function page() {
         </nav>
 
         <div className="p-4">
-          <AdminTable tableData={tableData} />
+          <AdminTable tableData={tableData} fetchAdminData={fetchAdminData} />
         </div>
       </SidebarInset>
     </SidebarProvider>

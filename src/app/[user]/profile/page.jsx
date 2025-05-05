@@ -100,7 +100,6 @@ export default function Page() {
       );
 
       if (response.data.message === "User Delete Successfully") {
-        alert("User Delete Successfully");
         Cookies.remove("userEmail");
         Cookies.remove("userName");
         Cookies.remove("UserId");

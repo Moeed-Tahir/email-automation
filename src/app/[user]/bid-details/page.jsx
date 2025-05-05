@@ -102,7 +102,7 @@ export default function MeetingRequest() {
             variant="default"
             className="bg-[#2C514C] hover:bg-transparent cursor-pointer border-2 border-[#2C514C] text-white hover:text-[#2C514C]"
           >
-            Survey Score 9/10
+            {`Survey Score ${surveyData.totalScore}`}
           </Button>
         </CardHeader>
         <CardContent className="space-y-8">

@@ -8,8 +8,10 @@ const PageContent = () => {
   const searchParams = useSearchParams();
   const mainUserId = searchParams.get('mainUserId');
   const surveyId = searchParams.get('surveyId');
+  const surveyObjectId = searchParams.get('surveyObjectId');
+
   return (
-    <ReceiptUpload mainUserId={mainUserId} surveyId={surveyId} />
+    <ReceiptUpload mainUserId={mainUserId} surveyId={surveyId} surveyObjectId={surveyObjectId} />
   )
 }
 

@@ -78,7 +78,9 @@ const SignupFlow = () => {
           },
         })
         .then((response) => {
+          console.log("response",response);
           if(response.data.message === "Login successful! Please complete your profile by filling the next steps."){
+            Cookies.set('userEmail', response.data.linkedInProfileEmail, { path: '/', expires: 7 });
             nextStep();
           }else if(response.data.message === "Welcome back! You're logged in successfully."){
             Cookies.set('UserId', response.data.userId, { path: '/', expires: 7 });

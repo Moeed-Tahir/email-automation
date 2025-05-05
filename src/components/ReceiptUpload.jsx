@@ -8,10 +8,14 @@ const supabaseUrl = "https://rixdrbokebnvidwyzvzo.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpeGRyYm9rZWJudmlkd3l6dnpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI2MjMzMzIsImV4cCI6MjA0ODE5OTMzMn0.Zhnz5rLRoIhtHyF52pFjzYijNdxgZBvEr9LtOxR2Lhw";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const ReceiptUpload = ({ surveyId, mainUserId }) => {
+const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
     const [file, setFile] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const [profileData, setProfileData] = useState({});
+    const [survayData, setSurvayData] = useState([]);
+    const [isReceiptUpload, setIsReceiptUpload] = useState(false);
+
+    console.log("survayData", survayData);
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -38,7 +42,7 @@ const ReceiptUpload = ({ surveyId, mainUserId }) => {
 
     const sendToAdmin = async () => {
         if (!file || !profileData) return;
-
+        setIsReceiptUpload(true);
         try {
             const filePath = `receipts/${Date.now()}-${file.name}`;
             const { data, error } = await supabase.storage
@@ -67,12 +71,12 @@ const ReceiptUpload = ({ surveyId, mainUserId }) => {
                 surveyId: surveyId
             });
 
-            alert("Receipt successfully uploaded and sent to admin!");
             setFile(null);
 
         } catch (error) {
             console.error("Error in sendToAdmin:", error);
-            alert("Something went wrong. Please try again.");
+        } finally {
+            setIsReceiptUpload(false)
         }
     };
 
@@ -94,10 +98,27 @@ const ReceiptUpload = ({ surveyId, mainUserId }) => {
                 console.error("Error fetching profile data:", error);
             }
         };
+
+        const fetchSurvayData = async () => {
+            try {
+                const response = await axios.post(`/api/routes/SurvayForm?action=fetchNameAgainstId`, {
+                    surveyObjectId
+                });
+                console.log("response of survay", response);
+                setSurvayData(response.data.name);
+
+            } catch (error) {
+                console.error("Error fetching profile data:", error);
+            }
+        };
         if (mainUserId) {
             fetchProfileData();
         }
-    }, [mainUserId]);
+
+        if (surveyId) {
+            fetchSurvayData();
+        }
+    }, [mainUserId, surveyId]);
 
     return (
         <div className="w-full min-h-screen flex items-center justify-center">
@@ -108,23 +129,12 @@ const ReceiptUpload = ({ surveyId, mainUserId }) => {
 
                 <div className="mb-6 text-[16px]">
                     <p className="text-gray-700 mb-2">
-                        {`Dear ${profileData?.linkedInProfileName || "Guest"}`}
+                        {`Dear ${survayData || "Guest"}`}
                     </p>
                     <p className="text-gray-700 mb-4">
-                        Great news! Michael has accepted your meeting request. You can now
-                        schedule your meeting using the link below:
+                        {`Great news! ${profileData?.linkedInProfileName} has accepted your meeting request.`}
                     </p>
 
-                    {profileData?.calendarLink && (
-                        <a
-                            href={profileData.calendarLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-500 underline mb-4 block"
-                        >
-                            Schedule Your Meeting
-                        </a>
-                    )}
 
                     <p className="text-gray-700 mb-4">
                         Please complete your donation to{" "}
@@ -136,20 +146,6 @@ const ReceiptUpload = ({ surveyId, mainUserId }) => {
                             ${profileData?.minimumBidDonation || "Amount not specified"}
                         </span>
                     </p>
-                </div>
-
-                <div className="mb-6">
-                    <div className="flex items-center mb-2">
-                        <span className="text-green-500 mr-2">✔</span>
-                        <span className="font-semibold">Business Executive Details:</span>
-                    </div>
-                    <ul className="list-disc pl-6 text-gray-700">
-                        <li>Name: {profileData?.linkedInProfileName || "N/A"}</li>
-                        <li>Company: {profileData?.companyName || "N/A"}</li>
-                        <li>Email: {profileData?.linkedInProfileEmail || "N/A"}</li>
-                        <li>Job Title: {profileData?.jobTitle || "N/A"}</li>
-                        <li>Proposed Donation: ${profileData?.minimumBidDonation || "N/A"}</li>
-                    </ul>
                 </div>
 
                 <div className="mb-4">
@@ -212,7 +208,8 @@ const ReceiptUpload = ({ surveyId, mainUserId }) => {
                         className="px-6 py-3 rounded-lg bg-[rgba(44,81,76,1)] text-white hover:bg-gray-400 disabled:opacity-50 transition cursor-pointer flex items-center justify-center"
                         disabled={!file}
                     >
-                        Send to Admin
+                        {isReceiptUpload ? "Loading" : "Send to Admin"}
+
                     </button>
                 </div>
             </div>

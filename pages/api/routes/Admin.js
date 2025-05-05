@@ -2,8 +2,8 @@ import {
     uploadReciptData,
     fetchReciptData,
     sendAcceptEmailFromAdmin,
-    addDonation,
-    getDonation
+    getDonation,
+    sendRejectEmailFromAdmin
 } from "../controllers/Admin";
 
 export default async function handler(req, res) {
@@ -23,6 +23,8 @@ export default async function handler(req, res) {
             return await fetchReciptData(req, res);
         } else if (req.method === 'POST' && action === 'getDonation') {
             return await getDonation(req, res);
+        } else if (req.method === 'POST' && action === 'sendRejectEmailFromAdmin') {
+            return await sendRejectEmailFromAdmin(req, res);
         } else {
             return res.status(405).json({ message: 'Method Not Allowed' });
         }

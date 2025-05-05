@@ -15,8 +15,8 @@ import axios from "axios";
 const SurveyForm = ({ userId }) => {
   const [currentTab, setCurrentTab] = useState(0);
   const [userQuestions, setUserQuestions] = useState({
-    questionOne: "",
-    questionTwo: "",
+    questionOne: "" || "Describe your Key And Features",
+    questionTwo: "" || "Describe only your Features",
   });
   const [formData, setFormData] = useState({
     bidAmount: "",
@@ -153,7 +153,6 @@ const SurveyForm = ({ userId }) => {
 
       if (response.ok) {
         const data = await response.json();
-        alert("Survey submitted successfully!");
         router.push("/successful");
       } else {
         console.error("Error submitting form");
@@ -185,9 +184,12 @@ const SurveyForm = ({ userId }) => {
       }
     };
 
+    
+
     if (userId) {
       fetchProfileData();
     }
+    
   }, [userId]);
 
   const progressWidth = ((currentTab + 1) / tabs.length) * 100;

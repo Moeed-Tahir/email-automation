@@ -2,7 +2,8 @@ import {
     getQuestionFromUserId,
     sendSurvayForm,
     fetchSurvayData,
-    getBidInfo
+    getBidInfo,
+    fetchNameAgainstId
 } from "../controllers/SurvayForm";
 
 export default async function handler(req, res) {
@@ -22,6 +23,8 @@ export default async function handler(req, res) {
             return await fetchSurvayData(req, res);
         } else if (req.method === 'POST' && action === 'getBidInfo') {
             return await getBidInfo(req, res);
+        } else if (req.method === 'POST' && action === 'fetchNameAgainstId') {
+            return await fetchNameAgainstId(req, res);
         } else {
             return res.status(405).json({ message: 'Method Not Allowed' });
         }

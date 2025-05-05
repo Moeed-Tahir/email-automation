@@ -34,50 +34,52 @@ const DashboardTable = ({ userId }) => {
   const itemsPerPage = 8;
   const router = useRouter();
   const [existingSurveys, setExistingSurveys] = useState([]);
+  const [isAcceptedOrRejected, setIsAcceptedOrRejected] = useState(false);
 
-  useEffect(() => {
-    const fetchExistingSurveys = async () => {
-      try {
-        const response = await axios.get(`/api/routes/SurvayForm`, {
-          params: {
-            action: "fetchSurvayData",
-            userId: userId,
-          },
-        });
+  const fetchExistingSurveys = async () => {
+    try {
+      const response = await axios.get(`/api/routes/SurvayForm`, {
+        params: {
+          action: "fetchSurvayData",
+          userId: userId,
+        },
+      });
 
-        if (response.data.success) {
-          setExistingSurveys(response.data.data || []);
+      if (response.data.success) {
+        setExistingSurveys(response.data.data || []);
 
-          if (response.data.data && response.data.data.length > 0) {
-            const latestSurvey = response.data.data[0];
-            setFormData({
-              bidAmount: latestSurvey.bidAmount || "",
-              name: latestSurvey.name || "",
-              email: latestSurvey.email || "",
-              solutionDescription: latestSurvey.questionOneSolution || "",
-              businessChallengeSolution: latestSurvey.questionTwoSolution || "",
-              businessProblem: latestSurvey.businessProblem || "",
-              resultsTimeframe: latestSurvey.resultsTimeframe || "",
-              caseStudies: latestSurvey.caseStudies || "",
-              offeringType: latestSurvey.offeringType || "",
-              performanceGuarantee: latestSurvey.performanceGuarantee || "",
-              DonationWilling: latestSurvey.DonationWilling || "",
-              escrowDonation: latestSurvey.escrowDonation || "",
-              charityDonation: latestSurvey.charityDonation || "",
-              status: latestSurvey.status,
-              userId: latestSurvey.userId || " ",
-            });
-          }
-        } else {
-          console.error("API returned unsuccessful:", response.data.message);
+        if (response.data.data && response.data.data.length > 0) {
+          const latestSurvey = response.data.data[0];
+          setFormData({
+            bidAmount: latestSurvey.bidAmount || "",
+            name: latestSurvey.name || "",
+            email: latestSurvey.email || "",
+            solutionDescription: latestSurvey.questionOneSolution || "",
+            businessChallengeSolution: latestSurvey.questionTwoSolution || "",
+            businessProblem: latestSurvey.businessProblem || "",
+            resultsTimeframe: latestSurvey.resultsTimeframe || "",
+            caseStudies: latestSurvey.caseStudies || "",
+            offeringType: latestSurvey.offeringType || "",
+            performanceGuarantee: latestSurvey.performanceGuarantee || "",
+            DonationWilling: latestSurvey.DonationWilling || "",
+            escrowDonation: latestSurvey.escrowDonation || "",
+            charityDonation: latestSurvey.charityDonation || "",
+            status: latestSurvey.status,
+            userId: latestSurvey.userId || " ",
+          });
         }
-      } catch (error) {
-        console.error("Error fetching existing surveys:", error);
-        if (error.response) {
-          console.error("Error response data:", error.response.data);
-        }
+      } else {
+        console.error("API returned unsuccessful:", response.data.message);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching existing surveys:", error);
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+      }
+    }
+  };
+  useEffect(() => {
+
 
     if (userId) {
       fetchExistingSurveys();
@@ -131,8 +133,10 @@ const DashboardTable = ({ userId }) => {
   };
 
   const handleAccept = async (survey) => {
+    setIsAcceptedOrRejected(true);
     try {
       const fromEmail = Cookies.get("userEmail");
+      const userName = Cookies.get("userName");
       const mainUserId = Cookies.get("UserId");
 
       if (!fromEmail) {
@@ -149,21 +153,24 @@ const DashboardTable = ({ userId }) => {
           objectId: survey._id,
           bidAmount: survey.bidAmount,
           name: survey.name,
-          surveyId: survey.survayId,
+          surveyId: survey._id,
+          userName: userName
         }
       );
 
       if (response.data.message) {
-        alert("Email sent successfully");
+        fetchExistingSurveys();
       } else {
         throw new Error(result.message || "Failed to send email");
       }
     } catch (error) {
       console.error("Error sending email:", error);
+    } finally {
+      setIsAcceptedOrRejected(false);
     }
   };
 
-  const handleReject = async (representativeEmail) => {
+  const handleReject = async (survey) => {
     try {
       const fromEmail = Cookies.get("userEmail");
       if (!fromEmail) {
@@ -174,12 +181,13 @@ const DashboardTable = ({ userId }) => {
         "/api/routes/Google?action=sendRejectEmailToAdmin",
         {
           sendFromEmail: fromEmail,
-          sendToEmail: representativeEmail.email,
+          sendToEmail: survey.email,
+          objectId: survey._id,
         }
       );
 
       if (response.data.message) {
-        alert("Email sent successfully");
+        fetchExistingSurveys();
       } else {
         throw new Error(result.message || "Failed to send email");
       }
@@ -354,20 +362,24 @@ const DashboardTable = ({ userId }) => {
                   >
                     View Details
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => handleAccept(survey)}
-                    className="bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white transition-all duration-200"
-                  >
-                    Accept
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => handleReject(survey.email)}
-                    className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
-                  >
-                    Reject
-                  </Button>
+                  {survey.status === "Pending" && (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => handleAccept(survey)}
+                        className="bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white transition-all duration-200"
+                      >
+                        {isAcceptedOrRejected ? "Loading" : "Accept"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleReject(survey)}
+                        className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
+                      >
+                        {isAcceptedOrRejected ? "Loading" : "Reject"}
+                      </Button>
+                    </>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

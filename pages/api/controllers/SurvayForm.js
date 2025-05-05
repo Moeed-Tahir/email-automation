@@ -207,6 +207,45 @@ const fetchSurvayData = async (req, res) => {
   }
 };
 
+const fetchNameAgainstId = async (req, res) => {
+  try {
+    await connectToDatabase();
+
+    const { surveyId } = req.body;
+
+    if (!surveyId) {
+      return res.status(400).json({
+        success: false,
+        message: "surveyId is required in the request body"
+      });
+    }
+
+    const surveyData = await SurvayForm.findById(surveyId).lean();
+
+    if (!surveyData) {
+      return res.status(404).json({
+        success: false,
+        message: "Survey data not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Survey data retrieved successfully",
+      name: surveyData.name
+    });
+
+  } catch (error) {
+    console.error("Error fetching survey data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+
 const getBidInfo = async (req, res) => {
   try {
     await connectToDatabase()
@@ -244,4 +283,4 @@ const getBidInfo = async (req, res) => {
 };
 
 
-module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData, getBidInfo };
+module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData, getBidInfo,fetchNameAgainstId };
