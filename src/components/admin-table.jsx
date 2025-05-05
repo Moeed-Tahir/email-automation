@@ -97,7 +97,8 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
         salesRepresentiveName: request.salesRepresentiveName,
         objectId: request._id,
         donation: request.donation,
-        userId: request.userId
+        userId: request.userId,
+        calendarLink:request.calendarLink
       });
 
       if (emailResponse.data.message) {
@@ -330,7 +331,7 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
                       Receipt
                     </Button>
                   )}
-                  {request.status === "Pending" && (
+                  {/* {request.status === "Pending" && ( */}
                     <>
                       <Button
                         size="sm"
@@ -352,7 +353,7 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
                         {isAcceptedOrRejected ? "Loading" : "Reject"}
                       </Button>
                     </>
-                  )}
+                  {/* )} */}
 
                 </TableCell>
               </TableRow>
