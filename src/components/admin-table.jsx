@@ -28,8 +28,8 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [statusFilters, setStatusFilters] = useState([]);
-  const [isAcceptedOrRejected,setIsAcceptedOrRejected] = useState(false);
-  
+  const [actionLoading, setActionLoading] = useState({ id: null, type: null });
+
   const [_, setShowSortMenu] = useState(false);
   const itemsPerPage = 8;
   const router = useRouter();
@@ -88,7 +88,7 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
   };
 
   const handleAccept = async (request) => {
-    setIsAcceptedOrRejected(true);
+    setActionLoading({ id: request._id, type: 'accept' });
     try {
       const emailResponse = await axios.post('/api/routes/Admin?action=sendAcceptEmailFromAdmin', {
         executiveEmail: request.executiveEmail,
@@ -98,7 +98,7 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
         objectId: request._id,
         donation: request.donation,
         userId: request.userId,
-        calendarLink:request.calendarLink
+        calendarLink: request.calendarLink
       });
 
       if (emailResponse.data.message) {
@@ -106,15 +106,16 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
       } else {
         throw new Error(emailResponse.data.message || 'Failed to send acceptance email');
       }
-
     } catch (error) {
       console.error('Error accepting request:', error);
-    }finally{
-      setIsAcceptedOrRejected(false);
+    } finally {
+      setActionLoading({ id: null, type: null });
     }
   };
 
+
   const handleReject = async (request) => {
+    setActionLoading({ id: request._id, type: 'reject' });
     try {
       const fromEmail = Cookies.get("userEmail");
       if (!fromEmail) {
@@ -132,11 +133,13 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
       } else {
         throw new Error(emailResponse.data.message || 'Failed to send rejection email');
       }
-
     } catch (error) {
       console.error('Error rejecting request:', error);
+    } finally {
+      setActionLoading({ id: null, type: null });
     }
   };
+
 
   const filteredData =
     statusFilters.length > 0
@@ -331,29 +334,31 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
                       Receipt
                     </Button>
                   )}
-                  {/* {request.status === "Pending" && ( */}
+                  {request.status === "Pending" && (
                     <>
                       <Button
                         size="sm"
                         className="gap-1 bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white"
                         onClick={() => handleAccept(request)}
-                        disabled={request.status === "Accepted"}
+                        disabled={request.status === "Accepted" || (actionLoading.id === request._id && actionLoading.type === "accept")}
                       >
                         <Check className="h-4 w-4" />
-                        {isAcceptedOrRejected ? "Loading" : "Accept"}
+                        {(actionLoading.id === request._id && actionLoading.type === "accept") ? "Loading" : "Accept"}
                       </Button>
+
                       <Button
                         size="sm"
                         variant="destructive"
                         className="gap-1 bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
                         onClick={() => handleReject(request)}
-                        disabled={request.status === "Rejected"}
+                        disabled={request.status === "Rejected" || (actionLoading.id === request._id && actionLoading.type === "reject")}
                       >
                         <X className="h-4 w-4" />
-                        {isAcceptedOrRejected ? "Loading" : "Reject"}
+                        {(actionLoading.id === request._id && actionLoading.type === "reject") ? "Loading" : "Reject"}
                       </Button>
+
                     </>
-                  {/* )} */}
+                  )}
 
                 </TableCell>
               </TableRow>

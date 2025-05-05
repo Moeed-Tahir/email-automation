@@ -34,7 +34,7 @@ const DashboardTable = ({ userId }) => {
   const itemsPerPage = 8;
   const router = useRouter();
   const [existingSurveys, setExistingSurveys] = useState([]);
-  const [isAcceptedOrRejected, setIsAcceptedOrRejected] = useState(false);
+  const [actionLoading, setActionLoading] = useState({ id: null, type: null });
 
   const fetchExistingSurveys = async () => {
     try {
@@ -133,7 +133,7 @@ const DashboardTable = ({ userId }) => {
   };
 
   const handleAccept = async (survey) => {
-    setIsAcceptedOrRejected(true);
+    setActionLoading({ id: survey._id, type: 'accept' });
     try {
       const fromEmail = Cookies.get("userEmail");
       const userName = Cookies.get("userName");
@@ -166,11 +166,12 @@ const DashboardTable = ({ userId }) => {
     } catch (error) {
       console.error("Error sending email:", error);
     } finally {
-      setIsAcceptedOrRejected(false);
+      setActionLoading({ id: null, type: null });
     }
   };
 
   const handleReject = async (survey) => {
+    setActionLoading({ id: survey._id, type: 'reject' });
     try {
       const fromEmail = Cookies.get("userEmail");
       if (!fromEmail) {
@@ -193,6 +194,8 @@ const DashboardTable = ({ userId }) => {
       }
     } catch (error) {
       console.error("Error sending email:", error);
+    }finally{
+      setActionLoading({ id: null, type: null });
     }
   };
 
@@ -367,17 +370,20 @@ const DashboardTable = ({ userId }) => {
                       <Button
                         size="sm"
                         onClick={() => handleAccept(survey)}
+                        disabled={survey.status === "Accepted" || (actionLoading.id === survey._id && actionLoading.type === "accept")}
+
                         className="bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white transition-all duration-200"
                       >
-                        {isAcceptedOrRejected ? "Loading" : "Accept"}
-                      </Button>
+                        {(actionLoading.id === survey._id && actionLoading.type === "accept") ? "Loading" : "Accept"}
+                        </Button>
                       <Button
                         size="sm"
                         onClick={() => handleReject(survey)}
+                        disabled={survey.status === "Rejected" || (actionLoading.id === survey._id && actionLoading.type === "reject")}
                         className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
                       >
-                        {isAcceptedOrRejected ? "Loading" : "Reject"}
-                      </Button>
+                        {(actionLoading.id === survey._id && actionLoading.type === "reject") ? "Loading" : "Reject"}
+                        </Button>
                     </>
                   )}
                 </TableCell>

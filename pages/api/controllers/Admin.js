@@ -109,7 +109,7 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       from: 'Email-Automation <moeedtahir29@gmail.com>',
       to: salesRepresentiveEmail,
       cc: salesRepresentiveEmail,
-      subject: 'Meeting Confirmation and Payment Verification',
+      subject: 'Payment Verification',
       html: `
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
           <tr>
@@ -159,18 +159,15 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
           <tr>
             <td align="center">
               <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+               <tr>
+                  <td align="left" style="padding: 20px;">
+                    <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
+                  </td>
+                </tr>
                 <tr>
                   <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
                     <p>Dear <strong>${executiveName}</strong>,</p>
                     <p><strong>${salesRepresentiveName}</strong> has successfully uploaded the payment.</p>
-                    <p>You can now proceed to book a meeting using the button below.</p>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding: 20px;">
-                    <a href="${calendarLink}" style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
-                      Book a Meeting
-                    </a>
                   </td>
                 </tr>
               </table>
