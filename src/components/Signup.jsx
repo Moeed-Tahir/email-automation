@@ -88,7 +88,7 @@ const SignupFlow = () => {
             Cookies.set('userName', response.data.linkedInProfileName, { path: '/', expires: 7 });
             Cookies.set('userEmail', response.data.linkedInProfileEmail, { path: '/', expires: 7 });
             Cookies.set('userPhoto', response.data.linkedInProfilePhoto, { path: '/', expires: 7 });
-            Cookies.set('userPhoto', response.data.linkedInProfilePhoto, { path: '/', expires: 7 });
+            Cookies.set('charityCompany', response.data.charityCompany, { path: '/', expires: 7 });
 
             router.push("/");
           }
@@ -356,7 +356,7 @@ const SignupFlow = () => {
             Cookies.set('userName', response.data.userName, { path: '/', expires: 7 });
             Cookies.set('userEmail', response.data.userEmail, { path: '/', expires: 7 });
             Cookies.set('userPhoto', response.data.userPhoto, { path: '/', expires: 7 });
-            Cookies.set('charityDonation', response.data.charityDonation, { path: '/', expires: 7 });
+            Cookies.set('charityCompany', response.data.charityCompany, { path: '/', expires: 7 });
 
             router.push(`/${response.data.user.userId}/dashboard`);
 

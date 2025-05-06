@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const connectToDatabase = require('../lib/db');
+const { refreshAccessTokenIfNeeded, startEmailMonitoring } = require('../services/EmailMonetering');
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -85,42 +86,7 @@ exports.handleOAuth2Callback = async (req, res) => {
   }
 };
 
-async function refreshAccessTokenIfNeeded(tokens) {
-  const oAuth2Client = new google.auth.OAuth2(
-    CLIENT_ID,
-    CLIENT_SECRET,
-    `${process.env.REQUEST_URL}/api/routes/Google?action=handleOAuth2Callback`
-  );
 
-  oAuth2Client.setCredentials({
-    refresh_token: tokens.refresh_token,
-  });
-
-  const FIVE_MINUTES = 5 * 60 * 1000;
-  const currentTime = Date.now();
-
-  if (tokens.expiry_date - currentTime < FIVE_MINUTES) {
-    try {
-      const accessTokenResponse = await oAuth2Client.getAccessToken();
-      const newAccessToken = accessTokenResponse?.token;
-
-      if (!newAccessToken) throw new Error('Failed to get new access token');
-
-      const newExpiryDate = Date.now() + 60 * 60 * 1000;
-
-      return {
-        access_token: newAccessToken,
-        refresh_token: tokens.refresh_token,
-        expiry_date: newExpiryDate,
-      };
-    } catch (error) {
-      console.error('Error refreshing access token:', error.response?.data || error.message);
-      throw new Error('Could not refresh access token');
-    }
-  }
-
-  return tokens;
-}
 
 exports.sendEmail = async (req, res) => {
   const { user_email, to, subject, text } = req.body;
@@ -252,221 +218,6 @@ exports.getEmails = async (req, res) => {
   }
 };
 
-const startEmailMonitoring = async (userEmail) => {
-  console.log(`Starting email monitoring for: ${userEmail}`);
-
-  if (activeMonitors[userEmail]) {
-    clearInterval(activeMonitors[userEmail]);
-    delete activeMonitors[userEmail];
-  }
-
-  try {
-    await checkAndProcessEmails(userEmail);
-  } catch (error) {
-    console.error(`Initial email check failed for ${userEmail}:`, error);
-  }
-
-  activeMonitors[userEmail] = setInterval(async () => {
-    try {
-      await checkAndProcessEmails(userEmail);
-    } catch (error) {
-      console.error(`Error in email monitoring for ${userEmail}:`, error);
-    }
-  }, 2 * 60 * 1000); 
-
-  console.log(`Email monitoring successfully started for ${userEmail}`);
-};
-
-async function checkAndProcessEmails(userEmail) {
-  try {
-    await connectToDatabase();
-    const user = await User.findOne({ linkedInProfileEmail: userEmail });
-    if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
-      console.log(`Missing Gmail OAuth tokens for user ${userEmail}`);
-      return;
-    }
-
-    const userCreatedTime = new Date(user.createdAt).getTime();
-
-    const tokens = await refreshAccessTokenIfNeeded({
-      access_token: user.gmailAccessToken,
-      refresh_token: user.gmailRefreshToken,
-      expiry_date: parseInt(user.gmailExpiryDate, 10),
-    });
-
-    if (tokens.access_token !== user.gmailAccessToken || tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
-      user.gmailAccessToken = tokens.access_token;
-      user.gmailExpiryDate = tokens.expiry_date;
-      await user.save();
-    }
-
-    const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-    oAuth2Client.setCredentials({
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-    });
-
-    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
-
-    const query = `is:unread (subject:"Hello World" OR "Hello World") after:${Math.floor(userCreatedTime / 1000)}`;
-
-    let allMessages = [];
-    let nextPageToken = null;
-
-    do {
-      const response = await gmail.users.messages.list({
-        userId: 'me',
-        maxResults: 100,
-        pageToken: nextPageToken,
-        q: query,
-        orderBy: 'date',
-        labelIds: ['INBOX']
-      });
-
-      if (response.data.messages) {
-        allMessages = allMessages.concat(response.data.messages);
-      }
-
-      nextPageToken = response.data.nextPageToken;
-    } while (nextPageToken);
-
-    console.log(`Found ${allMessages.length} unread messages containing "Hello World" for ${userEmail} since account creation`);
-
-    if (allMessages.length > 0) {
-      for (const msg of allMessages) {
-        try {
-          const messageData = await gmail.users.messages.get({
-            userId: 'me',
-            id: msg.id,
-            format: 'full'
-          });
-
-          const messageContent = JSON.stringify(messageData.data).toLowerCase();
-          if (!messageContent.includes('hello world')) {
-            continue;
-          }
-
-          const fromHeader = messageData.data.payload.headers.find(h => h.name === 'From');
-          const fromEmail = fromHeader ? fromHeader.value.match(/<([^>]+)>/)?.[1] || fromHeader.value : '';
-
-          if (fromEmail) {
-            console.log(`Processing email from ${fromEmail} with subject: ${messageData.data.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)'
-              }`);
-
-            await sendResponseEmail(userEmail, fromEmail, tokens, user.userId);
-
-            await gmail.users.messages.modify({
-              userId: 'me',
-              id: msg.id,
-              requestBody: {
-                removeLabelIds: ['UNREAD']
-              }
-            });
-          }
-        } catch (error) {
-          console.error(`Error processing message ${msg.id}:`, error);
-        }
-      }
-    }
-  } catch (error) {
-    console.error(`Error processing emails for ${userEmail}:`, error);
-  }
-}
-
-async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
-  try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        type: 'OAuth2',
-        user: userEmail,
-        clientId: CLIENT_ID,
-        clientSecret: CLIENT_SECRET,
-        refreshToken: tokens.refresh_token,
-        accessToken: tokens.access_token,
-      },
-    });
-
-    const mailOptions = {
-      from: userEmail,
-      to: toEmail,
-      subject: 'Re: Hello World',
-      html: `
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
-          <tr>
-            <td align="center">
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
-                
-                <!-- Logo -->
-                <tr>
-                  <td align="left" style="padding: 20px;">
-                    <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
-                  </td>
-                </tr>
-    
-                <!-- Heading -->
-                <tr>
-                  <td style="padding: 0 20px;">
-                    <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
-                      Survey Form
-                    </h1>
-                  </td>
-                </tr>
-    
-                <!-- Message -->
-                <tr>
-                  <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
-                    <p>Hello,</p>
-                    <p>We would appreciate your feedback! Please fill out our short survey by clicking the button below:</p>
-                  </td>
-                </tr>
-    
-                <!-- Button -->
-<tr>
-  <td align="left" style="padding: 20px;">
-    <a href="${process.env.REQUEST_URL}/survay-form/${userId}?userId=${userId}"
-       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
-      Complete Survey
-    </a>
-  </td>
-</tr>
-    
-              </table>
-    
-              <!-- Footer -->
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
-                <tr>
-                  <td align="center" style="font-size: 12px; color: #A0AEC0;">
-                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <td align="left">
-                          <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
-                        </td>
-                         <td align="right">
-                          <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-    
-            </td>
-          </tr>
-        </table>
-      `
-    };
-
-
-    await transporter.sendMail(mailOptions);
-    console.log(`Sent response email from ${userEmail} to ${toEmail}`);
-  } catch (error) {
-    console.error(`Error sending response email from ${userEmail} to ${toEmail}:`, error);
-  }
-}
-
 exports.stopMonitoring = (userEmail) => {
   if (activeMonitors[userEmail]) {
     clearInterval(activeMonitors[userEmail]);
@@ -477,7 +228,7 @@ exports.stopMonitoring = (userEmail) => {
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId, userName,charityDonation } = req.body;
+    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId, userName,charityCompany } = req.body;
 
     const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
     if (!user) {
@@ -559,7 +310,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                   <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
                     <p>Dear <strong>${userName}</strong>,</p>
                     <p>Great news! ${userName} has accepted your meeting request.</p>
-                    <p>Please complete your donation to ${charityDonation} as per the agreed amount of <strong>${bidAmount}</strong>.</p>
+                    <p>Please complete your donation to ${charityCompany} as per the agreed amount of <strong>${bidAmount}</strong>.</p>
     
                     <!-- Closing -->
                     <p style="margin-top: 20px;">Thank you for your generosity and participation!<br>Best,</p>
@@ -625,7 +376,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
 
 exports.sendRejectEmailToAdmin = async (req, res) => {
   try {
-    const { sendFromEmail, sendToEmail, objectId } = req.body;
+    const { sendFromEmail, sendToEmail, objectId,userName } = req.body;
 
     await connectToDatabase();
 
@@ -684,57 +435,64 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
     const mailOptions = {
       from: sendFromEmail,
       to: sendToEmail,
-      subject: "Meeting Rejected with Micheal",
+      subject: `Meeting Rejected with ${userName}`,
       html: `
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
-          <tr>
-            <td align="center">
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
-                <!-- Logo -->
-                <tr>
-                  <td align="left" style="padding: 20px;">
-                    <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
-                  </td>
-                </tr>
-    
-                <!-- Heading -->
-                <tr>
-                  <td style="padding: 0 20px;">
-                    <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
-                      Meeting Rejected with Micheal
-                    </h1>
-                  </td>
-                </tr>
-    
-                <!-- Message -->
-                <tr>
-            </tr>
-  
-              </table>
-    
-              <!-- Footer -->
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
-                <tr>
-                  <td align="center" style="font-size: 12px; color: #A0AEC0;">
-                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <td align="left">
-                          <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
-                        </td>
-                         <td align="right">
-                          <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-    
-            </td>
-          </tr>
-        </table>
+       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+        <!-- Logo -->
+        <tr>
+          <td align="left" style="padding: 20px;">
+            <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
+          </td>
+        </tr>
+
+        <!-- Heading -->
+        <tr>
+          <td style="padding: 0 20px;">
+            <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
+              Meeting Rejected with ${userName}
+            </h1>
+          </td>
+        </tr>
+
+        <!-- Message -->
+        <tr>
+          <td style="padding: 20px; font-size: 14px; color: #4A5568; line-height: 1.5;">
+            <p>Hello,</p>
+            
+            <p>We regret to inform you that your meeting request with ${userName} has been rejected.</p>
+            <p>Thank you for your understanding.</p>
+            <p>Best regards,<br>Email Automation Team</p>
+          </td>
+        </tr>
+
+      </table>
+
+      <!-- Footer -->
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
+        <tr>
+          <td align="center" style="font-size: 12px; color: #A0AEC0;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="left">
+                  <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
+                </td>
+                 <td align="right">
+                  <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                  <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                  <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
       `
     };
 

@@ -13,6 +13,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [profileData, setProfileData] = useState({});
     const [survayData, setSurvayData] = useState([]);
+    const [survayBidAmount, setSurvayBidAmount] = useState([]);
     const [isReceiptUpload, setIsReceiptUpload] = useState(false);
 
     console.log("survayData", survayData);
@@ -106,7 +107,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
                 });
                 console.log("response of survay", response);
                 setSurvayData(response.data.name);
-
+                setSurvayBidAmount(response.data.bidAmount);
             } catch (error) {
                 console.error("Error fetching profile data:", error);
             }
@@ -143,7 +144,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
                         </span>{" "}
                         as per the agreed amount of{" "}
                         <span className="font-bold">
-                            ${profileData?.minimumBidDonation || "Amount not specified"}
+                            ${survayBidAmount || "Amount not specified"}
                         </span>
                     </p>
                 </div>

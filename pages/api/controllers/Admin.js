@@ -14,7 +14,7 @@ const uploadReciptData = async (req, res) => {
 
     const { executiveEmail, executiveName, donation, receiptFormLink, userId, surveyId } = req.body;
 
-    const surveyData = await SurvayForm.findOne({ survayId: surveyId });
+    const surveyData = await SurvayForm.findOne({ _id: surveyId });
 
     if (!surveyData) {
       return res.status(404).json({ message: "Survey data not found for the given userId" });
@@ -223,7 +223,7 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
 const sendRejectEmailFromAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { objectId,executiveEmail } = req.body;
+    const { objectId, executiveEmail } = req.body;
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -236,7 +236,7 @@ const sendRejectEmailFromAdmin = async (req, res) => {
     const mailOptions = {
       from: 'Email-Automation <moeedtahir29@gmail.com>',
       to: executiveEmail,
-      subject: 'Meeting Confirmation and Payment Verification',
+      subject: 'Meeting Confirmation',
       html: `
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
           <tr>
@@ -259,6 +259,15 @@ const sendRejectEmailFromAdmin = async (req, res) => {
                 </tr>
     
                 <!-- Message -->
+                <tr>
+          <td style="padding: 20px; font-size: 14px; color: #4A5568; line-height: 1.5;">
+            <p>Hello,</p>
+            
+            <p>We regret to inform you that your meeting request with ${userName} has been rejected.</p>
+            <p>Thank you for your understanding.</p>
+            <p>Best regards,<br>Email Automation Team</p>
+          </td>
+        </tr>
                 <tr>
             </tr>
   
@@ -294,7 +303,7 @@ const sendRejectEmailFromAdmin = async (req, res) => {
 
     const updatedForm = await Admin.findByIdAndUpdate(
       objectId,
-      { status: "Accept" },
+      { status: "Reject" },
       { new: true }
     );
 
@@ -362,4 +371,4 @@ const getDonation = async (req, res) => {
   }
 }
 
-module.exports = { uploadReciptData, fetchReciptData, sendAcceptEmailFromAdmin, addDonation, getDonation,sendRejectEmailFromAdmin };
+module.exports = { uploadReciptData, fetchReciptData, sendAcceptEmailFromAdmin, addDonation, getDonation, sendRejectEmailFromAdmin };
