@@ -117,14 +117,8 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
   const handleReject = async (request) => {
     setActionLoading({ id: request._id, type: 'reject' });
     try {
-      const fromEmail = Cookies.get("userEmail");
-      if (!fromEmail) {
-        throw new Error("User email not found in cookies");
-      }
-
-      const emailResponse = await axios.post('/api/routes/Google?action=sendRejectEmailFromAdmin', {
-        sendFromEmail: fromEmail,
-        sendToEmail: request.salesRepresentiveEmail,
+      const emailResponse = await axios.post('/api/routes/Admin?action=sendRejectEmailFromAdmin', {
+        executiveEmail: request.executiveEmail,
         objectId: request._id,
       });
 

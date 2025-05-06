@@ -1,5 +1,6 @@
 import axios from "axios";
 import connectToDatabase from "../lib/db";
+import { startEmailMonitoring } from "../services/EmailMonetering";
 const User = require('../models/User');
 const dotenv = require("dotenv");
 dotenv.config();
@@ -86,6 +87,10 @@ const linkedInCallback = async (req, res) => {
         { expiresIn: '5h' }
       );
 
+      if (user.gmailAccessToken && user.gmailRefreshToken) {
+        await startEmailMonitoring(user.linkedInProfileEmail);
+      }
+
       return res.json({
         success: true,
         message: "Welcome back! You're logged in successfully.",
@@ -94,7 +99,8 @@ const linkedInCallback = async (req, res) => {
         linkedInProfileEmail: user.linkedInProfileEmail,
         linkedInProfilePhoto: user.linkedInProfilePhoto,
         userId: user.userId,
-        isNewUser: false
+        isNewUser: false,
+        hasGmailAuth: !!user.gmailAccessToken // Add this flag to indicate if email tracking is active
       });
     }
 

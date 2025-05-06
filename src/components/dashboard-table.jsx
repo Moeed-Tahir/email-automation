@@ -138,6 +138,7 @@ const DashboardTable = ({ userId }) => {
       const fromEmail = Cookies.get("userEmail");
       const userName = Cookies.get("userName");
       const mainUserId = Cookies.get("UserId");
+      const charityCompany = Cookies.get("charityCompany");
 
       if (!fromEmail) {
         throw new Error("User email not found in cookies");
@@ -154,7 +155,8 @@ const DashboardTable = ({ userId }) => {
           bidAmount: survey.bidAmount,
           name: survey.name,
           surveyId: survey._id,
-          userName: userName
+          userName: userName,
+          charityCompany:charityCompany
         }
       );
 
@@ -174,6 +176,8 @@ const DashboardTable = ({ userId }) => {
     setActionLoading({ id: survey._id, type: 'reject' });
     try {
       const fromEmail = Cookies.get("userEmail");
+      const userName = Cookies.get("userName");
+
       if (!fromEmail) {
         throw new Error("User email not found in cookies");
       }
@@ -184,6 +188,7 @@ const DashboardTable = ({ userId }) => {
           sendFromEmail: fromEmail,
           sendToEmail: survey.email,
           objectId: survey._id,
+          userName:userName
         }
       );
 
@@ -358,7 +363,7 @@ const DashboardTable = ({ userId }) => {
                     size="sm"
                     onClick={() =>
                       router.push(
-                        `/${survey.userId}/bid-details?userId=${survey.userId}`
+                        `/${survey.userId}/bid-details?surveyId=${survey._id}`
                       )
                     }
                     className="bg-[#FF950029] text-[#FF9500] hover:bg-[#FF9500] hover:text-white cursor-pointer"

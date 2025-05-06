@@ -29,7 +29,7 @@ const addProfileInfo = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    return res.status(200).json({ message: "Profile updated successfully", user, token,userName:user.linkedInProfileName,userPhoto:user.linkedInProfilePhoto,userEmail:user.linkedInProfileEmail });
+    return res.status(200).json({ message: "Profile updated successfully", user, token,userName:user.linkedInProfileName,userPhoto:user.linkedInProfilePhoto,userEmail:user.linkedInProfileEmail,charityCompany:charityCompany });
 
   } catch (error) {
     console.error("Error adding sales representative info:", error);

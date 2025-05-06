@@ -1,7 +1,7 @@
 export const data = [
   {
     name: "Moeed Tahir",
-    email: "moeedtahir29@gmail.com",
+    email: "info@makelastingchange.com",
     company: "Abc Company",
     date: "09 May 2022",
     score: "08",

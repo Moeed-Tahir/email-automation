@@ -96,8 +96,8 @@ const sendEmailFromCompany = async (sendEmailTo) => {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'moeedtahir29@gmail.com',
-        pass: 'bdam zyum ygcv ntqq',
+        user: 'info@makelastingchange.com',
+        pass: 'vcvk scep luhp qosk',
       },
     });
 
@@ -142,11 +142,11 @@ const sendEmailFromCompany = async (sendEmailTo) => {
                             <td align="left">
                               <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
                             </td>
-                            <td align="right">
-                              <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                              <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                              <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
-                            </td>
+                           <td align="right">
+                          <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                        </td>
                           </tr>
                         </table>
                       </td>
@@ -211,16 +211,16 @@ const fetchNameAgainstId = async (req, res) => {
   try {
     await connectToDatabase();
 
-    const { surveyId } = req.body;
+    const { surveyObjectId } = req.body;
 
-    if (!surveyId) {
+    if (!surveyObjectId) {
       return res.status(400).json({
         success: false,
         message: "surveyId is required in the request body"
       });
     }
 
-    const surveyData = await SurvayForm.findById(surveyId).lean();
+    const surveyData = await SurvayForm.findById(surveyObjectId).lean();
 
     if (!surveyData) {
       return res.status(404).json({
@@ -232,7 +232,8 @@ const fetchNameAgainstId = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Survey data retrieved successfully",
-      name: surveyData.name
+      name: surveyData.name,
+      bidAmount: surveyData.bidAmount
     });
 
   } catch (error) {
@@ -244,6 +245,44 @@ const fetchNameAgainstId = async (req, res) => {
     });
   }
 };
+
+const fetchSurvayDataAgainstObjectId = async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { surveyId } = req.body;
+
+    if (!surveyId) {
+      return res.status(400).json({
+        success: false,
+        message: "surveyId is required in the request body"
+      });
+    }
+
+    const surveyData = await SurvayForm.findOne({ _id: surveyId }).lean();
+
+    if (!surveyData) {
+      return res.status(404).json({
+        success: false,
+        message: "Survey data not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Survey data retrieved successfully",
+      data: surveyData
+    });
+
+  } catch (error) {
+    console.error("Error fetching survey data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
 
 
 const getBidInfo = async (req, res) => {
@@ -283,4 +322,4 @@ const getBidInfo = async (req, res) => {
 };
 
 
-module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData, getBidInfo,fetchNameAgainstId };
+module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData, getBidInfo, fetchNameAgainstId, fetchSurvayDataAgainstObjectId };

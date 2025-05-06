@@ -19,22 +19,19 @@ import axios from "axios";
 export default function MeetingRequest() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userId = searchParams.get("userId");
+  const surveyId = searchParams.get("surveyId");
   const [surveyData, setSurveyData] = useState(null);
 
   useEffect(() => {
     const fetchSurveyData = async () => {
-      if (userId) {
+      if (surveyId) {
         try {
-          const response = await axios.get(`/api/routes/SurvayForm`, {
-            params: {
-              action: "fetchSurvayData",
-              userId: userId,
-            },
+          const response = await axios.post(`/api/routes/SurvayForm?action=fetchSurvayDataAgainstObjectId`, {
+            surveyId: surveyId,
           });
 
           if (response.data.success) {
-            setSurveyData(response.data.data[0] || null);
+            setSurveyData(response.data.data || null);
           } else {
             console.error(
               "Failed to fetch survey data:",
@@ -48,7 +45,7 @@ export default function MeetingRequest() {
     };
 
     fetchSurveyData();
-  }, [userId]);
+  }, [surveyId]);
 
   if (!surveyData) {
     return <div>Loading...</div>;
@@ -69,7 +66,7 @@ export default function MeetingRequest() {
           <CardTitle className="text-xl font-light">
             <span>Dear </span>
             <span className="text-[#2C514C] font-medium">
-              <strong>Cooper Dorwart</strong>
+              <strong>{surveyData.name}</strong>
             </span>
           </CardTitle>
           <CardDescription className="text-xl">
@@ -113,7 +110,7 @@ export default function MeetingRequest() {
             </h3>
             <div className="grid gap-6">
               <div>
-                <Label>Description of your solution</Label>
+                <Label>{surveyData.questionOneSolution}</Label>
                 <Textarea
                   placeholder="Describe your solution..."
                   className="mt-2"
@@ -122,7 +119,7 @@ export default function MeetingRequest() {
                 />
               </div>
               <div>
-                <Label>Describe your solution and key features</Label>
+                <Label>{surveyData.questionTwoSolution}</Label>
                 <Textarea
                   placeholder="Describe key features..."
                   className="mt-2"
