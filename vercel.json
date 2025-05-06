@@ -1,0 +1,9 @@
+{
+    
+    "crons": [
+      {
+        "path": "/api/routes/Email/action=",
+        "schedule": "*/2 * * * *"
+      }
+    ]
+  }

@@ -9,32 +9,16 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = `${process.env.REQUEST_URL}/api/routes/Google?action=handleOAuth2Callback`;
 
-const activeMonitors = {};
-const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-
-const startEmailMonitoring = async (userEmail) => {
-    console.log(`Starting email monitoring for: ${userEmail}`);
-
-    if (activeMonitors[userEmail]) {
-        clearInterval(activeMonitors[userEmail]);
-        delete activeMonitors[userEmail];
-    }
-
-    try {
-        await checkAndProcessEmails(userEmail);
-    } catch (error) {
-        console.error(`Initial email check failed for ${userEmail}:`, error);
-    }
-
-    activeMonitors[userEmail] = setInterval(async () => {
-        try {
-            await checkAndProcessEmails(userEmail);
-        } catch (error) {
-            console.error(`Error in email monitoring for ${userEmail}:`, error);
-        }
-    }, 2 * 60 * 1000);
-
-    console.log(`Email monitoring successfully started for ${userEmail}`);
+const startEmailMonitoring = async (req, res) => {
+  const { userEmail } = req.body;
+  console.log(`Starting email monitoring for: ${userEmail}`);
+  try {
+    await checkAndProcessEmails(userEmail);
+    res.status(200).json({ message: `Email monitoring started for ${userEmail}` });
+  } catch (error) {
+    console.error(`Initial email check failed for ${userEmail}:`, error);
+    res.status(500).json({ error: 'Failed to start email monitoring.' });
+  }
 };
 
 async function checkAndProcessEmails(userEmail) {

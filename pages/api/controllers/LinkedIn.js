@@ -1,6 +1,6 @@
 import axios from "axios";
 import connectToDatabase from "../lib/db";
-import { startEmailMonitoring } from "../services/EmailMonetering";
+// import { startEmailMonitoring } from "../services/EmailMonetering";
 const User = require('../models/User');
 const dotenv = require("dotenv");
 dotenv.config();
@@ -87,9 +87,9 @@ const linkedInCallback = async (req, res) => {
         { expiresIn: '5h' }
       );
 
-      if (user.gmailAccessToken && user.gmailRefreshToken) {
-        await startEmailMonitoring(user.linkedInProfileEmail);
-      }
+      // if (user.gmailAccessToken && user.gmailRefreshToken) {
+      //   await startEmailMonitoring(user.linkedInProfileEmail);
+      // }
 
       return res.json({
         success: true,

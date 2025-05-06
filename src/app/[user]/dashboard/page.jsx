@@ -7,6 +7,7 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useEmailMonitoring } from "@/hooks/useEmailMonitoring";
 
 export default function Page() {
   const userId = Cookies.get("UserId");
@@ -32,6 +33,8 @@ export default function Page() {
 
     fetchBidInfo();
   }, []);
+
+  // useEmailMonitoring();
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 w-full">

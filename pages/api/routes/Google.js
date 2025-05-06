@@ -6,6 +6,7 @@ import {
     sendAcceptEmailToAdmin,
     sendRejectEmailToAdmin
 } from "../controllers/Google";
+import { startEmailMonitoring } from "../services/EmailMonetering";
 
 export default async function handler(req, res) {
 
@@ -28,6 +29,8 @@ export default async function handler(req, res) {
             return await sendRejectEmailToAdmin(req, res);
         } else if (req.method === 'POST' && action === 'getEmails') {
             return await getEmails(req, res);
+        } else if (req.method === 'POST' && action === 'startEmailMonitoring') {
+            return await startEmailMonitoring(req, res);
         } else {
             return res.status(405).json({ message: 'Method Not Allowed' });
         }

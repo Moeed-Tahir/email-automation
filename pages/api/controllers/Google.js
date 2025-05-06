@@ -6,7 +6,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const connectToDatabase = require('../lib/db');
-const { refreshAccessTokenIfNeeded, startEmailMonitoring } = require('../services/EmailMonetering');
+const { refreshAccessTokenIfNeeded } = require('../services/EmailMonetering');
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -75,7 +75,7 @@ exports.handleOAuth2Callback = async (req, res) => {
     user.gmailExpiryDate = tokens.expiry_date?.toString() || '';
 
     await user.save();
-    await startEmailMonitoring(userEmail);
+    // await startEmailMonitoring(userEmail);
 
     res.redirect(`${process.env.REQUEST_URL}/login/?currentStep=3`);
 
