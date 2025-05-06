@@ -93,6 +93,7 @@ const linkedInCallback = async (req, res) => {
         linkedInProfileName: user.linkedInProfileName,
         linkedInProfileEmail: user.linkedInProfileEmail,
         linkedInProfilePhoto: user.linkedInProfilePhoto,
+        linkedInProfilePhoto: user.linkedInProfilePhoto,
         userId: user.userId,
         isNewUser: false
       });

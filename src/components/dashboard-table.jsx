@@ -138,6 +138,7 @@ const DashboardTable = ({ userId }) => {
       const fromEmail = Cookies.get("userEmail");
       const userName = Cookies.get("userName");
       const mainUserId = Cookies.get("UserId");
+      const charityDonation = Cookies.get("charityDonation");
 
       if (!fromEmail) {
         throw new Error("User email not found in cookies");
@@ -154,7 +155,8 @@ const DashboardTable = ({ userId }) => {
           bidAmount: survey.bidAmount,
           name: survey.name,
           surveyId: survey._id,
-          userName: userName
+          userName: userName,
+          charityDonation:charityDonation
         }
       );
 

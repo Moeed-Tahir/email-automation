@@ -477,7 +477,7 @@ exports.stopMonitoring = (userEmail) => {
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId, userName } = req.body;
+    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId, userName,charityDonation } = req.body;
 
     const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
     if (!user) {
@@ -549,7 +549,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                 <tr>
                   <td style="padding: 0 20px;">
                     <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
-                      Meeting Confirmed with Micheal
+                      Meeting Confirmed with ${userName}
                     </h1>
                   </td>
                 </tr>
@@ -558,26 +558,12 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                 <tr>
                   <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
                     <p>Dear <strong>${userName}</strong>,</p>
-                    <p>Great news! Micheal has accepted your meeting request. You can now schedule your meeting using the link below:</p>
-                    <p>Please complete your donation to [Executive's Selected Charity] as per the agreed amount of <strong>${bidAmount}</strong>.</p>
-    
-                    <!-- Business Executive Details -->
-                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F7FAFC; padding: 16px; border-radius: 6px; margin-top: 20px;">
-                      <tr>
-                        <td style="padding: 10px;">
-                          <p style="margin: 0; font-weight: 600;">📌 Business Executive Details:</p>
-                          <ul style="margin: 10px 0 0 20px; padding: 0;">
-                            <li><strong>Name:</strong> ${name}</li>
-                            <li><strong>Email:</strong> ${sendToEmail}</li>
-                            <li><strong>Proposed Donation:</strong> <strong>${bidAmount}</strong></li>
-                          </ul>
-                        </td>
-                      </tr>
-                    </table>
+                    <p>Great news! ${userName} has accepted your meeting request.</p>
+                    <p>Please complete your donation to ${charityDonation} as per the agreed amount of <strong>${bidAmount}</strong>.</p>
     
                     <!-- Closing -->
                     <p style="margin-top: 20px;">Thank you for your generosity and participation!<br>Best,</p>
-                    <p>[Email-Automation] Team</p>
+                    <p>Email-Automation Team</p>
                   </td>
                 </tr>
     
