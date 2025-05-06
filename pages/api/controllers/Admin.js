@@ -223,7 +223,7 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
 const sendRejectEmailFromAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { objectId, executiveEmail } = req.body;
+    const { objectId, executiveEmail, executiveName, salesRepresentiveEmail, salesRepresentiveName } = req.body;
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -235,8 +235,8 @@ const sendRejectEmailFromAdmin = async (req, res) => {
 
     const mailOptions = {
       from: 'Email-Automation <info@makelastingchange.com>',
-      to: executiveEmail,
-      subject: 'Meeting Confirmation',
+      to: salesRepresentiveEmail,
+      subject: 'Meeting Rejected with ' + executiveName,
       html: `
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
           <tr>
@@ -253,7 +253,7 @@ const sendRejectEmailFromAdmin = async (req, res) => {
                 <tr>
                   <td style="padding: 0 20px;">
                     <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
-                      Meeting Rejected with Admin
+                      Meeting Rejected with ${executiveName}
                     </h1>
                   </td>
                 </tr>
@@ -263,7 +263,7 @@ const sendRejectEmailFromAdmin = async (req, res) => {
           <td style="padding: 20px; font-size: 14px; color: #4A5568; line-height: 1.5;">
             <p>Hello,</p>
             
-            <p>We regret to inform you that your meeting request with ${userName} has been rejected.</p>
+            <p>We regret to inform you that your meeting request with ${executiveName} has been rejected.</p>
             <p>Thank you for your understanding.</p>
             <p>Best regards,<br>Email Automation Team</p>
           </td>

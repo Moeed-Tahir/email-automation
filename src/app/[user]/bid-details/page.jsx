@@ -12,23 +12,53 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Cookies from "js-cookie";
 
 export default function MeetingRequest() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const surveyId = searchParams.get("surveyId");
   const [surveyData, setSurveyData] = useState(null);
+  const [userQuestions, setUserQuestions] = useState({
+    questionOne: "",
+    questionTwo: "",
+  });
+  const userId = Cookies.get("UserId") || null;
+  console.log("userId", userId);
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        const response = await axios.get(`/api/routes/ProfileInfo`, {
+          params: { userId, action: "getProfileInfo" },
+        });
+
+        setUserQuestions({
+          questionOne: response.data.user.questionSolution || "",
+          questionTwo: response.data.user.howHeard || "",
+        });
+      } catch (error) {
+        console.error("Error fetching profile data:", error);
+      }
+    };
+
+    if (userId) {
+      fetchProfileData();
+    }
+  }, [userId]);
 
   useEffect(() => {
     const fetchSurveyData = async () => {
       if (surveyId) {
         try {
-          const response = await axios.post(`/api/routes/SurvayForm?action=fetchSurvayDataAgainstObjectId`, {
-            surveyId: surveyId,
-          });
+          const response = await axios.post(
+            `/api/routes/SurvayForm?action=fetchSurvayDataAgainstObjectId`,
+            {
+              surveyId: surveyId,
+            }
+          );
 
           if (response.data.success) {
             setSurveyData(response.data.data || null);
@@ -66,7 +96,7 @@ export default function MeetingRequest() {
           <CardTitle className="text-xl font-light">
             <span>Dear </span>
             <span className="text-[#2C514C] font-medium">
-              <strong>{surveyData.name}</strong>
+              <strong>{Cookies.get("userName")}</strong>
             </span>
           </CardTitle>
           <CardDescription className="text-xl">
@@ -110,7 +140,7 @@ export default function MeetingRequest() {
             </h3>
             <div className="grid gap-6">
               <div>
-                <Label>{surveyData.questionOneSolution}</Label>
+                <Label>{userQuestions.questionOne}</Label>
                 <Textarea
                   placeholder="Describe your solution..."
                   className="mt-2"
@@ -119,7 +149,7 @@ export default function MeetingRequest() {
                 />
               </div>
               <div>
-                <Label>{surveyData.questionTwoSolution}</Label>
+                <Label>{userQuestions.questionTwo}</Label>
                 <Textarea
                   placeholder="Describe key features..."
                   className="mt-2"
@@ -361,22 +391,6 @@ export default function MeetingRequest() {
                 </RadioGroup>
               </div>
             </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-end pt-6 gap-4">
-            <Button
-              className="bg-red-500 hover:bg-transparent cursor-pointer border-2 border-red-500 text-white hover:text-red-500"
-              onClick={() => router.push("/")}
-            >
-              Decline Request
-            </Button>
-            <Button
-              className="bg-[#2C514C] hover:bg-transparent cursor-pointer border-2 border-[#2C514C] text-white hover:text-[#2C514C]"
-              onClick={() => router.push("/")}
-            >
-              Accept Request
-            </Button>
           </div>
         </CardContent>
       </Card>

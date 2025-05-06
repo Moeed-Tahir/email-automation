@@ -119,6 +119,9 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
     try {
       const emailResponse = await axios.post('/api/routes/Admin?action=sendRejectEmailFromAdmin', {
         executiveEmail: request.executiveEmail,
+        executiveName: request.executiveName,
+        salesRepresentiveEmail: request.salesRepresentiveEmail,
+        salesRepresentiveName: request.salesRepresentiveName,
         objectId: request._id,
       });
 
