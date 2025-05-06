@@ -14,7 +14,7 @@ const uploadReciptData = async (req, res) => {
 
     const { executiveEmail, executiveName, donation, receiptFormLink, userId, surveyId } = req.body;
 
-    const surveyData = await SurvayForm.findOne({ survayId: surveyId });
+    const surveyData = await SurvayForm.findOne({ _id: surveyId });
 
     if (!surveyData) {
       return res.status(404).json({ message: "Survey data not found for the given userId" });
