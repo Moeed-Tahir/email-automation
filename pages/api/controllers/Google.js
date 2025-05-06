@@ -74,7 +74,7 @@ exports.handleOAuth2Callback = async (req, res) => {
     user.gmailExpiryDate = tokens.expiry_date?.toString() || '';
 
     await user.save();
-    startEmailMonitoring(userEmail);
+    await startEmailMonitoring(userEmail);
 
     res.redirect(`${process.env.REQUEST_URL}/login/?currentStep=3`);
 
@@ -253,10 +253,17 @@ exports.getEmails = async (req, res) => {
 };
 
 const startEmailMonitoring = async (userEmail) => {
-  console.log("userEmail", userEmail);
+  console.log(`Starting email monitoring for: ${userEmail}`);
 
   if (activeMonitors[userEmail]) {
     clearInterval(activeMonitors[userEmail]);
+    delete activeMonitors[userEmail];
+  }
+
+  try {
+    await checkAndProcessEmails(userEmail);
+  } catch (error) {
+    console.error(`Initial email check failed for ${userEmail}:`, error);
   }
 
   activeMonitors[userEmail] = setInterval(async () => {
@@ -265,10 +272,10 @@ const startEmailMonitoring = async (userEmail) => {
     } catch (error) {
       console.error(`Error in email monitoring for ${userEmail}:`, error);
     }
-  }, 1 * 60 * 1000);
+  }, 2 * 60 * 1000); 
 
-  await checkAndProcessEmails(userEmail);
-}
+  console.log(`Email monitoring successfully started for ${userEmail}`);
+};
 
 async function checkAndProcessEmails(userEmail) {
   try {
