@@ -74,6 +74,7 @@ exports.handleOAuth2Callback = async (req, res) => {
     user.gmailExpiryDate = tokens.expiry_date?.toString() || '';
 
     await user.save();
+    startEmailMonitoring(userEmail);
 
     res.redirect(`${process.env.REQUEST_URL}/login/?currentStep=3`);
 
@@ -251,7 +252,7 @@ exports.getEmails = async (req, res) => {
   }
 };
 
-exports.startEmailMonitoring = async (userEmail) => {
+const startEmailMonitoring = async (userEmail) => {
   console.log("userEmail", userEmail);
 
   if (activeMonitors[userEmail]) {

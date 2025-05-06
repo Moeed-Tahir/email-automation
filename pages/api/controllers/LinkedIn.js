@@ -1,6 +1,5 @@
 import axios from "axios";
 import connectToDatabase from "../lib/db";
-import { startEmailMonitoring } from "./Google";
 const User = require('../models/User');
 const dotenv = require("dotenv");
 dotenv.config();
@@ -66,7 +65,7 @@ const linkedInCallback = async (req, res) => {
         linkedInProfilePhoto: picture,
       });
       await user.save();
-      await startEmailMonitoring(user.linkedInProfileEmail)
+
       return res.json({
         success: true,
         message: "Login successful! Please complete your profile by filling the next steps.",
@@ -86,7 +85,6 @@ const linkedInCallback = async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: '5h' }
       );
-      await startEmailMonitoring(user.linkedInProfileEmail)
 
       return res.json({
         success: true,
