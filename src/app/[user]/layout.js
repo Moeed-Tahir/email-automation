@@ -79,7 +79,7 @@ export default function Layout({ children }) {
                                     className="shrink-0 rounded-full"
                                 />
                             </span>
-                            <div className="flex flex-col items-start justify-start">
+                            <div className="flex-col items-start justify-start md:flex hidden">
                                 <span className="text-lg font-semibold text-[#2C514C]">
                                     {userName || "User"}
                                 </span>
