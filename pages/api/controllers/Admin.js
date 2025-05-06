@@ -99,14 +99,14 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'moeedtahir29@gmail.com',
-        pass: 'bdam zyum ygcv ntqq',
+        user: 'info@makelastingchange.com',
+        pass: 'vcvk scep luhp qosk',
       },
     });
 
     // First Email (with CC)
     const mailOptions1 = {
-      from: 'Email-Automation <moeedtahir29@gmail.com>',
+      from: 'Email-Automation <info@makelastingchange.com>',
       to: salesRepresentiveEmail,
       cc: salesRepresentiveEmail,
       subject: 'Payment Verification',
@@ -151,7 +151,7 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
 
     // Second Email (from Moeed to Executive directly)
     const mailOptions2 = {
-      from: 'Email-Automation <moeedtahir29@gmail.com>',
+      from: 'Email-Automation <info@makelastingchange.com>',
       to: executiveEmail,
       subject: 'Payment Successfully Uploaded',
       html: `
@@ -228,13 +228,13 @@ const sendRejectEmailFromAdmin = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'moeedtahir29@gmail.com',
-        pass: 'bdam zyum ygcv ntqq',
+        user: 'info@makelastingchange.com',
+        pass: 'vcvk scep luhp qosk',
       },
     });
 
     const mailOptions = {
-      from: 'Email-Automation <moeedtahir29@gmail.com>',
+      from: 'Email-Automation <info@makelastingchange.com>',
       to: executiveEmail,
       subject: 'Meeting Confirmation',
       html: `

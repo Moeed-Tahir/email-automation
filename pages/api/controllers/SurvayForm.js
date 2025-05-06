@@ -96,8 +96,8 @@ const sendEmailFromCompany = async (sendEmailTo) => {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'moeedtahir29@gmail.com',
-        pass: 'bdam zyum ygcv ntqq',
+        user: 'info@makelastingchange.com',
+        pass: 'vcvk scep luhp qosk',
       },
     });
 
