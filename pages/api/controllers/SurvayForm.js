@@ -142,11 +142,11 @@ const sendEmailFromCompany = async (sendEmailTo) => {
                             <td align="left">
                               <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
                             </td>
-                            <td align="right">
-                              <a href="#"><img src="/twitter.svg" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                              <a href="#"><img src="/facebook.svg" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                              <a href="#"><img src="/linkedin.svg" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
-                            </td>
+                           <td align="right">
+                          <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                        </td>
                           </tr>
                         </table>
                       </td>
@@ -270,7 +270,7 @@ const fetchSurvayDataAgainstObjectId = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Survey data retrieved successfully",
-      data:surveyData
+      data: surveyData
     });
 
   } catch (error) {
@@ -322,4 +322,4 @@ const getBidInfo = async (req, res) => {
 };
 
 
-module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData, getBidInfo,fetchNameAgainstId,fetchSurvayDataAgainstObjectId };
+module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData, getBidInfo, fetchNameAgainstId, fetchSurvayDataAgainstObjectId };
