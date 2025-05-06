@@ -292,7 +292,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                 <!-- Logo -->
                 <tr>
                   <td align="left" style="padding: 20px;">
-                    <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
+                    <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Logo" style="height: 40px;">
                   </td>
                 </tr>
     
@@ -337,7 +337,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td align="left">
-                          <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
+                          <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Footer Logo" style="height: 24px;">
                         </td>
                         <td align="right">
                           <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
@@ -444,7 +444,7 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
         <!-- Logo -->
         <tr>
           <td align="left" style="padding: 20px;">
-            <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Logo" style="height: 40px;">
+            <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Logo" style="height: 40px;">
           </td>
         </tr>
 
@@ -477,7 +477,7 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td align="left">
-                  <img src="https://i.ibb.co/Sw1L2drq/Logo-5.png" alt="Footer Logo" style="height: 24px;">
+                  <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Footer Logo" style="height: 24px;">
                 </td>
                  <td align="right">
                   <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
