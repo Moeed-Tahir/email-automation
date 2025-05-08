@@ -176,8 +176,8 @@ const SurveyForm = ({ userId }) => {
 
         setProfileData(response.data.user);
         setUserQuestions({
-          questionOne: response.data.user.questionSolution || "",
-          questionTwo: response.data.user.howHeard || "",
+          questionOne: response.data.user.questionSolution || "Describe your solution and its key features.",
+          questionTwo: response.data.user.howHeard || "Give a brief description of your solution.",
         });
       } catch (error) {
         console.error("Error fetching profile data:", error);

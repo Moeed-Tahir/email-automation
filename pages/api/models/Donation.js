@@ -7,6 +7,7 @@ const donationSchema = new mongoose.Schema(
         executiveEmail: { type: String, required: false },
         executiveName: { type: String, required: false },
         donation: { type: String, required: false },
+        userId: { type: String, required: false },
     },
     { timestamps: true }
 );

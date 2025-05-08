@@ -213,7 +213,7 @@ export default function Page() {
               <p className="font-medium mb-1">
                 Are you sure you want to delete your account?
               </p>
-              <p className="font-medium text-medium">
+              <p className="text-[15px]">
                 Once you delete your account, there is no going back. Please be certain.
               </p>
             </div>
@@ -224,8 +224,8 @@ export default function Page() {
                   Delete Account
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <h3 className="text-lg font-semibold">Confirm Deletion</h3>
+              <DialogContent className="gap-1">
+                <h3 className="text-[24px] font-semibold">Confirm Deletion</h3>
                 <p>Are you absolutely sure you want to delete your account?</p>
                 <DialogFooter className="flex gap-4 justify-end pt-4">
                   <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="cursor-pointer">

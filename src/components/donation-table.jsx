@@ -191,15 +191,6 @@ const DonationTable = ({ data }) => {
                   <ChevronsUpDown className="size-4 text-gray-500" />
                 </div>
               </TableHead>
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => handleHeaderSort("status")}
-              >
-                <div className="flex items-center justify-between">
-                  Status{" "}
-                  <ChevronsUpDown className="size-4 text-gray-500" />
-                </div>
-              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -223,9 +214,6 @@ const DonationTable = ({ data }) => {
                   </TableCell>
                   <TableCell className="min-w-[120px] font-medium">
                     ${parseFloat(request.donation || 0).toFixed(2)}
-                  </TableCell>
-                  <TableCell className="min-w-[120px]">
-                    {getStatusBadge(request.status)}
                   </TableCell>
                 </TableRow>
               ))

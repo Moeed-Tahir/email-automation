@@ -44,7 +44,7 @@ const Page = () => {
   }, []);
 
   return (
-    <div>
+    <div className="p-4">
       <div className="flex flex-col w-full bg-white rounded-xl p-4 border">
         <DonationTable data={donationData} />
       </div>
