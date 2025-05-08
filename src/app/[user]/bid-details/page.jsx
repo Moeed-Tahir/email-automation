@@ -36,8 +36,8 @@ export default function MeetingRequest() {
         });
 
         setUserQuestions({
-          questionOne: response.data.user.questionSolution || "",
-          questionTwo: response.data.user.howHeard || "",
+          questionOne: response.data.user.questionSolution || "Describe your solution and its key features.",
+          questionTwo: response.data.user.howHeard || "Give a brief description of your solution.",
         });
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -123,19 +123,19 @@ export default function MeetingRequest() {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <CardTitle className="text-xl">Survey From Sales Rep</CardTitle>
+            <CardTitle className="text-[26px] leading-[36px] font-medium">Survey From Sales Rep</CardTitle>
           </div>
-          <Button
+          <div
             variant="default"
-            className="bg-[#2C514C] hover:bg-transparent cursor-pointer border-2 border-[#2C514C] text-white hover:text-[#2C514C]"
+            className="bg-[#2C514C] border-2 border-[#2C514C] text-white px-3 py-1.5 rounded-lg text-center text-[20px]"
           >
-            {`Survey Score ${surveyData.totalScore}`}
-          </Button>
+            {`Survey Score: ${surveyData.totalScore}`}
+          </div>
         </CardHeader>
         <CardContent className="space-y-8">
           {/* Open-Ended Questions */}
           <div>
-            <h3 className="text-[23px] font-semibold mb-2">
+            <h3 className="text-[23px] font-medium mb-2">
               Open-Ended Questions
             </h3>
             <div className="grid gap-6">

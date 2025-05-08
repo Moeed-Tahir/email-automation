@@ -135,7 +135,7 @@ export function AppSidebar({ isAdmin = false, ...props }) {
                         <SidebarMenuItem key={i}>
                           <SidebarMenuButton
                             onClick={handleLogout}
-                            className={`flex items-center gap-[10px] w-full px-[16px] py-[20px] rounded-[6px] transition-colors ${
+                            className={`flex items-center gap-[10px] w-full px-[16px] py-[20px] rounded-[6px] transition-colors cursor-pointer ${
                               isActive
                                 ? "bg-white text-[#2C514C]"
                                 : "text-white hover:bg-white hover:text-[#2C514C]"

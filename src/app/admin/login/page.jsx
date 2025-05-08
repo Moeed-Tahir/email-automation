@@ -122,12 +122,6 @@ function Login() {
                 >
                   Password
                 </label>
-                <Link
-                  href="#"
-                  className="text-xs font-medium text-[rgba(44,81,76,1)] hover:text-[rgba(44,81,76,1)]"
-                >
-                  Forgot password?
-                </Link>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -224,27 +218,6 @@ function Login() {
               )}
             </button>
           </form>
-        </div>
-
-        {/* Footer Links */}
-        <div className="bg-white rounded-xl shadow-lg p-4 text-center">
-          <p className="text-xs text-gray-600">
-            By clicking the button above, you agree to our{" "}
-            <Link
-              href="#"
-              className="font-medium text-[rgba(44,81,76,1)] hover:text-[rgba(44,81,76,1)]"
-            >
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="#"
-              className="font-medium text-[rgba(44,81,76,1)] hover:text-[rgba(44,81,76,1)]"
-            >
-              Privacy Policy
-            </Link>
-            .
-          </p>
         </div>
       </div>
     </div>
