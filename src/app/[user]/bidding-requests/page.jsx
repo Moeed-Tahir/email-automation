@@ -7,7 +7,9 @@ import Cookies from "js-cookie";
 
 export default function Page() {
   const userId = Cookies.get("UserId");
-
+  const downloadPdf = () => {
+    
+  }
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 w-full">
       <div className="bg-white rounded-xl p-4 border">
