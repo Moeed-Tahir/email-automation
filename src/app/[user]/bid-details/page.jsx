@@ -26,7 +26,6 @@ export default function MeetingRequest() {
     questionTwo: "",
   });
   const userId = Cookies.get("UserId") || null;
-  console.log("userId", userId);
 
   useEffect(() => {
     const fetchProfileData = async () => {

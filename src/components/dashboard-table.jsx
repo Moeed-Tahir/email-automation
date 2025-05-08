@@ -21,12 +21,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownWideNarrow, ChevronsUpDown, FunnelIcon } from "lucide-react";
 import { data } from "../lib/constant";
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
-const DashboardTable = ({ userId }) => {
+const DashboardTable = forwardRef(({ userId},ref) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [statusFilters, setStatusFilters] = useState([]);
@@ -61,6 +63,59 @@ const DashboardTable = ({ userId }) => {
       setLoading(false);
     }
   };
+
+  const downloadPdf = () => {
+    const doc = new jsPDF();
+    
+    // Title
+    doc.setFontSize(18);
+    doc.text("Bid Requests Report", 14, 22);
+    
+    // Date
+    doc.setFontSize(10);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+    
+    // Table data
+    const tableData = existingSurveys.map(survey => [
+      survey.name,
+      new Date(survey.createdAt).toLocaleDateString(),
+      survey.totalScore || '-',
+      `$${survey.bidAmount}`,
+      survey.status
+    ]);
+    
+    // ✅ Use autoTable as a function (pass `doc` as first argument)
+    autoTable(doc, {
+      head: [['Representative', 'Proposed Date', 'Score', 'Bid', 'Status']],
+      body: tableData,
+      startY: 40,
+      styles: {
+        cellPadding: 2,
+        fontSize: 9,
+        valign: 'middle',
+        halign: 'center'
+      },
+      headStyles: {
+        fillColor: [44, 81, 76],
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      columnStyles: {
+        0: { halign: 'left', cellWidth: 40 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 20 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 30 }
+      },
+      margin: { top: 40 }
+    });
+    
+    doc.save('bid-requests-report.pdf');
+  };
+
+  useImperativeHandle(ref, () => ({
+    downloadPdf
+  }));
 
   useEffect(() => {
     if (userId) {
@@ -518,6 +573,6 @@ const DashboardTable = ({ userId }) => {
       )}
     </div>
   );
-};
+});
 
 export default DashboardTable;

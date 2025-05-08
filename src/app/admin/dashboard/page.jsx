@@ -17,7 +17,6 @@ export default function page() {
   const fetchAdminData = async () => {
     try {
       const response = await axios.get("/api/routes/Admin?action=fetchReciptData");
-      console.log("response",response);
       setTableData(response.data.receipts);
     } catch (error) {
       console.log("Error is occured", error);

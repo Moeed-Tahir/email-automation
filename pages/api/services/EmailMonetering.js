@@ -11,7 +11,6 @@ const REDIRECT_URI = `${process.env.REQUEST_URL}/api/routes/Google?action=handle
 
 const startEmailMonitoring = async (req, res) => {
   const { userEmail } = req.body;
-  console.log(`Starting email monitoring for: ${userEmail}`);
   try {
     await checkAndProcessEmails(userEmail);
     res.status(200).json({ message: `Email monitoring started for ${userEmail}` });

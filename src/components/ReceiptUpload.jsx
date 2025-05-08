@@ -17,8 +17,6 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
   const [survayBidAmount, setSurvayBidAmount] = useState([]);
   const [isReceiptUpload, setIsReceiptUpload] = useState(false);
 
-  console.log("survayData", survayData);
-
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
@@ -107,7 +105,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
             surveyObjectId,
           }
         );
-        console.log("response of survay", response);
+        
         setSurvayData(response.data.name);
         setSurvayBidAmount(response.data.bidAmount);
       } catch (error) {

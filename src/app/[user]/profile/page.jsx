@@ -23,8 +23,11 @@ export default function Page() {
     charityCompany: "",
     minimumBidDonation: "",
     calendarLink: "",
+    howHeard:"",
+    questionSolution:""
   });
   const [formData, setFormData] = useState({ ...profileData });
+
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -67,7 +70,7 @@ export default function Page() {
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-    }finally{
+    } finally {
       setIsEditing(false);
     }
   };
@@ -179,6 +182,29 @@ export default function Page() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Open Ended Question */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">Open-Ended Question</h2>
+            <Input
+              id="howHeard"
+              value={formData.howHeard}
+              placeholder="Enter Question"
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, howHeard: e.target.value }))
+              }
+              disabled={!isEditing}
+            />
+            <Input
+              id="questionSolution"
+              value={formData.questionSolution}
+              placeholder="Enter Question"
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, questionSolution: e.target.value }))
+              }
+              disabled={!isEditing}
+            />
           </div>
 
           {/* Edit/Save/Cancel Buttons */}
