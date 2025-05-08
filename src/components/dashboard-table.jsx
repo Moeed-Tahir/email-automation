@@ -35,8 +35,10 @@ const DashboardTable = ({ userId }) => {
   const router = useRouter();
   const [existingSurveys, setExistingSurveys] = useState([]);
   const [actionLoading, setActionLoading] = useState({ id: null, type: null });
+  const [loading, setLoading] = useState(true);
 
   const fetchExistingSurveys = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(`/api/routes/SurvayForm`, {
         params: {
@@ -47,27 +49,6 @@ const DashboardTable = ({ userId }) => {
 
       if (response.data.success) {
         setExistingSurveys(response.data.data || []);
-
-        if (response.data.data && response.data.data.length > 0) {
-          const latestSurvey = response.data.data[0];
-          setFormData({
-            bidAmount: latestSurvey.bidAmount || "",
-            name: latestSurvey.name || "",
-            email: latestSurvey.email || "",
-            solutionDescription: latestSurvey.questionOneSolution || "",
-            businessChallengeSolution: latestSurvey.questionTwoSolution || "",
-            businessProblem: latestSurvey.businessProblem || "",
-            resultsTimeframe: latestSurvey.resultsTimeframe || "",
-            caseStudies: latestSurvey.caseStudies || "",
-            offeringType: latestSurvey.offeringType || "",
-            performanceGuarantee: latestSurvey.performanceGuarantee || "",
-            DonationWilling: latestSurvey.DonationWilling || "",
-            escrowDonation: latestSurvey.escrowDonation || "",
-            charityDonation: latestSurvey.charityDonation || "",
-            status: latestSurvey.status,
-            userId: latestSurvey.userId || " ",
-          });
-        }
       } else {
         console.error("API returned unsuccessful:", response.data.message);
       }
@@ -76,11 +57,12 @@ const DashboardTable = ({ userId }) => {
       if (error.response) {
         console.error("Error response data:", error.response.data);
       }
+    } finally {
+      setLoading(false);
     }
   };
+
   useEffect(() => {
-
-
     if (userId) {
       fetchExistingSurveys();
     }
@@ -204,10 +186,10 @@ const DashboardTable = ({ userId }) => {
     }
   };
 
-  const filteredData =
-    statusFilters.length > 0
-      ? data.filter((item) => statusFilters.includes(item.status))
-      : data;
+  // Filter and sort data
+  const filteredData = existingSurveys.filter(item => 
+    statusFilters.length === 0 || statusFilters.includes(item.status)
+  );
 
   const sortedData = [...filteredData].sort((a, b) => {
     if (!sortConfig.key) return 0;
@@ -221,10 +203,21 @@ const DashboardTable = ({ userId }) => {
     return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
   });
 
+  // Pagination logic
+  const totalItems = sortedData.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const currentData = sortedData.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+
+  // Reset to first page if current page becomes invalid
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (currentPage < 1 && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
 
   return (
     <div className="w-full h-max">
@@ -238,7 +231,7 @@ const DashboardTable = ({ userId }) => {
         <div className="flex flex-col md:flex-row items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="text-sm font-medium text-[#2C514C] border bg-transparent hover:bg-transparent">
+              <Button className="text-sm font-medium text-[#2C514C] border bg-transparent hover:bg-transparent cursor-pointer">
                 <FunnelIcon className="fill-[#2C514C] mr-2" /> Filters
               </Button>
             </DropdownMenuTrigger>
@@ -269,7 +262,7 @@ const DashboardTable = ({ userId }) => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="text-sm font-medium text-[#2C514C] border bg-transparent hover:bg-transparent">
+              <Button className="text-sm font-medium text-[#2C514C] border bg-transparent hover:bg-transparent cursor-pointer">
                 <ArrowDownWideNarrow className="mr-2" /> Sort By
               </Button>
             </DropdownMenuTrigger>
@@ -279,12 +272,12 @@ const DashboardTable = ({ userId }) => {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {[
-                { label: "Score (Low - High)", key: "score", dir: "asc" },
-                { label: "Score (High - Low)", key: "score", dir: "desc" },
-                { label: "Bid (Low - High)", key: "bid", dir: "asc" },
-                { label: "Bid (High - Low)", key: "bid", dir: "desc" },
-                { label: "Date (starting soon)", key: "date", dir: "asc" },
-                { label: "Date (ending soon)", key: "date", dir: "desc" },
+                { label: "Score (Low - High)", key: "totalScore", dir: "asc" },
+                { label: "Score (High - Low)", key: "totalScore", dir: "desc" },
+                { label: "Bid (Low - High)", key: "bidAmount", dir: "asc" },
+                { label: "Bid (High - Low)", key: "bidAmount", dir: "desc" },
+                { label: "Date (Oldest)", key: "createdAt", dir: "asc" },
+                { label: "Date (Newest)", key: "createdAt", dir: "desc" },
               ].map((opt) => (
                 <DropdownMenuItem
                   key={opt.label}
@@ -314,7 +307,7 @@ const DashboardTable = ({ userId }) => {
               </TableHead>
               <TableHead
                 className="cursor-pointer"
-                onClick={() => handleHeaderSort("date")}
+                onClick={() => handleHeaderSort("createdAt")}
               >
                 <div className="flex items-center justify-between">
                   Proposed Date{" "}
@@ -323,121 +316,206 @@ const DashboardTable = ({ userId }) => {
               </TableHead>
               <TableHead
                 className="cursor-pointer"
-                onClick={() => handleHeaderSort("score")}
+                onClick={() => handleHeaderSort("totalScore")}
               >
                 <div className="flex items-center justify-between">
                   Score <ChevronsUpDown className="size-4 text-gray-500" />
                 </div>
               </TableHead>
-              <TableHead>Bid</TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleHeaderSort("bidAmount")}
+              >
+                <div className="flex items-center justify-between">
+                  Bid <ChevronsUpDown className="size-4 text-gray-500" />
+                </div>
+              </TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {existingSurveys.map((survey) => (
-              <TableRow key={survey._id}>
-                <TableCell className="min-w-[200px]">
-                  <div className="font-medium">{survey.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {survey.email}
-                  </div>
-                </TableCell>
-                <TableCell className="min-w-[150px]">
-                  {new Date(survey.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell className="min-w-[120px]">
-                  {survey.totalScore || "-"}
-                </TableCell>
-                <TableCell className="min-w-[120px]">
-                  <Badge
-                    variant="outline"
-                    className="bg-gray-200 p-2 px-3 rounded-sm"
-                  >
-                    {survey.bidAmount}
-                  </Badge>
-                </TableCell>
-                <TableCell className="min-w-[150px]">{survey.status}</TableCell>
-                <TableCell className="min-w-[300px] lg:min-w-[250px] flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() =>
-                      router.push(
-                        `/${survey.userId}/bid-details?surveyId=${survey._id}`
-                      )
-                    }
-                    className="bg-[#FF950029] text-[#FF9500] hover:bg-[#FF9500] hover:text-white cursor-pointer"
-                  >
-                    View Details
-                  </Button>
-                  {survey.status === "Pending" && (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => handleAccept(survey)}
-                        disabled={survey.status === "Accepted" || (actionLoading.id === survey._id && actionLoading.type === "accept")}
-
-                        className="bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white transition-all duration-200"
-                      >
-                        {(actionLoading.id === survey._id && actionLoading.type === "accept") ? "Loading" : "Accept"}
-                        </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleReject(survey)}
-                        disabled={survey.status === "Rejected" || (actionLoading.id === survey._id && actionLoading.type === "reject")}
-                        className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
-                      >
-                        {(actionLoading.id === survey._id && actionLoading.type === "reject") ? "Loading" : "Reject"}
-                        </Button>
-                    </>
-                  )}
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  Loading bids...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : currentData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  {statusFilters.length > 0
+                    ? "No bids match the selected filters"
+                    : "No bids available yet"}
+                </TableCell>
+              </TableRow>
+            ) : (
+              currentData.map((survey) => (
+                <TableRow key={survey._id}>
+                  <TableCell className="min-w-[200px]">
+                    <div className="font-medium">{survey.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {survey.email}
+                    </div>
+                  </TableCell>
+                  <TableCell className="min-w-[150px]">
+                    {new Date(survey.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="min-w-[120px]">
+                    {survey.totalScore || "-"}
+                  </TableCell>
+                  <TableCell className="min-w-[120px]">
+                    <Badge
+                      variant="outline"
+                      className="bg-gray-200 p-2 px-3 rounded-sm"
+                    >
+                      {survey.bidAmount}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="min-w-[150px]">
+                    {getStatusBadge(survey.status)}
+                  </TableCell>
+                  <TableCell className="min-w-[300px] lg:min-w-[250px] flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        router.push(
+                          `/${survey.userId}/bid-details?surveyId=${survey._id}`
+                        )
+                      }
+                      className="bg-[#FF950029] text-[#FF9500] hover:bg-[#FF9500] hover:text-white cursor-pointer"
+                    >
+                      View Details
+                    </Button>
+                    {survey.status === "Pending" && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => handleAccept(survey)}
+                          disabled={survey.status === "Accepted" || (actionLoading.id === survey._id && actionLoading.type === "accept")}
+                          className="bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white transition-all duration-200"
+                        >
+                          {(actionLoading.id === survey._id && actionLoading.type === "accept") ? "Loading" : "Accept"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleReject(survey)}
+                          disabled={survey.status === "Rejected" || (actionLoading.id === survey._id && actionLoading.type === "reject")}
+                          className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
+                        >
+                          {(actionLoading.id === survey._id && actionLoading.type === "reject") ? "Loading" : "Reject"}
+                        </Button>
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
-      <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <span className="text-sm text-muted-foreground">
-          Showing {startIndex + 1} to {Math.min(endIndex, sortedData.length)} of{" "}
-          {sortedData.length} entries
-        </span>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="border bg-gray-200"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          >
-            Previous
-          </Button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+      {/* Pagination controls - only show if more than one page exists */}
+      {totalPages > 1 && (
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <span className="text-sm text-muted-foreground">
+            Showing {startIndex + 1} to {endIndex} of {totalItems} entries
+          </span>
+          <div className="flex gap-2 flex-wrap">
             <Button
-              key={num}
               size="sm"
-              className={
-                num === currentPage
-                  ? "bg-[#2C514C] text-white"
-                  : "bg-gray-200 text-[#2C514C] hover:bg-[#2C514C] hover:text-white"
-              }
-              onClick={() => setCurrentPage(num)}
+              variant="ghost"
+              className="border bg-gray-200"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(1)}
             >
-              {num}
+              First
             </Button>
-          ))}
-          <Button
-            size="sm"
-            variant="ghost"
-            className="border bg-gray-200"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Next
-          </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="border bg-gray-200"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            >
+              Previous
+            </Button>
+            
+            {/* Show limited page numbers */}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              return (
+                <Button
+                  key={pageNum}
+                  size="sm"
+                  className={
+                    pageNum === currentPage
+                      ? "bg-[#2C514C] text-white"
+                      : "bg-gray-200 text-[#2C514C] hover:bg-[#2C514C] hover:text-white"
+                  }
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+
+            {totalPages > 5 && currentPage < totalPages - 2 && (
+              <span className="px-2 py-1">...</span>
+            )}
+
+            {totalPages > 5 && currentPage < totalPages - 2 && (
+              <Button
+                size="sm"
+                className={
+                  totalPages === currentPage
+                    ? "bg-[#2C514C] text-white"
+                    : "bg-gray-200 text-[#2C514C] hover:bg-[#2C514C] hover:text-white"
+                }
+                onClick={() => setCurrentPage(totalPages)}
+              >
+                {totalPages}
+              </Button>
+            )}
+
+            <Button
+              size="sm"
+              variant="ghost"
+              className="border bg-gray-200"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            >
+              Next
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="border bg-gray-200"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(totalPages)}
+            >
+              Last
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Show message when only one entry exists */}
+      {!loading && totalItems === 1 && (
+        <div className="mt-4 text-center text-sm text-muted-foreground">
+          Showing the only bid available
+        </div>
+      )}
     </div>
   );
 };

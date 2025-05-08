@@ -52,11 +52,6 @@ const data = {
       icon: Settings,
     },
     {
-      title: "FAQs",
-      url: "#",
-      icon: CircleHelp,
-    },
-    {
       title: "Logout",
       url: "#",
       icon: LogOut,
@@ -128,7 +123,7 @@ export function AppSidebar({ isAdmin = false, ...props }) {
         ) : (
           Object.keys(data).map((item, idx) => (
             <SidebarGroup key={idx}>
-              <SidebarGroupLabel className="capitalize text-white">
+              <SidebarGroupLabel className="capitalize text-white gap-[10px] w-full px-[16px] py-[12px] rounded-[6px]">
                 {item}
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -140,7 +135,7 @@ export function AppSidebar({ isAdmin = false, ...props }) {
                         <SidebarMenuItem key={i}>
                           <SidebarMenuButton
                             onClick={handleLogout}
-                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${
+                            className={`flex items-center gap-[10px] w-full px-[16px] py-[20px] rounded-[6px] transition-colors ${
                               isActive
                                 ? "bg-white text-[#2C514C]"
                                 : "text-white hover:bg-white hover:text-[#2C514C]"
@@ -155,18 +150,18 @@ export function AppSidebar({ isAdmin = false, ...props }) {
                       );
                     }
                     return (
-                      <SidebarMenuItem key={i}>
+                      <SidebarMenuItem key={i} className={"w-full py-[2px]"}>
                         <SidebarMenuButton asChild>
                           <Link
                             href={t.url}
-                            className={`flex items-center gap-2 w-full px-2 py-2 rounded-md transition-colors ${
+                            className={`flex items-center gap-[10px] w-full px-[16px] py-[20px] rounded-[6px] transition-colors ${
                               isActive
                                 ? "bg-white text-[#2C514C]"
                                 : "text-white hover:bg-white hover:text-[#2C514C]"
                             }`}
                           >
                             <t.icon className="size-4 shrink-0" />
-                            <span className="font-medium text-[16px]">
+                            <span className="font-medium text-[16px] leading-[24px]">
                               {t.title}
                             </span>
                           </Link>

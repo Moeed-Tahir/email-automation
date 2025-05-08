@@ -20,7 +20,43 @@ const SignupFlow = () => {
     motivation: "",
     howHeard: "",
   });
+  const [errors, setErrors] = useState({
+    calendarLink: "",
+    charityCompany: "",
+    minBidDonation: "",
+  });
   const router = useRouter();
+
+  const validateStep = () => {
+    let isValid = true;
+    const newErrors = {
+      calendarLink: "",
+      charityCompany: "",
+      minBidDonation: "",
+    };
+
+    if (currentStep === 3 && !formData.calendarLink.trim()) {
+      newErrors.calendarLink = "Calendar link is required";
+      isValid = false;
+    }
+
+    if (currentStep === 4) {
+      if (!formData.charityCompany.trim()) {
+        newErrors.charityCompany = "Charity company is required";
+        isValid = false;
+      }
+      if (!formData.minBidDonation.trim()) {
+        newErrors.minBidDonation = "Minimum bid donation is required";
+        isValid = false;
+      } else if (isNaN(Number(formData.minBidDonation))) {
+        newErrors.minBidDonation = "Please enter a valid number";
+        isValid = false;
+      }
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleLinkedInLogin = () => {
     window.location.href = "/api/routes/LinkedIn?action=linkedInLogin";
@@ -29,9 +65,15 @@ const SignupFlow = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const nextStep = () => {
+    if (!validateStep()) return;
+
     setDirection(1);
     setCurrentStep((prev) => Math.min(prev + 1, 5));
 
@@ -78,21 +120,47 @@ const SignupFlow = () => {
           },
         })
         .then((response) => {
-          console.log("response",response);
-          if(response.data.message === "Login successful! Please complete your profile by filling the next steps."){
-            Cookies.set('userEmail', response.data.linkedInProfileEmail, { path: '/', expires: 7 });
+          console.log("response", response);
+          if (
+            response.data.message ===
+            "Login successful! Please complete your profile by filling the next steps."
+          ) {
+            Cookies.set("userEmail", response.data.linkedInProfileEmail, {
+              path: "/",
+              expires: 7,
+            });
             nextStep();
-          }else if(response.data.message === "Welcome back! You're logged in successfully."){
-            Cookies.set('UserId', response.data.userId, { path: '/', expires: 7 });
-            Cookies.set('Token', response.data.token, { path: '/', expires: 7 });
-            Cookies.set('userName', response.data.linkedInProfileName, { path: '/', expires: 7 });
-            Cookies.set('userEmail', response.data.linkedInProfileEmail, { path: '/', expires: 7 });
-            Cookies.set('userPhoto', response.data.linkedInProfilePhoto, { path: '/', expires: 7 });
-            Cookies.set('charityCompany', response.data.charityCompany, { path: '/', expires: 7 });
+          } else if (
+            response.data.message ===
+            "Welcome back! You're logged in successfully."
+          ) {
+            Cookies.set("UserId", response.data.userId, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("Token", response.data.token, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("userName", response.data.linkedInProfileName, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("userEmail", response.data.linkedInProfileEmail, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("userPhoto", response.data.linkedInProfilePhoto, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("charityCompany", response.data.charityCompany, {
+              path: "/",
+              expires: 7,
+            });
 
             router.push("/");
           }
-
         })
         .catch((err) => {
           console.error("Login error:", err);
@@ -111,9 +179,12 @@ const SignupFlow = () => {
       if (!email) return;
 
       try {
-        const res = await axios.get(`/api/routes/ProfileInfo?action=checkUser`, {
-          params: { linkedInProfileEmail: email },
-        });
+        const res = await axios.get(
+          `/api/routes/ProfileInfo?action=checkUser`,
+          {
+            params: { linkedInProfileEmail: email },
+          }
+        );
         if (res.data.currentStep === 0) {
           setCurrentStep(1);
         } else if (res.data.currentStep === 1) {
@@ -126,8 +197,6 @@ const SignupFlow = () => {
 
     checkUserStatus();
   }, []);
-
-
 
   const renderStep = () => {
     switch (currentStep) {
@@ -171,7 +240,11 @@ const SignupFlow = () => {
       case 2:
         const handleGmailAuth = () => {
           const email = Cookies.get("userEmail");
-          window.location.href = `${process.env.NEXT_PUBLIC_REQUEST_URL}/api/routes/Google?action=startAuth&email=${encodeURIComponent(email)}`;
+          window.location.href = `${
+            process.env.NEXT_PUBLIC_REQUEST_URL
+          }/api/routes/Google?action=startAuth&email=${encodeURIComponent(
+            email
+          )}`;
         };
 
         return (
@@ -191,7 +264,6 @@ const SignupFlow = () => {
               </h1>
 
               <div className="w-full space-y-6 flex flex-col items-start justify-start sm:mr-24">
-
                 <Button
                   onClick={handleGmailAuth}
                   className="w-full bg-[rgba(44,81,76,1)] border-2 border-[rgba(44,81,76,0.9)] hover:bg-transparent hover:text-[rgba(44,81,76,1)] h-12 text-lg cursor-pointer "
@@ -226,22 +298,23 @@ const SignupFlow = () => {
               <h1 className="text-base sm:text-lg font-[500] text-[#413E5E] mb-4">
                 Submit your pre-existing calendar links
               </h1>
-
-              <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
-                <Link className="text-[rgba(44,81,76,1)]" />
-                <Input
-                  onChange={handleInputChange}
-                  value={formData.calendarLink}
-                  name="calendarLink"
-                  type="link"
-                  placeholder="Calendar Link"
-                  className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
-                />
+              <div>
+                <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                  <Link className="text-[rgba(44,81,76,1)]" />
+                  <Input
+                    onChange={handleInputChange}
+                    value={formData.calendarLink}
+                    name="calendarLink"
+                    type="link"
+                    placeholder="Calendar Link"
+                    required
+                    className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
+                  />
+                </div>
+                {errors.calendarLink && (
+                  <p className="text-red-500 text-sm mt-1">{errors.calendarLink}</p>
+                )}
               </div>
-
-              <p className="text-gray-600 text-base sm:text-lg underline font-[500]">
-                Don't have a schedule calendar?
-              </p>
 
               <div className="flex justify-between w-full gap-4">
                 <Button
@@ -290,6 +363,11 @@ const SignupFlow = () => {
                     className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
                   />
                 </div>
+                {errors.charityCompany && (
+                  <p className="text-red-500 text-sm">
+                    {errors.charityCompany}
+                  </p>
+                )}
               </div>
 
               <div className="gap-2 flex flex-col w-full">
@@ -303,10 +381,15 @@ const SignupFlow = () => {
                     value={formData.minBidDonation}
                     name="minBidDonation"
                     type="string"
-                    placeholder=""
+                    placeholder="Enter amount (e.g., 50)"
                     className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
                   />
                 </div>
+                {errors.minBidDonation && (
+                  <p className="text-red-500 text-sm">
+                    {errors.minBidDonation}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-between w-full gap-4">
@@ -351,20 +434,37 @@ const SignupFlow = () => {
               }
             );
 
-            Cookies.set('UserId', response.data.user.userId, { path: '/', expires: 7 });
-            Cookies.set('Token', response.data.token, { path: '/', expires: 7 });
-            Cookies.set('userName', response.data.userName, { path: '/', expires: 7 });
-            Cookies.set('userEmail', response.data.userEmail, { path: '/', expires: 7 });
-            Cookies.set('userPhoto', response.data.userPhoto, { path: '/', expires: 7 });
-            Cookies.set('charityCompany', response.data.charityCompany, { path: '/', expires: 7 });
+            Cookies.set("UserId", response.data.user.userId, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("Token", response.data.token, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("userName", response.data.userName, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("userEmail", response.data.userEmail, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("userPhoto", response.data.userPhoto, {
+              path: "/",
+              expires: 7,
+            });
+            Cookies.set("charityCompany", response.data.charityCompany, {
+              path: "/",
+              expires: 7,
+            });
 
             router.push(`/${response.data.user.userId}/dashboard`);
-
           } catch (error) {
             console.error("Error occurred:", error);
             alert(
               error.response?.data?.message ||
-              "Failed to update profile. Please try again."
+                "Failed to update profile. Please try again."
             );
           }
         };
@@ -392,26 +492,20 @@ const SignupFlow = () => {
 
                   <div className="md:space-y-6 lg:space-y-5">
                     <div className="space-y-2">
-                      {/* <Label className="text-base sm:text-lg font-medium">
-                        Describe your solution and its key features.
-                      </Label> */}
                       <Textarea
                         className="w-full min-h-[100px] resize-none text-base sm:text-lg p-4 focus-visible:ring-0"
                         onChange={handleInputChange}
                         value={formData.motivation}
                         name="motivation"
-                        placeholder="Enter an open-ended question here..."
+                        placeholder="Add an open-added question here"
                         rows={4}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      {/* <Label className="text-base sm:text-lg font-medium">
-                        What motivated you to participate in this program?
-                      </Label> */}
                       <Textarea
                         className="w-full min-h-[100px] resize-none text-base sm:text-lg p-4 focus-visible:ring-0"
-                        placeholder="Enter an open-ended question here..."
+                        placeholder="Add an open-added question here"
                         onChange={handleInputChange}
                         value={formData.howHeard}
                         name="howHeard"
