@@ -11,7 +11,6 @@ const REDIRECT_URI = `${process.env.REQUEST_URL}/api/routes/Google?action=handle
 
 const startEmailMonitoring = async (req, res) => {
   const { userEmail } = req.body;
-  console.log(`Starting email monitoring for: ${userEmail}`);
   try {
     await checkAndProcessEmails(userEmail);
     res.status(200).json({ message: `Email monitoring started for ${userEmail}` });
@@ -22,152 +21,168 @@ const startEmailMonitoring = async (req, res) => {
 };
 
 async function checkAndProcessEmails(userEmail) {
-    try {
-        await connectToDatabase();
-        const user = await User.findOne({ linkedInProfileEmail: userEmail });
-        if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
-            console.log(`Missing Gmail OAuth tokens for user ${userEmail}`);
-            return;
-        }
-
-        const userCreatedTime = new Date(user.createdAt).getTime();
-
-        const tokens = await refreshAccessTokenIfNeeded({
-            access_token: user.gmailAccessToken,
-            refresh_token: user.gmailRefreshToken,
-            expiry_date: parseInt(user.gmailExpiryDate, 10),
-        });
-
-        if (tokens.access_token !== user.gmailAccessToken || tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
-            user.gmailAccessToken = tokens.access_token;
-            user.gmailExpiryDate = tokens.expiry_date;
-            await user.save();
-        }
-
-        const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
-        oAuth2Client.setCredentials({
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-        });
-
-        const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
-
-        const baseTerms = [
-            'hello world',
-            'ai co-pilot',
-            'cut grunt work',
-            'automate',
-            'workflow',
-            'internal ops systems',
-            'trained on your data',
-            'sales-qualified lead',
-            'increase leads',
-            'outbound sales',
-            'lead generation',
-            'perfect-fit leads',
-            'cost per lead',
-            'let\'s chat',
-            'let\'s schedule',
-            'book a call',
-            'demo',
-            'calendar',
-            'slots open',
-            'i\'d like to show you',
-            'on the house',
-            'test',
-            'free demo',
-            'as a test',
-            'notion',
-            'airtable',
-            'asana',
-            'internal tools',
-            'saw you on our waitlist',
-            'noticed how you',
-            'took a peek at your website',
-            'we\'re now live',
-            'selectively onboarding',
-            'i noticed'
-        ];
-
-        const queryTerms = baseTerms.flatMap(term => [
-            `"${term}"`,
-            `"${term.toUpperCase()}"`,
-            `"${term.charAt(0).toUpperCase() + term.slice(1)}"`
-        ]).join(' OR ');
-
-        const query = `is:unread (${queryTerms}) after:${Math.floor(userCreatedTime / 1000)}`;
-
-        let allMessages = [];
-        let nextPageToken = null;
-
-        do {
-            const response = await gmail.users.messages.list({
-                userId: 'me',
-                maxResults: 100,
-                pageToken: nextPageToken,
-                q: query,
-                orderBy: 'date',
-                labelIds: ['INBOX']
-            });
-
-            if (response.data.messages) {
-                allMessages = allMessages.concat(response.data.messages);
-            }
-
-            nextPageToken = response.data.nextPageToken;
-        } while (nextPageToken);
-
-        console.log(`Found ${allMessages.length} unread messages containing trigger keywords for ${userEmail} since account creation`);
-
-        if (allMessages.length > 0) {
-            for (const msg of allMessages) {
-                try {
-                    const messageData = await gmail.users.messages.get({
-                        userId: 'me',
-                        id: msg.id,
-                        format: 'full'
-                    });
-
-                    const messageContent = messageData.data.snippet + ' ' +
-                        messageData.data.payload.headers.find(h => h.name === 'Subject')?.value;
-
-                    const hasTriggerKeyword = baseTerms.some(keyword => {
-                        const regex = new RegExp(keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
-                        return regex.test(messageContent);
-                    });
-
-                    if (!hasTriggerKeyword) {
-                        continue;
-                    }
-
-                    const fromHeader = messageData.data.payload.headers.find(h => h.name === 'From');
-                    const fromEmail = fromHeader ? fromHeader.value.match(/<([^>]+)>/)?.[1] || fromHeader.value : '';
-
-                    if (fromEmail) {
-                        console.log(`Processing email from ${fromEmail} with subject: ${messageData.data.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)'
-                            }`);
-
-                        await sendResponseEmail(userEmail, fromEmail, tokens, user.userId);
-
-                        await gmail.users.messages.modify({
-                            userId: 'me',
-                            id: msg.id,
-                            requestBody: {
-                                removeLabelIds: ['UNREAD']
-                            }
-                        });
-                    }
-                } catch (error) {
-                    console.error(`Error processing message ${msg.id}:`, error);
-                }
-            }
-        }
-    } catch (error) {
-        console.error(`Error processing emails for ${userEmail}:`, error);
+  try {
+    await connectToDatabase();
+    const user = await User.findOne({ linkedInProfileEmail: userEmail });
+    if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
+      console.log(`Missing Gmail OAuth tokens for user ${userEmail}`);
+      return;
     }
+
+    const tokens = await refreshAccessTokenIfNeeded({
+      access_token: user.gmailAccessToken,
+      refresh_token: user.gmailRefreshToken,
+      expiry_date: parseInt(user.gmailExpiryDate, 10),
+    });
+
+    if (tokens.access_token !== user.gmailAccessToken || tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
+      user.gmailAccessToken = tokens.access_token;
+      user.gmailExpiryDate = tokens.expiry_date;
+      await user.save();
+    }
+
+    const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+    oAuth2Client.setCredentials({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+
+    const baseTerms = [
+      'hello world',
+      'ai co-pilot',
+      'cut grunt work',
+      'automate',
+      'workflow',
+      'internal ops systems',
+      'trained on your data',
+      'sales-qualified lead',
+      'increase leads',
+      'outbound sales',
+      'lead generation',
+      'perfect-fit leads',
+      'cost per lead',
+      'let\'s chat',
+      'let\'s schedule',
+      'book a call',
+      'demo',
+      'calendar',
+      'slots open',
+      'i\'d like to show you',
+      'on the house',
+      'test',
+      'free demo',
+      'as a test',
+      'notion',
+      'airtable',
+      'asana',
+      'internal tools',
+      'saw you on our waitlist',
+      'noticed how you',
+      'took a peek at your website',
+      'we\'re now live',
+      'selectively onboarding',
+      'i noticed'
+    ];
+
+    const queryTerms = baseTerms.flatMap(term => [
+      `"${term}"`,
+      `"${term.toUpperCase()}"`,
+      `"${term.charAt(0).toUpperCase() + term.slice(1)}"`
+    ]).join(' OR ');
+
+    const userCreatedTime = new Date(user.createdAt).getTime();
+    const query = `is:unread (${queryTerms}) after:${Math.floor(userCreatedTime / 1000)}`;
+
+    let allMessages = [];
+    let nextPageToken = null;
+    do {
+      const response = await gmail.users.messages.list({
+        userId: 'me',
+        maxResults: 100,
+        pageToken: nextPageToken,
+        q: query,
+        orderBy: 'date',
+        labelIds: ['INBOX']
+      });
+      if (response.data.messages) {
+        allMessages = allMessages.concat(response.data.messages);
+      }
+      nextPageToken = response.data.nextPageToken;
+    } while (nextPageToken);
+
+    console.log(`Found ${allMessages.length} unread messages containing trigger keywords for ${userEmail}`);
+
+    if (allMessages.length > 0) {
+      for (const msg of allMessages) {
+        try {
+          const messageData = await gmail.users.messages.get({
+            userId: 'me',
+            id: msg.id,
+            format: 'full'
+          });
+
+          const msgData = messageData.data;
+          const subject = msgData.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)';
+          const messageContent = msgData.snippet + ' ' + subject;
+
+          const hasTriggerKeyword = baseTerms.some(keyword => {
+            const regex = new RegExp(keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'i');
+            return regex.test(messageContent);
+          });
+
+          if (!hasTriggerKeyword) {
+            continue;
+          }
+
+          const fromHeader = msgData.payload.headers.find(h => h.name === 'From');
+          let fromEmail = '';
+          if (fromHeader) {
+            const emailMatch = fromHeader.value.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+            fromEmail = emailMatch ? emailMatch[0] : '';
+          }
+
+          if (!fromEmail || fromEmail.toLowerCase() === userEmail.toLowerCase()) {
+            continue;
+          }
+
+          console.log(`Processing email from ${fromEmail} with subject: "${subject}"`);
+
+          const messageId = msgData.payload.headers.find(h => h.name === 'Message-ID')?.value;
+          const references = msgData.payload.headers.find(h => h.name === 'References')?.value || '';
+          const inReplyTo = messageId || '';
+
+          await sendResponseEmail(
+            userEmail,
+            fromEmail,
+            tokens,
+            user.userId,
+            subject,
+            references ? `${references} ${messageId}` : messageId,
+            inReplyTo
+          );
+
+          await gmail.users.messages.modify({
+            userId: 'me',
+            id: msg.id,
+            requestBody: {
+              removeLabelIds: ['UNREAD']
+            }
+          });
+
+        } catch (error) {
+          console.error(`Error processing message ${msg.id}:`, error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Error processing emails for ${userEmail}:`, error);
+    throw error;
+  }
 }
 
-async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
+async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSubject, references, inReplyTo) {
   try {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -184,7 +199,7 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
     const mailOptions = {
       from: userEmail,
       to: toEmail,
-      subject: 'Re: Hello World',
+      subject: `Re: ${originalSubject}`,
       html: `
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
           <tr>
@@ -250,12 +265,16 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId) {
             </td>
           </tr>
         </table>
-      `
+      `,
+      headers: {
+        'References': references,
+        'In-Reply-To': inReplyTo
+      }
     };
 
 
     await transporter.sendMail(mailOptions);
-    console.log(`Sent response email from ${userEmail} to ${toEmail}`);
+    console.log(`Sent reply email from ${userEmail} to ${toEmail} in thread ${inReplyTo}`);
   } catch (error) {
     console.error(`Error sending response email from ${userEmail} to ${toEmail}:`, error);
   }
@@ -298,4 +317,4 @@ async function refreshAccessTokenIfNeeded(tokens) {
   return tokens;
 }
 
-module.exports = {refreshAccessTokenIfNeeded,startEmailMonitoring}
+module.exports = { refreshAccessTokenIfNeeded, startEmailMonitoring }

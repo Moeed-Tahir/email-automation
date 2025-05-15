@@ -19,7 +19,6 @@ export function useEmailMonitoring() {
       }
 
       try {
-        console.log('Calling email monitoring API...');
         const response = await fetch(
           `/api/routes/Google?action=startEmailMonitoring`,
           {
@@ -37,7 +36,6 @@ export function useEmailMonitoring() {
         }
 
         const data = await response.json();
-        console.log('Email monitoring status:', data);
       } catch (error) {
         console.error('Email monitoring error:', error.message);
       }

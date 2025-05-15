@@ -34,7 +34,6 @@ const SurveyForm = ({ userId }) => {
     charityDonation: "",
   });
   const [profileData, setProfileData] = useState([]);
-  console.log("profileData", profileData);
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
