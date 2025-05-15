@@ -15,7 +15,7 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const SignupFlow = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -41,6 +41,7 @@ const SignupFlow = () => {
     minBidDonation: "",
   });
   const router = useRouter();
+  const searParams = useSearchParams();
 
   const validateStep = () => {
     let isValid = true;
@@ -150,7 +151,7 @@ const SignupFlow = () => {
             response.data.message ===
             "Login successful! Please complete your profile by filling the next steps."
           ) {
-            Cookies.set("userEmail", response.data.linkedInProfileEmail, {
+            Cookies.set("userEmail", response.data.userProfileEmail, {
               path: "/",
               expires: 7,
             });
@@ -167,15 +168,15 @@ const SignupFlow = () => {
               path: "/",
               expires: 7,
             });
-            Cookies.set("userName", response.data.linkedInProfileName, {
+            Cookies.set("userName", response.data.userName, {
               path: "/",
               expires: 7,
             });
-            Cookies.set("userEmail", response.data.linkedInProfileEmail, {
+            Cookies.set("userEmail", response.data.userProfileEmail, {
               path: "/",
               expires: 7,
             });
-            Cookies.set("userPhoto", response.data.linkedInProfilePhoto, {
+            Cookies.set("userPhoto", response.data.userProfilePhoto, {
               path: "/",
               expires: 7,
             });
@@ -207,7 +208,7 @@ const SignupFlow = () => {
         const res = await axios.get(
           `/api/routes/ProfileInfo?action=checkUser`,
           {
-            params: { linkedInProfileEmail: email },
+            params: { userProfileEmail: email },
           }
         );
         if (res.data.currentStep === 0) {
@@ -227,12 +228,9 @@ const SignupFlow = () => {
     switch (currentStep) {
       case 1:
         const handleGmailAuth = () => {
-          const email = Cookies.get("userEmail");
           window.location.href = `${
             process.env.NEXT_PUBLIC_REQUEST_URL
-          }/api/routes/Google?action=startAuth&email=${encodeURIComponent(
-            email
-          )}`;
+          }/api/routes/Google?action=startAuth`;
         };
 
         return (
@@ -526,8 +524,8 @@ const SignupFlow = () => {
       case 5:
         const submitProfileInformation = async () => {
           try {
-            const userEmail = Cookies.get("userEmail");
-
+            const userEmail = searParams.get("userEmail");
+            
             if (!userEmail) {
               alert("User email not found. Please log in again.");
               return;
@@ -536,7 +534,11 @@ const SignupFlow = () => {
             const response = await axios.post(
               "/api/routes/ProfileInfo?action=addProfileInfo",
               {
-                linkedInProfileEmail: userEmail,
+                userEmail: userEmail,
+                jobDescription:formData.jobDescription,
+                location:formData.location,
+                jobTitle:formData.jobTitle,
+                companyName:formData.companyName,
                 questionSolution: formData.motivation,
                 calendarLink: formData.calendarLink,
                 charityCompany: formData.charityCompany,

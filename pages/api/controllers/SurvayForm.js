@@ -30,9 +30,11 @@ const getQuestionFromUserId = async (req, res) => {
   }
 };
 
-const sendSurvayForm = async (req, res) => {
+const sendSurveyForm = async (req, res) => {
   try {
+
     await connectToDatabase();
+    
     const {
       userId,
       bidAmount,
@@ -54,10 +56,28 @@ const sendSurvayForm = async (req, res) => {
     if (!userId) {
       return res.status(400).json({ message: "userId is required" });
     }
+    if (!bidAmount || isNaN(bidAmount)) {
+      return res.status(400).json({ message: "Valid bidAmount is required" });
+    }
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ message: "Valid email is required" });
+    }
+
+    const userData = await User.findOne({ userId: userId });
+    if (!userData) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (Number(bidAmount) < Number(userData.minimumBidDonation)) {
+      return res.status(400).json({ 
+        message: `Bid amount must be greater than ${userData.minimumBidDonation}`,
+        minimumBid: userData.minimumBidDonation
+      });
+    }
 
     const surveyData = {
       userId,
-      bidAmount,
+      bidAmount: Number(bidAmount),
       name,
       email,
       questionOneSolution: solutionDescription,
@@ -67,22 +87,31 @@ const sendSurvayForm = async (req, res) => {
       caseStudies,
       offeringType,
       performanceGuarantee,
-      DonationWilling: DonationWilling,
-      escrowDonation: escrowDonation,
+      DonationWilling: Boolean(DonationWilling),
+      escrowDonation: Boolean(escrowDonation),
       charityDonation,
-      totalScore
+      totalScore: Number(totalScore) || 0,
+      submittedAt: new Date()
     };
 
     const newSurvey = new SurvayForm(surveyData);
     await newSurvey.save();
-    sendEmailFromCompany(email);
+    
+    sendEmailFromCompany(email); 
+
     return res.status(201).json({
+      success: true,
       message: "Survey submitted successfully",
       data: newSurvey
     });
+
   } catch (error) {
     console.error("Error submitting survey:", error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ 
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
@@ -322,4 +351,4 @@ const getBidInfo = async (req, res) => {
 };
 
 
-module.exports = { getQuestionFromUserId, sendSurvayForm, fetchSurvayData, getBidInfo, fetchNameAgainstId, fetchSurvayDataAgainstObjectId };
+module.exports = { getQuestionFromUserId, sendSurveyForm, fetchSurvayData, getBidInfo, fetchNameAgainstId, fetchSurvayDataAgainstObjectId };

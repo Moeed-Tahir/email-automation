@@ -17,10 +17,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownWideNarrow, ChevronsUpDown, FunnelIcon } from "lucide-react";
-import { data } from "../lib/constant";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -28,16 +36,21 @@ import { useRouter } from "next/navigation";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const DashboardTable = forwardRef(({ userId},ref) => {
+const DashboardTable = forwardRef(({ userId }, ref) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [statusFilters, setStatusFilters] = useState([]);
-  const [_, setShowSortMenu] = useState(false);
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const itemsPerPage = 8;
   const router = useRouter();
   const [existingSurveys, setExistingSurveys] = useState([]);
   const [actionLoading, setActionLoading] = useState({ id: null, type: null });
   const [loading, setLoading] = useState(true);
+  const [confirmationDialog, setConfirmationDialog] = useState({
+    open: false,
+    survey: null,
+    actionType: null,
+  });
 
   const fetchExistingSurveys = async () => {
     setLoading(true);
@@ -67,15 +80,12 @@ const DashboardTable = forwardRef(({ userId},ref) => {
   const downloadPdf = () => {
     const doc = new jsPDF();
     
-    // Title
     doc.setFontSize(18);
     doc.text("Bid Requests Report", 14, 22);
     
-    // Date
     doc.setFontSize(10);
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
     
-    // Table data
     const tableData = existingSurveys.map(survey => [
       survey.name,
       new Date(survey.createdAt).toLocaleDateString(),
@@ -84,7 +94,6 @@ const DashboardTable = forwardRef(({ userId},ref) => {
       survey.status
     ]);
     
-    // ✅ Use autoTable as a function (pass `doc` as first argument)
     autoTable(doc, {
       head: [['Representative', 'Proposed Date', 'Score', 'Bid', 'Status']],
       body: tableData,
@@ -169,8 +178,27 @@ const DashboardTable = forwardRef(({ userId},ref) => {
     setShowSortMenu(false);
   };
 
-  const handleAccept = async (survey) => {
-    setActionLoading({ id: survey._id, type: 'accept' });
+  const showConfirmationDialog = (survey, actionType) => {
+    setConfirmationDialog({
+      open: true,
+      survey,
+      actionType
+    });
+  };
+
+  const closeConfirmationDialog = () => {
+    setConfirmationDialog({
+      open: false,
+      survey: null,
+      actionType: null
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    const { survey, actionType } = confirmationDialog;
+    if (!survey) return;
+
+    setActionLoading({ id: survey._id, type: actionType });
     try {
       const fromEmail = Cookies.get("userEmail");
       const userName = Cookies.get("userName");
@@ -181,67 +209,51 @@ const DashboardTable = forwardRef(({ userId},ref) => {
         throw new Error("User email not found in cookies");
       }
 
-      const response = await axios.post(
-        "/api/routes/Google?action=sendAcceptEmailToAdmin",
-        {
-          sendFromEmail: fromEmail,
-          sendToEmail: survey.email,
-          dashboardUserId: survey.userId,
-          mainUserId: mainUserId,
-          objectId: survey._id,
-          bidAmount: survey.bidAmount,
-          name: survey.name,
-          surveyId: survey._id,
-          userName: userName,
-          charityCompany:charityCompany
-        }
-      );
+      if (actionType === 'accept') {
+        const response = await axios.post(
+          "/api/routes/Google?action=sendAcceptEmailToAdmin",
+          {
+            sendFromEmail: fromEmail,
+            sendToEmail: survey.email,
+            dashboardUserId: survey.userId,
+            mainUserId: mainUserId,
+            objectId: survey._id,
+            bidAmount: survey.bidAmount,
+            name: survey.name,
+            surveyId: survey._id,
+            userName: userName,
+            charityCompany: charityCompany
+          }
+        );
 
-      if (response.data.message) {
-        fetchExistingSurveys();
-      } else {
-        throw new Error(result.message || "Failed to send email");
+        if (!response.data.message) {
+          throw new Error(response.data.message || "Failed to send acceptance email");
+        }
+      } else if (actionType === 'reject') {
+        const response = await axios.post(
+          "/api/routes/Google?action=sendRejectEmailToAdmin",
+          {
+            sendFromEmail: fromEmail,
+            sendToEmail: survey.email,
+            objectId: survey._id,
+            userName: userName
+          }
+        );
+
+        if (!response.data.message) {
+          throw new Error(response.data.message || "Failed to send rejection email");
+        }
       }
+
+      await fetchExistingSurveys();
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error(`Error in ${actionType} action:`, error);
     } finally {
       setActionLoading({ id: null, type: null });
+      closeConfirmationDialog();
     }
   };
 
-  const handleReject = async (survey) => {
-    setActionLoading({ id: survey._id, type: 'reject' });
-    try {
-      const fromEmail = Cookies.get("userEmail");
-      const userName = Cookies.get("userName");
-
-      if (!fromEmail) {
-        throw new Error("User email not found in cookies");
-      }
-
-      const response = await axios.post(
-        "/api/routes/Google?action=sendRejectEmailToAdmin",
-        {
-          sendFromEmail: fromEmail,
-          sendToEmail: survey.email,
-          objectId: survey._id,
-          userName:userName
-        }
-      );
-
-      if (response.data.message) {
-        fetchExistingSurveys();
-      } else {
-        throw new Error(result.message || "Failed to send email");
-      }
-    } catch (error) {
-      console.error("Error sending email:", error);
-    }finally{
-      setActionLoading({ id: null, type: null });
-    }
-  };
-
-  // Filter and sort data
   const filteredData = existingSurveys.filter(item => 
     statusFilters.length === 0 || statusFilters.includes(item.status)
   );
@@ -258,14 +270,12 @@ const DashboardTable = forwardRef(({ userId},ref) => {
     return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
   });
 
-  // Pagination logic
   const totalItems = sortedData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const currentData = sortedData.slice(startIndex, endIndex);
 
-  // Reset to first page if current page becomes invalid
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
@@ -276,6 +286,36 @@ const DashboardTable = forwardRef(({ userId},ref) => {
 
   return (
     <div className="w-full h-max">
+      <AlertDialog open={confirmationDialog.open} onOpenChange={closeConfirmationDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmationDialog.actionType === 'accept' 
+                ? 'Confirm Acceptance' 
+                : 'Confirm Rejection'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmationDialog.actionType === 'accept'
+                ? `Are you sure you want to accept the bid from ${confirmationDialog.survey?.name}? This action will notify the representative.`
+                : `Are you sure you want to reject the bid from ${confirmationDialog.survey?.name}? This action cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmAction}
+              className={
+                confirmationDialog.actionType === 'accept'
+                  ? "bg-[#28C76F] hover:bg-[#28C76F]/90"
+                  : "bg-[#EA5455] hover:bg-[#EA5455]/90"
+              }
+            >
+              {confirmationDialog.actionType === 'accept' ? 'Accept' : 'Reject'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex items-center justify-between w-full">
         <div className="w-full md:w-auto">
           <h2 className="text-xl font-semibold mb-1">Recent Bid Requests</h2>
@@ -446,7 +486,7 @@ const DashboardTable = forwardRef(({ userId},ref) => {
                       <>
                         <Button
                           size="sm"
-                          onClick={() => handleAccept(survey)}
+                          onClick={() => showConfirmationDialog(survey, 'accept')}
                           disabled={survey.status === "Accepted" || (actionLoading.id === survey._id && actionLoading.type === "accept")}
                           className="bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white transition-all duration-200"
                         >
@@ -454,7 +494,7 @@ const DashboardTable = forwardRef(({ userId},ref) => {
                         </Button>
                         <Button
                           size="sm"
-                          onClick={() => handleReject(survey)}
+                          onClick={() => showConfirmationDialog(survey, 'reject')}
                           disabled={survey.status === "Rejected" || (actionLoading.id === survey._id && actionLoading.type === "reject")}
                           className="bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
                         >
@@ -470,7 +510,6 @@ const DashboardTable = forwardRef(({ userId},ref) => {
         </Table>
       </div>
 
-      {/* Pagination controls - only show if more than one page exists */}
       {totalPages > 1 && (
         <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <span className="text-sm text-muted-foreground">
@@ -496,7 +535,6 @@ const DashboardTable = forwardRef(({ userId},ref) => {
               Previous
             </Button>
             
-            {/* Show limited page numbers */}
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum;
               if (totalPages <= 5) {
@@ -565,7 +603,6 @@ const DashboardTable = forwardRef(({ userId},ref) => {
         </div>
       )}
 
-      {/* Show message when only one entry exists */}
       {!loading && totalItems === 1 && (
         <div className="mt-4 text-center text-sm text-muted-foreground">
           Showing the only bid available
@@ -574,5 +611,7 @@ const DashboardTable = forwardRef(({ userId},ref) => {
     </div>
   );
 });
+
+DashboardTable.displayName = "DashboardTable";
 
 export default DashboardTable;

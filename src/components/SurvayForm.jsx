@@ -136,7 +136,7 @@ const SurveyForm = ({ userId }) => {
       const totalScore = calculateTotalScore(formData);
 
       const response = await fetch(
-        "/api/routes/SurvayForm?action=sendSurvayForm",
+        "/api/routes/SurvayForm?action=sendSurveyForm",
         {
           method: "POST",
           headers: {
@@ -200,10 +200,10 @@ const SurveyForm = ({ userId }) => {
           <div className="flex flex-col max-w-7xl mx-auto">
             <div className="flex items-start gap-6 mb-6">
               <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                {profileData.linkedInProfilePhoto ? (
+                {profileData.userProfilePhoto ? (
                   <img
-                    src={profileData.linkedInProfilePhoto}
-                    alt={profileData.linkedInProfileName}
+                    src={profileData.userProfilePhoto}
+                    alt={profileData.userName}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -226,7 +226,7 @@ const SurveyForm = ({ userId }) => {
                   className="text-3xl font-bold"
                   style={{ color: "rgba(44, 81, 76, 1)" }}
                 >
-                  {profileData.linkedInProfileName || "No name provided"}
+                  {profileData.userName || "No name provided"}
                 </h1>
                 <p className="text-lg text-gray-600">
                   {profileData.jobTitle || "No job title provided"}

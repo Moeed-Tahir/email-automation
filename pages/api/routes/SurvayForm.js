@@ -1,6 +1,6 @@
 import {
     getQuestionFromUserId,
-    sendSurvayForm,
+    sendSurveyForm,
     fetchSurvayData,
     getBidInfo,
     fetchNameAgainstId,
@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     try {
         if (req.method === 'POST' && action === 'getQuestionFromUserId') {
             return await getQuestionFromUserId(req, res);
-        } else if (req.method === 'POST' && action === 'sendSurvayForm') {
-            return await sendSurvayForm(req, res);
+        } else if (req.method === 'POST' && action === 'sendSurveyForm') {
+            return await sendSurveyForm(req, res);
         } else if (req.method === 'GET' && action === 'fetchSurvayData') {
             return await fetchSurvayData(req, res);
         } else if (req.method === 'POST' && action === 'getBidInfo') {

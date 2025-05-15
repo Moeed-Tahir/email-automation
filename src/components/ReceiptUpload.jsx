@@ -61,10 +61,10 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
       const receiptFormLink = publicUrlData?.publicUrl;
 
       await axios.post("/api/routes/Admin?action=uploadReciptData", {
-        executiveEmail: profileData?.linkedInProfileEmail || "",
-        executiveName: profileData?.linkedInProfileName || "",
-        salesRepresentiveEmail: profileData?.linkedInProfileEmail || "",
-        salesRepresentiveName: profileData?.linkedInProfileName || "",
+        executiveEmail: profileData?.userProfileEmail || "",
+        executiveName: profileData?.userName || "",
+        salesRepresentiveEmail: profileData?.userProfileEmail || "",
+        salesRepresentiveName: profileData?.userName || "",
         donation: survayBidAmount,
         receiptFormLink,
         userId: mainUserId,
@@ -133,7 +133,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
             {`Dear ${survayData || "Guest"}`}
           </p>
           <p className="text-gray-700 mb-4">
-            {`Great news! ${profileData?.linkedInProfileName} has accepted your meeting request.`}
+            {`Great news! ${profileData?.userName} has accepted your meeting request.`}
           </p>
 
           <p className="text-gray-700 mb-4">

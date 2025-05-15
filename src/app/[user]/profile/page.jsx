@@ -15,8 +15,8 @@ import { Dialog, DialogTrigger, DialogContent, DialogFooter } from "@/components
 
 export default function Page() {
   const [profileData, setProfileData] = useState({
-    linkedInProfileName: "",
-    linkedInProfileEmail: "",
+    userProfileName: "",
+    userProfileEmail: "",
     companyName: "",
     jobTitle: "",
     industry: "",
@@ -116,8 +116,8 @@ export default function Page() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { id: "fullName", label: "Full Name", key: "linkedInProfileName", placeholder: "Enter your full name" },
-                { id: "email", label: "Email", key: "linkedInProfileEmail", placeholder: "Enter your email", type: "email" },
+                { id: "fullName", label: "Full Name", key: "userName", placeholder: "Enter your full name" },
+                { id: "email", label: "Email", key: "userProfileEmail", placeholder: "Enter your email", type: "email" },
                 { id: "companyName", label: "Company Name", key: "companyName", placeholder: "Enter your company name" },
                 { id: "jobTitle", label: "Job Title", key: "jobTitle", placeholder: "Enter your job title" },
                 { id: "industry", label: "Industry", key: "industry", placeholder: "Enter your industry" }

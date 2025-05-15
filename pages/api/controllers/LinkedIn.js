@@ -57,47 +57,47 @@ const linkedInCallback = async (req, res) => {
     });
         
     const { sub, name, email, picture } = profileRes.data;
-    let user = await User.findOne({ linkedInProfileEmail: email });
+    let user = await User.findOne({ userProfileEmail: email });
 
     if (!user) {
       user = new User({
-        linkedInProfileName: name,
-        linkedInProfileEmail: email,
-        linkedInProfilePhoto: picture,
+        userName: name,
+        userProfileEmail: email,
+        userProfilePhoto: picture,
       });
       await user.save();
 
       return res.json({
         success: true,
         message: "Login successful! Please complete your profile by filling the next steps.",
-        linkedInProfileEmail: user.linkedInProfileEmail,
+        userProfileEmail: user.userProfileEmail,
         isNewUser: true
       });
     } else {
-      user.linkedInProfileName = name;
-      user.linkedInProfilePhoto = picture;
+      user.userName = name;
+      user.userProfilePhoto = picture;
       await user.save();
       
       const jwtToken = jwt.sign(
         {
           userId: user.userId,
-          email: user.linkedInProfileEmail,
+          email: user.userProfileEmail,
         },
         process.env.JWT_SECRET,
         { expiresIn: '5h' }
       );
 
       // if (user.gmailAccessToken && user.gmailRefreshToken) {
-      //   await startEmailMonitoring(user.linkedInProfileEmail);
+      //   await startEmailMonitoring(user.userProfileEmail);
       // }
 
       return res.json({
         success: true,
         message: "Welcome back! You're logged in successfully.",
         token: jwtToken,
-        linkedInProfileName: user.linkedInProfileName,
-        linkedInProfileEmail: user.linkedInProfileEmail,
-        linkedInProfilePhoto: user.linkedInProfilePhoto,
+        userName: user.userName,
+        userProfileEmail: user.userProfileEmail,
+        userProfilePhoto: user.userProfilePhoto,
         userId: user.userId,
         isNewUser: false,
         hasGmailAuth: !!user.gmailAccessToken // Add this flag to indicate if email tracking is active

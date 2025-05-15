@@ -17,6 +17,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { ArrowDownWideNarrow, ChevronsUpDown, FunnelIcon, FileText, Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -29,11 +39,15 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [statusFilters, setStatusFilters] = useState([]);
   const [actionLoading, setActionLoading] = useState({ id: null, type: null });
-
-  const [_, setShowSortMenu] = useState(false);
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const itemsPerPage = 8;
   const router = useRouter();
   const [existingSurveys, setExistingSurveys] = useState([]);
+  const [confirmationDialog, setConfirmationDialog] = useState({
+    open: false,
+    request: null,
+    actionType: null, // 'accept' or 'reject'
+  });
 
   useEffect(() => {
     if (tableData) {
@@ -87,56 +101,66 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
     setShowSortMenu(false);
   };
 
-  const handleAccept = async (request) => {
-    setActionLoading({ id: request._id, type: 'accept' });
-    try {
-      const emailResponse = await axios.post('/api/routes/Admin?action=sendAcceptEmailFromAdmin', {
-        executiveEmail: request.executiveEmail,
-        executiveName: request.executiveName,
-        salesRepresentiveEmail: request.salesRepresentiveEmail,
-        salesRepresentiveName: request.salesRepresentiveName,
-        objectId: request._id,
-        donation: request.donation,
-        userId: request.userId,
-        calendarLink: request.calendarLink
-      });
-
-      if (emailResponse.data.message) {
-        fetchAdminData();
-      } else {
-        throw new Error(emailResponse.data.message || 'Failed to send acceptance email');
-      }
-    } catch (error) {
-      console.error('Error accepting request:', error);
-    } finally {
-      setActionLoading({ id: null, type: null });
-    }
+  const showConfirmationDialog = (request, actionType) => {
+    setConfirmationDialog({
+      open: true,
+      request,
+      actionType
+    });
   };
 
-
-  const handleReject = async (request) => {
-    setActionLoading({ id: request._id, type: 'reject' });
-    try {
-      const emailResponse = await axios.post('/api/routes/Admin?action=sendRejectEmailFromAdmin', {
-        executiveEmail: request.executiveEmail,
-        executiveName: request.executiveName,
-        salesRepresentiveEmail: request.salesRepresentiveEmail,
-        salesRepresentiveName: request.salesRepresentiveName,
-        objectId: request._id,
-      });
-
-      if (emailResponse.data.message) {
-        fetchAdminData();
-      } else {
-        throw new Error(emailResponse.data.message || 'Failed to send rejection email');
-      }
-    } catch (error) {
-      console.error('Error rejecting request:', error);
-    } finally {
-      setActionLoading({ id: null, type: null });
-    }
+  const closeConfirmationDialog = () => {
+    setConfirmationDialog({
+      open: false,
+      request: null,
+      actionType: null
+    });
   };
 
+  const handleConfirmAction = async () => {
+    const { request, actionType } = confirmationDialog;
+    if (!request) return;
+
+    try {
+      setActionLoading({ id: request._id, type: actionType });
+      
+      if (actionType === 'accept') {
+        const emailResponse = await axios.post('/api/routes/Admin?action=sendAcceptEmailFromAdmin', {
+          executiveEmail: request.executiveEmail,
+          executiveName: request.executiveName,
+          salesRepresentiveEmail: request.salesRepresentiveEmail,
+          salesRepresentiveName: request.salesRepresentiveName,
+          objectId: request._id,
+          donation: request.donation,
+          userId: request.userId,
+          calendarLink: request.calendarLink
+        });
+
+        if (!emailResponse.data.message) {
+          throw new Error(emailResponse.data.message || 'Failed to send acceptance email');
+        }
+      } else if (actionType === 'reject') {
+        const emailResponse = await axios.post('/api/routes/Admin?action=sendRejectEmailFromAdmin', {
+          executiveEmail: request.executiveEmail,
+          executiveName: request.executiveName,
+          salesRepresentiveEmail: request.salesRepresentiveEmail,
+          salesRepresentiveName: request.salesRepresentiveName,
+          objectId: request._id,
+        });
+
+        if (!emailResponse.data.message) {
+          throw new Error(emailResponse.data.message || 'Failed to send rejection email');
+        }
+      }
+
+      await fetchAdminData();
+    } catch (error) {
+      console.error(`Error in ${actionType} action:`, error);
+    } finally {
+      setActionLoading({ id: null, type: null });
+      closeConfirmationDialog();
+    }
+  };
 
   const filteredData =
     statusFilters.length > 0
@@ -149,7 +173,6 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
     const bValue = b[sortConfig.key];
 
     if (sortConfig.key === "createdAt") {
-      // Handle date comparison
       return sortConfig.direction === "asc"
         ? new Date(aValue) - new Date(bValue)
         : new Date(bValue) - new Date(aValue);
@@ -161,7 +184,6 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
         : bValue.localeCompare(aValue);
     }
 
-    // Handle numeric comparison for donation
     const numA = parseFloat(aValue);
     const numB = parseFloat(bValue);
     return sortConfig.direction === "asc" ? numA - numB : numB - numA;
@@ -174,6 +196,37 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
 
   return (
     <div className="w-full h-max">
+      {/* Confirmation Dialog */}
+      <AlertDialog open={confirmationDialog.open} onOpenChange={closeConfirmationDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmationDialog.actionType === 'accept' 
+                ? 'Confirm Acceptance' 
+                : 'Confirm Rejection'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmationDialog.actionType === 'accept'
+                ? `Are you sure you want to accept the meeting request from ${confirmationDialog.request?.salesRepresentiveName}?`
+                : `Are you sure you want to reject the meeting request from ${confirmationDialog.request?.salesRepresentiveName}?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmAction}
+              className={
+                confirmationDialog.actionType === 'accept'
+                  ? "bg-[#28C76F] hover:bg-[#28C76F]/90"
+                  : "bg-[#EA5455] hover:bg-[#EA5455]/90"
+              }
+            >
+              {confirmationDialog.actionType === 'accept' ? 'Accept' : 'Reject'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex items-center justify-between w-full">
         <div className="w-full md:w-auto">
           <h2 className="text-xl font-semibold mb-1">Meeting Requests</h2>
@@ -315,7 +368,7 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
                   ${request.donation}
                 </TableCell>
                 <TableCell className="min-w-[150px]">
-                  {request.status || "Pending"}
+                  {getStatusBadge(request.status || "Pending")}
                 </TableCell>
                 <TableCell className="min-w-[250px] flex flex-wrap gap-2">
                   {request.receiptFormLink && (
@@ -336,7 +389,7 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
                       <Button
                         size="sm"
                         className="gap-1 bg-[#28C76F29] text-[#28C76F] cursor-pointer hover:bg-[#28C76F] hover:text-white"
-                        onClick={() => handleAccept(request)}
+                        onClick={() => showConfirmationDialog(request, 'accept')}
                         disabled={request.status === "Accepted" || (actionLoading.id === request._id && actionLoading.type === "accept")}
                       >
                         <Check className="h-4 w-4" />
@@ -347,16 +400,14 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
                         size="sm"
                         variant="destructive"
                         className="gap-1 bg-[#EA545529] text-[#EA5455] hover:bg-[#EA5455] hover:text-white cursor-pointer"
-                        onClick={() => handleReject(request)}
+                        onClick={() => showConfirmationDialog(request, 'reject')}
                         disabled={request.status === "Rejected" || (actionLoading.id === request._id && actionLoading.type === "reject")}
                       >
                         <X className="h-4 w-4" />
                         {(actionLoading.id === request._id && actionLoading.type === "reject") ? "Loading" : "Reject"}
                       </Button>
-
                     </>
                   )}
-
                 </TableCell>
               </TableRow>
             ))}

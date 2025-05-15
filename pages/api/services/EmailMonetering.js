@@ -23,7 +23,7 @@ const startEmailMonitoring = async (req, res) => {
 async function checkAndProcessEmails(userEmail) {
   try {
     await connectToDatabase();
-    const user = await User.findOne({ linkedInProfileEmail: userEmail });
+    const user = await User.findOne({ userProfileEmail: userEmail });
     if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
       console.log(`Missing Gmail OAuth tokens for user ${userEmail}`);
       return;

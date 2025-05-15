@@ -20,20 +20,20 @@ const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_U
 const activeMonitors = {};
 
 exports.startAuth = (req, res) => {
-  const userEmail = req.query.email;
-  if (!userEmail) {
-    return res.status(400).json({ error: 'Email parameter is required' });
-  }
-
   const state = JSON.stringify({
-    userEmail,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    redirectUrl: req.query.redirectUrl
   });
 
   const authUrl = oAuth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
-    scope: ['https://mail.google.com/', 'https://www.googleapis.com/auth/gmail.modify'],
+    scope: [
+      'https://mail.google.com/',
+      'https://www.googleapis.com/auth/gmail.modify',
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email'
+    ],
     state: state,
     include_granted_scopes: true
   });
@@ -44,45 +44,72 @@ exports.startAuth = (req, res) => {
 exports.handleOAuth2Callback = async (req, res) => {
   try {
     await connectToDatabase();
+    
     const code = req.query.code;
     if (!code) {
       throw new Error('Authorization code missing');
     }
 
-    const state = req.query.state;
-    if (!state) {
-      throw new Error('State parameter missing');
-    }
-
-    const { userEmail } = JSON.parse(state);
-    if (!userEmail) {
-      throw new Error('Invalid state parameter');
-    }
+    const state = req.query.state ? JSON.parse(req.query.state) : {};
 
     const { tokens } = await oAuth2Client.getToken(code);
-
     if (!tokens.refresh_token) {
       throw new Error('No refresh token received - make sure to request offline access');
     }
 
-    let user = await User.findOne({ linkedInProfileEmail: userEmail });
+    oAuth2Client.setCredentials(tokens);
+    const oauth2 = google.oauth2({
+      auth: oAuth2Client,
+      version: 'v2'
+    });
+    
+    const userInfo = await oauth2.userinfo.get();
+    const googleEmail = userInfo.data.email;
+    const googleName = userInfo.data.name || 'No name provided';
+    const googlePicture = userInfo.data.picture || '';
+
+    const userData = {
+      userName: googleName,
+      userProfilePhoto: googlePicture,
+      userProfileEmail: googleEmail,
+      gmailAccessToken: tokens.access_token,
+      gmailRefreshToken: tokens.refresh_token,
+      gmailExpiryDate: tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : null
+    };
+
+    let user = await User.findOne({ userProfileEmail: googleEmail });
+
     if (!user) {
-      user = new User({ linkedInProfileEmail: userEmail });
+      console.log('Creating new user document');
+      user = new User(userData);
+    } else {
+      console.log('Updating existing user document');
+      Object.assign(user, {
+        userName: googleName,
+        userProfilePhoto: googlePicture,
+        gmailAccessToken: tokens.access_token,
+        gmailRefreshToken: tokens.refresh_token,
+        gmailExpiryDate: tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : null
+      });
     }
 
-    user.gmailAccessToken = tokens.access_token;
-    user.gmailRefreshToken = tokens.refresh_token;
-    user.gmailExpiryDate = tokens.expiry_date?.toString() || '';
-
     await user.save();
-    // await startEmailMonitoring(userEmail);
 
-    res.redirect(`${process.env.REQUEST_URL}/login/?currentStep=2`);
+    const redirectUrl = state.redirectUrl || `${process.env.REQUEST_URL}/login/?currentStep=2&userEmail=${googleEmail}`;
+    res.redirect(redirectUrl);
 
   } catch (error) {
-    console.error('OAuth2 Error:', error);
-    res.redirect(`${process.env.REQUEST_URL}/auth-error?message=${encodeURIComponent(error.message)}`);
-
+    console.error('OAuth2 Error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    const errorUrl = `${process.env.REQUEST_URL}/auth-error?message=${
+      encodeURIComponent(error.message)
+    }&code=${encodeURIComponent(error.code || 'UNKNOWN_ERROR')}`;
+    
+    res.redirect(errorUrl);
   }
 };
 
@@ -93,7 +120,7 @@ exports.sendEmail = async (req, res) => {
 
   try {
     await connectToDatabase();
-    const user = await User.findOne({ linkedInProfileEmail: user_email });
+    const user = await User.findOne({ userProfileEmail: user_email });
     if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
       return res.status(400).json({ success: false, message: 'Missing Gmail OAuth tokens for this user' });
     }
@@ -150,7 +177,7 @@ exports.getEmails = async (req, res) => {
 
   try {
     await connectToDatabase();
-    const user = await User.findOne({ linkedInProfileEmail: user_email });
+    const user = await User.findOne({ userProfileEmail: user_email });
     if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
       return res.status(400).json({ success: false, message: 'Missing Gmail OAuth tokens for this user' });
     }
@@ -230,7 +257,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
     await connectToDatabase();
     const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId, userName,charityCompany } = req.body;
 
-    const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
+    const user = await User.findOne({ userProfileEmail: sendFromEmail });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
@@ -380,7 +407,7 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
 
     await connectToDatabase();
 
-    const user = await User.findOne({ linkedInProfileEmail: sendFromEmail });
+    const user = await User.findOne({ userProfileEmail: sendFromEmail });
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }

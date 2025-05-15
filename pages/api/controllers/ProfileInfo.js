@@ -7,9 +7,9 @@ dotenv.config();
 const addProfileInfo = async (req, res) => {
   try {
     await connectToDatabase();
-    const { linkedInProfileEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard } = req.body;
+    const { userEmail,calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard,jobDescription,location,companyName,jobTitle } = req.body;
 
-    const user = await User.findOne({ linkedInProfileEmail: linkedInProfileEmail });
+    const user = await User.findOne({ userProfileEmail: userEmail });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -19,17 +19,21 @@ const addProfileInfo = async (req, res) => {
     user.minimumBidDonation = minimumBidDonation;
     user.questionSolution = questionSolution;
     user.howHeard = howHeard;
+    user.jobDescription = jobDescription,
+    user.location = location,
+    user.jobTitle = jobTitle,
+    user.companyName = companyName
 
     await user.save();
     const token = jwt.sign(
       {
         userId: user.userId,
-        email: user.linkedInProfileEmail,
+        email: user.userProfileEmail,
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    return res.status(200).json({ message: "Profile updated successfully", user, token,userName:user.linkedInProfileName,userPhoto:user.linkedInProfilePhoto,userEmail:user.linkedInProfileEmail,charityCompany:charityCompany });
+    return res.status(200).json({ message: "Profile updated successfully", user, token,userName:user.userName,userPhoto:user.userProfilePhoto,userEmail:user.userProfileEmail,charityCompany:charityCompany });
 
   } catch (error) {
     console.error("Error adding sales representative info:", error);
@@ -63,22 +67,22 @@ const checkUser = async (req, res) => {
   try {
     await connectToDatabase();
 
-    const { linkedInProfileEmail } = req.query;
+    const { userProfileEmail } = req.query;
 
-    if (!linkedInProfileEmail) {
+    if (!userProfileEmail) {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const user = await User.findOne({ linkedInProfileEmail: linkedInProfileEmail });
+    const user = await User.findOne({ userProfileEmail: userProfileEmail });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const linkedInComplete =
-      user.linkedInProfileName &&
-      user.linkedInProfilePhoto &&
-      user.linkedInProfileEmail;
+      user.userName &&
+      user.userProfilePhoto &&
+      user.userProfileEmail;
 
     const gmailComplete =
       user.gmailAccessToken &&
@@ -104,7 +108,7 @@ const checkUser = async (req, res) => {
         currentStep: "completed",
         message: "All steps completed",
         userId: user.userId,
-        linkedInProfileEmail: user.linkedInProfileEmail,
+        userProfileEmail: user.userProfileEmail,
       });
     }
 
