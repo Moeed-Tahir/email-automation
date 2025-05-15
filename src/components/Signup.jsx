@@ -3,7 +3,14 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { CircleDollarSign, Link, Mail } from "lucide-react";
+import {
+  CircleDollarSign,
+  Link,
+  Mail,
+  Briefcase,
+  MapPin,
+  Building,
+} from "lucide-react";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import axios from "axios";
@@ -14,13 +21,21 @@ const SignupFlow = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [formData, setFormData] = useState({
+    companyName: "",
+    jobTitle: "",
+    jobDescription: "",
+    location: "",
     calendarLink: "",
     charityCompany: "",
     minBidDonation: "",
-    motivation: "",
-    howHeard: "",
+    motivation: "Describe your solution and its key features.",
+    howHeard: "Give a brief description of your solution.",
   });
   const [errors, setErrors] = useState({
+    companyName: "",
+    jobTitle: "",
+    jobDescription: "",
+    location: "",
     calendarLink: "",
     charityCompany: "",
     minBidDonation: "",
@@ -30,10 +45,33 @@ const SignupFlow = () => {
   const validateStep = () => {
     let isValid = true;
     const newErrors = {
+      companyName: "",
+      jobTitle: "",
+      jobDescription: "",
+      location: "",
       calendarLink: "",
       charityCompany: "",
       minBidDonation: "",
     };
+
+    if (currentStep === 2) {
+      if (!formData.companyName.trim()) {
+        newErrors.companyName = "Company name is required";
+        isValid = false;
+      }
+      if (!formData.jobTitle.trim()) {
+        newErrors.jobTitle = "Job title is required";
+        isValid = false;
+      }
+      if (!formData.jobDescription.trim()) {
+        newErrors.jobDescription = "Job description is required";
+        isValid = false;
+      }
+      if (!formData.location.trim()) {
+        newErrors.location = "Location is required";
+        isValid = false;
+      }
+    }
 
     if (currentStep === 3 && !formData.calendarLink.trim()) {
       newErrors.calendarLink = "Calendar link is required";
@@ -58,10 +96,6 @@ const SignupFlow = () => {
     return isValid;
   };
 
-  const handleLinkedInLogin = () => {
-    window.location.href = "/api/routes/LinkedIn?action=linkedInLogin";
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -76,14 +110,6 @@ const SignupFlow = () => {
 
     setDirection(1);
     setCurrentStep((prev) => Math.min(prev + 1, 5));
-
-    if (
-      window.location.search.includes("code=") ||
-      window.location.search.includes("currentStep=")
-    ) {
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    }
   };
 
   const prevStep = () => {
@@ -201,43 +227,6 @@ const SignupFlow = () => {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return (
-          <motion.div
-            key="step1"
-            custom={direction}
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-            className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-4 sm:px-8"
-          >
-            <div className="w-full  lg:max-w-md space-y-8 text-start">
-              <h1 className="text-3xl md:text-[40px] font-semibold text-[var(--secondary-color)] mb-2 text-center md:text-left leading-[51px]">
-                Continue With LinkedIn
-              </h1>
-              <p className="text-base md:text-lg text-gray-600 mb-8 md:text-left text-justify px-5 md:px-0">
-                Please attach your LinkedIn profile so your information can be
-                automatically filled from it.
-              </p>
-
-              <button
-                className="w-8/9 md:w-full lg:w-full mx-auto flex items-center justify-center border-2 border-[rgba(44,81,76,1)] py-3 px-6 rounded-lg hover:bg-transparent font-semibold text-[rgba(44,81,76,1)] transition-colors cursor-pointer"
-                onClick={handleLinkedInLogin}
-              >
-                <svg
-                  className="w-5 h-5 mr-2 fill-blue-600"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                </svg>
-                Continue with LinkedIn
-              </button>
-            </div>
-          </motion.div>
-        );
-      case 2:
         const handleGmailAuth = () => {
           const email = Cookies.get("userEmail");
           window.location.href = `${
@@ -249,7 +238,7 @@ const SignupFlow = () => {
 
         return (
           <motion.div
-            key="step2"
+            key="step1"
             custom={direction}
             variants={variants}
             initial="enter"
@@ -282,6 +271,127 @@ const SignupFlow = () => {
             </div>
           </motion.div>
         );
+      case 2:
+        return (
+          <motion.div
+            key="step2"
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
+            className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 sm:px-8"
+          >
+            <div className="w-full lg:max-w-md space-y-6">
+              <h1 className="text-3xl md:text-[40px] font-semibold text-[var(--secondary-color)] mb-4 text-left leading-[51px]">
+                Professional Information
+              </h1>
+
+              <div className="space-y-4">
+                {/* Company Name */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Company Name
+                  </Label>
+                  <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                    <Building className="text-[rgba(44,81,76,1)] size-5" />
+                    <Input
+                      onChange={handleInputChange}
+                      value={formData.companyName}
+                      name="companyName"
+                      type="text"
+                      placeholder="Enter your company name"
+                      className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
+                    />
+                  </div>
+                  {errors.companyName && (
+                    <p className="text-red-500 text-sm">{errors.companyName}</p>
+                  )}
+                </div>
+
+                {/* Job Title */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Job Title
+                  </Label>
+                  <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                    <Briefcase className="text-[rgba(44,81,76,1)] size-5" />
+                    <Input
+                      onChange={handleInputChange}
+                      value={formData.jobTitle}
+                      name="jobTitle"
+                      type="text"
+                      placeholder="Enter your job title"
+                      className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
+                    />
+                  </div>
+                  {errors.jobTitle && (
+                    <p className="text-red-500 text-sm">{errors.jobTitle}</p>
+                  )}
+                </div>
+
+                {/* Job Description */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Job Description
+                  </Label>
+                  <Textarea
+                    onChange={handleInputChange}
+                    value={formData.jobDescription}
+                    name="jobDescription"
+                    placeholder="Describe your role and responsibilities"
+                    className="w-full min-h-[100px] resize-none text-base sm:text-lg p-4 focus-visible:ring-0 bg-white"
+                  />
+                  {errors.jobDescription && (
+                    <p className="text-red-500 text-sm">
+                      {errors.jobDescription}
+                    </p>
+                  )}
+                </div>
+
+                {/* Location */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Location
+                  </Label>
+                  <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                    <MapPin className="text-[rgba(44,81,76,1)] size-5" />
+                    <Input
+                      onChange={handleInputChange}
+                      value={formData.location}
+                      name="location"
+                      type="text"
+                      placeholder="Enter your work location"
+                      className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
+                    />
+                  </div>
+                  {errors.location && (
+                    <p className="text-red-500 text-sm">{errors.location}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-between w-full gap-4 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={prevStep}
+                  className="h-12 w-32 md:w-36 cursor-pointer text-base sm:text-lg border-gray-300 text-gray-700"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={nextStep}
+                  size={"default"}
+                  className="h-12 w-44 text-lg bg-[#2c514c] text-white cursor-pointer border-2 
+                  border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)]"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        );
       case 3:
         return (
           <motion.div
@@ -294,7 +404,7 @@ const SignupFlow = () => {
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
             className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 sm:px-8"
           >
-            <div className="w-full  lg:max-w-md space-y-8 text-start">
+            <div className="w-full lg:max-w-md space-y-8 text-start">
               <h1 className="text-base sm:text-lg font-[500] text-[#413E5E] mb-4">
                 Submit your pre-existing calendar links
               </h1>
@@ -312,7 +422,9 @@ const SignupFlow = () => {
                   />
                 </div>
                 {errors.calendarLink && (
-                  <p className="text-red-500 text-sm mt-1">{errors.calendarLink}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.calendarLink}
+                  </p>
                 )}
               </div>
 

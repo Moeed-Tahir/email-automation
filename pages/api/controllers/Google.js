@@ -77,7 +77,7 @@ exports.handleOAuth2Callback = async (req, res) => {
     await user.save();
     // await startEmailMonitoring(userEmail);
 
-    res.redirect(`${process.env.REQUEST_URL}/login/?currentStep=3`);
+    res.redirect(`${process.env.REQUEST_URL}/login/?currentStep=2`);
 
   } catch (error) {
     console.error('OAuth2 Error:', error);
