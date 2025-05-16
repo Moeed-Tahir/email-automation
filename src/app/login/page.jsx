@@ -1,12 +1,6 @@
-import SignupFlow from '@/components/Signup'
-import React from 'react'
+// /login/page.js
+import SignupFlow from "@/components/Signup";
 
-const Page = () => {
-    return (
-        <>
-            <SignupFlow />
-        </>
-    )
+export default function LoginPage({ searchParams }) {
+  return <SignupFlow searchParams={searchParams} />;
 }
-
-export default Page

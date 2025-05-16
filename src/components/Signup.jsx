@@ -15,9 +15,9 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-const SignupFlow = () => {
+const SignupFlow = ({ searchParams }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [formData, setFormData] = useState({
@@ -42,7 +42,6 @@ const SignupFlow = () => {
     minBidDonation: "",
   });
   const router = useRouter();
-  const searParams = useSearchParams();
 
   const validateStep = () => {
     let isValid = true;
@@ -101,7 +100,6 @@ const SignupFlow = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -109,7 +107,6 @@ const SignupFlow = () => {
 
   const nextStep = () => {
     if (!validateStep()) return;
-
     setDirection(1);
     setCurrentStep((prev) => Math.min(prev + 1, 5));
   };
@@ -135,9 +132,8 @@ const SignupFlow = () => {
   };
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const code = searchParams.get("code");
-    const currentStepParam = searchParams.get("currentStep");
+    const code = searchParams?.code;
+    const currentStepParam = searchParams?.currentStep;
 
     if (code) {
       axios
@@ -198,7 +194,7 @@ const SignupFlow = () => {
         setCurrentStep(step);
       }
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     const checkUserStatus = async () => {
@@ -243,7 +239,7 @@ const SignupFlow = () => {
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
             className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 sm:px-8"
           >
-            <div className="w-full  lg:max-w-md space-y-8 text-start">
+            <div className="w-full lg:max-w-md space-y-8 text-start">
               <h1 className="text-3xl md:text-[40px] font-semibold text-[var(--secondary-color)] mb-4 text-left leading-[51px]">
                 Please add your gmail to continue
               </h1>
@@ -251,7 +247,7 @@ const SignupFlow = () => {
               <div className="w-full space-y-6 flex flex-col items-start justify-start sm:mr-24">
                 <Button
                   onClick={handleGmailAuth}
-                  className="w-full bg-[rgba(44,81,76,1)] border-2 border-[rgba(44,81,76,0.9)] hover:bg-transparent hover:text-[rgba(44,81,76,1)] h-12 text-lg cursor-pointer "
+                  className="w-full bg-[rgba(44,81,76,1)] border-2 border-[rgba(44,81,76,0.9)] hover:bg-transparent hover:text-[rgba(44,81,76,1)] h-12 text-lg cursor-pointer"
                 >
                   <svg
                     className="size-5 mr-1"
@@ -285,7 +281,6 @@ const SignupFlow = () => {
               </h1>
 
               <div className="space-y-4">
-                {/* Company Name */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">
                     Company Name
@@ -306,7 +301,6 @@ const SignupFlow = () => {
                   )}
                 </div>
 
-                {/* Job Title */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">
                     Job Title
@@ -327,7 +321,6 @@ const SignupFlow = () => {
                   )}
                 </div>
 
-                {/* Job Description */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">
                     Job Description
@@ -346,7 +339,6 @@ const SignupFlow = () => {
                   )}
                 </div>
 
-                {/* Location */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">
                     Location
@@ -456,7 +448,7 @@ const SignupFlow = () => {
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
             className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 sm:px-8"
           >
-            <div className="w-full  lg:max-w-md space-y-8">
+            <div className="w-full lg:max-w-md space-y-8">
               <div className="gap-2 flex flex-col w-full">
                 <h1 className="text-base sm:text-lg font-[500] text-[var(--secondary-color)]">
                   Charity Company
@@ -523,7 +515,7 @@ const SignupFlow = () => {
       case 5:
         const submitProfileInformation = async () => {
           try {
-            const userEmail = searParams.get("userEmail");
+            const userEmail = searchParams?.userEmail;
 
             if (!userEmail) {
               alert("User email not found. Please log in again.");
@@ -589,9 +581,9 @@ const SignupFlow = () => {
             animate="center"
             exit="exit"
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-            className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 md:px-8 overflow-auto "
+            className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 md:px-8 overflow-auto"
           >
-            <div className="w-full  lg:max-w-xl md:space-y-8 lg:space-y-5 ">
+            <div className="w-full lg:max-w-xl md:space-y-8 lg:space-y-5">
               <h1 className="text-3xl md:text-2xl font-semibold text-[var(--secondary-color)] mb-4 text-left leading-[50px]">
                 Survey For Sales Representative
               </h1>
@@ -672,12 +664,12 @@ const SignupFlow = () => {
     <div className="flex flex-col lg:flex-row h-screen bg-[rgb(255,253,240)] overflow-hidden">
       <motion.div
         key={`image-${currentStep}`}
-        className=" hidden lg:flex items-center justify-center max-h-screen"
+        className="hidden lg:flex items-center justify-center max-h-screen"
       >
         <img
           src={getImageForStep()}
           alt={`Step ${currentStep}`}
-          className="max-w-full min-h-screen object-cover shrink-0 "
+          className="max-w-full min-h-screen object-cover shrink-0"
         />
       </motion.div>
 
@@ -689,7 +681,7 @@ const SignupFlow = () => {
         />
       </div>
 
-      <div className="w-full lg:w-[118%] relative h-full ">
+      <div className="w-full lg:w-[118%] relative h-full">
         <AnimatePresence custom={direction} initial={false}>
           {renderStep()}
         </AnimatePresence>
