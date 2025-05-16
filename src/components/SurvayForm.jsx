@@ -67,6 +67,11 @@ const SurveyForm = ({ userId }) => {
         newErrors.bidAmount = "Bid amount is required";
       } else if (isNaN(formData.bidAmount) || Number(formData.bidAmount) <= 0) {
         newErrors.bidAmount = "Bid amount must be a positive number";
+      } else if (
+        profileData.minimumBidDonation &&
+        Number(formData.bidAmount) < Number(profileData.minimumBidDonation)
+      ) {
+        newErrors.bidAmount = `Bid amount must be at least $${profileData.minimumBidDonation}`;
       }
 
       setErrors(newErrors);
@@ -166,7 +171,6 @@ const SurveyForm = ({ userId }) => {
   };
 
   useEffect(() => {
-
     const fetchProfileData = async () => {
       try {
         const response = await axios.get(`/api/routes/ProfileInfo`, {
@@ -175,20 +179,21 @@ const SurveyForm = ({ userId }) => {
 
         setProfileData(response.data.user);
         setUserQuestions({
-          questionOne: response.data.user.questionSolution || "Describe your solution and its key features.",
-          questionTwo: response.data.user.howHeard || "Give a brief description of your solution.",
+          questionOne:
+            response.data.user.questionSolution ||
+            "Describe your solution and its key features.",
+          questionTwo:
+            response.data.user.howHeard ||
+            "Give a brief description of your solution.",
         });
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
     };
 
-    
-
     if (userId) {
       fetchProfileData();
     }
-    
   }, [userId]);
 
   const progressWidth = ((currentTab + 1) / tabs.length) * 100;
@@ -245,20 +250,30 @@ const SurveyForm = ({ userId }) => {
             <div className="grid grid-cols-2 gap-6 mb-8">
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold text-gray-700 mb-3">Position</h3>
-                <p className="text-lg">{profileData.jobTitle || "Not specified"}</p>
+                <p className="text-lg">
+                  {profileData.jobTitle || "Not specified"}
+                </p>
               </div>
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold text-gray-700 mb-3">Industry</h3>
-                <p className="text-lg">{profileData.industry || "Not specified"}</p>
+                <p className="text-lg">
+                  {profileData.industry || "Not specified"}
+                </p>
               </div>
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold text-gray-700 mb-3">Charity</h3>
-                <p className="text-lg">{profileData.charityCompany || "Not specified"}</p>
+                <p className="text-lg">
+                  {profileData.charityCompany || "Not specified"}
+                </p>
               </div>
               <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold text-gray-700 mb-3">Minimum Bid</h3>
+                <h3 className="font-semibold text-gray-700 mb-3">
+                  Minimum Bid
+                </h3>
                 <p className="text-lg">
-                  {profileData.minimumBidDonation ? `$${profileData.minimumBidDonation}` : "Not specified"}
+                  {profileData.minimumBidDonation
+                    ? `$${profileData.minimumBidDonation}`
+                    : "Not specified"}
                 </p>
               </div>
             </div>
@@ -303,6 +318,11 @@ const SurveyForm = ({ userId }) => {
               value={formData.bidAmount}
               onChange={(val) => setFormData({ ...formData, bidAmount: val })}
               error={errors.bidAmount}
+              hint={
+                profileData.minimumBidDonation
+                  ? `Minimum bid: $${profileData.minimumBidDonation}`
+                  : null
+              }
             />
           </>
         );
@@ -523,7 +543,7 @@ const SurveyForm = ({ userId }) => {
 };
 
 // Input field component
-const InputField = ({ label, type, icon, value, onChange, error }) => (
+const InputField = ({ label, type, icon, value, onChange, error, hint }) => (
   <div className="space-y-2">
     <label
       className="block font-semibold"
@@ -531,6 +551,7 @@ const InputField = ({ label, type, icon, value, onChange, error }) => (
     >
       {label}
     </label>
+    {hint && <p className="text-sm text-gray-500 mb-1">{hint}</p>}
     <div className="relative">
       <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-[#2C514C]">
         {icon}
@@ -539,8 +560,9 @@ const InputField = ({ label, type, icon, value, onChange, error }) => (
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full pl-10 p-3 border ${error ? "border-red-500" : "border-gray-300"
-          } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
+        className={`w-full pl-10 p-3 border ${
+          error ? "border-red-500" : "border-gray-300"
+        } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
       />
     </div>
     {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
@@ -560,8 +582,9 @@ const TextAreaField = ({ label, value, onChange, error }) => (
       value={value}
       onChange={(e) => onChange(e.target.value)}
       rows={5}
-      className={`w-full p-3 border ${error ? "border-red-500" : "border-gray-300"
-        } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
+      className={`w-full p-3 border ${
+        error ? "border-red-500" : "border-gray-300"
+      } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
     />
     {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
   </div>
@@ -571,8 +594,9 @@ const TextAreaField = ({ label, value, onChange, error }) => (
 const RadioGroup = ({ label, options, value, onChange, error }) => (
   <div className="space-y-2">
     <label
-      className={`block font-medium ${error ? "text-red-500" : "text-[rgba(33, 37, 41, 1)]"
-        }`}
+      className={`block font-medium ${
+        error ? "text-red-500" : "text-[rgba(33, 37, 41, 1)]"
+      }`}
       style={{ fontSize: "16px" }}
     >
       {label}
@@ -587,8 +611,9 @@ const RadioGroup = ({ label, options, value, onChange, error }) => (
             value={option}
             checked={value === option}
             onChange={(e) => onChange(e.target.value)}
-            className={`h-4 w-4 ${error ? "text-red-500" : "text-[rgba(112,122,136,1)]"
-              } border-gray-900`}
+            className={`h-4 w-4 ${
+              error ? "text-red-500" : "text-[rgba(112,122,136,1)]"
+            } border-gray-900`}
           />
           <label
             htmlFor={option}

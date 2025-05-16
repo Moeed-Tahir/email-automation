@@ -31,6 +31,7 @@ const SignupFlow = () => {
     motivation: "Describe your solution and its key features.",
     howHeard: "Give a brief description of your solution.",
   });
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
     companyName: "",
     jobTitle: "",
@@ -228,9 +229,7 @@ const SignupFlow = () => {
     switch (currentStep) {
       case 1:
         const handleGmailAuth = () => {
-          window.location.href = `${
-            process.env.NEXT_PUBLIC_REQUEST_URL
-          }/api/routes/Google?action=startAuth`;
+          window.location.href = `${process.env.NEXT_PUBLIC_REQUEST_URL}/api/routes/Google?action=startAuth`;
         };
 
         return (
@@ -525,7 +524,7 @@ const SignupFlow = () => {
         const submitProfileInformation = async () => {
           try {
             const userEmail = searParams.get("userEmail");
-            
+
             if (!userEmail) {
               alert("User email not found. Please log in again.");
               return;
@@ -535,10 +534,10 @@ const SignupFlow = () => {
               "/api/routes/ProfileInfo?action=addProfileInfo",
               {
                 userEmail: userEmail,
-                jobDescription:formData.jobDescription,
-                location:formData.location,
-                jobTitle:formData.jobTitle,
-                companyName:formData.companyName,
+                jobDescription: formData.jobDescription,
+                location: formData.location,
+                jobTitle: formData.jobTitle,
+                companyName: formData.companyName,
                 questionSolution: formData.motivation,
                 calendarLink: formData.calendarLink,
                 charityCompany: formData.charityCompany,
@@ -642,7 +641,7 @@ const SignupFlow = () => {
                     onClick={submitProfileInformation}
                     className="h-12 w-32 md:w-44 text-base sm:text-lg bg-[#2c514c] text-white border-2 border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)] cursor-pointer"
                   >
-                    Finish
+                    {loading ? "Finishing..." : "Finish"}
                   </Button>
                 </div>
               </div>
