@@ -15,9 +15,11 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-const SignupFlow = ({ searchParams }) => {
+const SignupFlow = () => {
+  const searchParams = useSearchParams();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [formData, setFormData] = useState({
@@ -131,70 +133,24 @@ const SignupFlow = ({ searchParams }) => {
     }),
   };
 
-  useEffect(() => {
-    const code = searchParams?.code;
-    const currentStepParam = searchParams?.currentStep;
+useEffect(() => {
+  const currentStepParam = searchParams.get('currentStep');
+  const userEmail = searchParams.get('userEmail');
 
-    if (code) {
-      axios
-        .get(`${process.env.NEXT_PUBLIC_REQUEST_URL}/api/routes/LinkedIn`, {
-          params: {
-            action: "linkedInCallback",
-            code: code,
-          },
-        })
-        .then((response) => {
-          if (
-            response.data.message ===
-            "Login successful! Please complete your profile by filling the next steps."
-          ) {
-            Cookies.set("userEmail", response.data.userProfileEmail, {
-              path: "/",
-              expires: 7,
-            });
-            nextStep();
-          } else if (
-            response.data.message ===
-            "Welcome back! You're logged in successfully."
-          ) {
-            Cookies.set("UserId", response.data.userId, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("Token", response.data.token, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("userName", response.data.userName, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("userEmail", response.data.userProfileEmail, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("userPhoto", response.data.userProfilePhoto, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("charityCompany", response.data.charityCompany, {
-              path: "/",
-              expires: 7,
-            });
+  if (userEmail) {
+    Cookies.set("userEmail", userEmail, {
+      path: "/",
+      expires: 7,
+    });
+  }
 
-            router.push("/");
-          }
-        })
-        .catch((err) => {
-          console.error("Login error:", err);
-        });
-    } else if (currentStepParam) {
-      const step = parseInt(currentStepParam, 10);
-      if (!isNaN(step) && step >= 1 && step <= 5) {
-        setCurrentStep(step);
-      }
+  if (currentStepParam) {
+    const step = parseInt(currentStepParam, 10);
+    if (!isNaN(step) && step >= 1 && step <= 5) {
+      setCurrentStep(step);
     }
-  }, [searchParams]);
+  }
+}, [searchParams]);
 
   useEffect(() => {
     const checkUserStatus = async () => {
@@ -515,7 +471,7 @@ const SignupFlow = ({ searchParams }) => {
       case 5:
         const submitProfileInformation = async () => {
           try {
-            const userEmail = searchParams?.userEmail;
+            const userEmail = Cookies.get("userEmail");
 
             if (!userEmail) {
               alert("User email not found. Please log in again.");
@@ -568,7 +524,7 @@ const SignupFlow = ({ searchParams }) => {
             console.error("Error occurred:", error);
             alert(
               error.response?.data?.message ||
-                "Failed to update profile. Please try again."
+              "Failed to update profile. Please try again."
             );
           }
         };

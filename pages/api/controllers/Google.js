@@ -95,7 +95,7 @@ exports.handleOAuth2Callback = async (req, res) => {
 
     await user.save();
 
-    const redirectUrl = state.redirectUrl || `${process.env.REQUEST_URL}/login/?currentStep=2&userEmail=${googleEmail}`;
+    const redirectUrl = state.redirectUrl || `${process.env.REQUEST_URL}/signup/?currentStep=2&userEmail=${googleEmail}`;
     res.redirect(redirectUrl);
 
   } catch (error) {

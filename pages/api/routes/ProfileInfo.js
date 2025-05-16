@@ -3,7 +3,9 @@ import {
     checkUser,
     getProfileInfo,
     editProfileInfo,
-    deleteProfileInfo
+    deleteProfileInfo,
+    sendOTP,
+    verifyOTP
 } from "../controllers/ProfileInfo";
 
 export default async function handler(req, res) {
@@ -25,7 +27,13 @@ export default async function handler(req, res) {
             return await editProfileInfo(req, res);
         } else if (req.method === 'POST' && action === 'deleteProfileInfo') {
             return await deleteProfileInfo(req, res);
-        } else {
+        } else if (req.method === 'POST' && action === 'verifyOTP') {
+            return await verifyOTP(req, res);
+        }
+        else if (req.method === 'POST' && action === 'sendOTP') {
+            return await sendOTP(req, res);
+        }
+        else {
             return res.status(405).json({ message: 'Method Not Allowed' });
         }
     } catch (error) {

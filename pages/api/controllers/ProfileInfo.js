@@ -2,12 +2,14 @@ const connectToDatabase = require("../lib/db");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const nodemailer = require('nodemailer');
+const crypto = require("crypto");
 dotenv.config();
 
 const addProfileInfo = async (req, res) => {
   try {
     await connectToDatabase();
-    const { userEmail,calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard,jobDescription,location,companyName,jobTitle } = req.body;
+    const { userEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard, jobDescription, location, companyName, jobTitle } = req.body;
 
     const user = await User.findOne({ userProfileEmail: userEmail });
     if (!user) {
@@ -20,9 +22,9 @@ const addProfileInfo = async (req, res) => {
     user.questionSolution = questionSolution;
     user.howHeard = howHeard;
     user.jobDescription = jobDescription,
-    user.location = location,
-    user.jobTitle = jobTitle,
-    user.companyName = companyName
+      user.location = location,
+      user.jobTitle = jobTitle,
+      user.companyName = companyName
 
     await user.save();
     const token = jwt.sign(
@@ -33,7 +35,7 @@ const addProfileInfo = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    return res.status(200).json({ message: "Profile updated successfully", user, token,userName:user.userName,userPhoto:user.userProfilePhoto,userEmail:user.userProfileEmail,charityCompany:charityCompany });
+    return res.status(200).json({ message: "Profile updated successfully", user, token, userName: user.userName, userPhoto: user.userProfilePhoto, userEmail: user.userProfileEmail, charityCompany: charityCompany });
 
   } catch (error) {
     console.error("Error adding sales representative info:", error);
@@ -173,17 +175,143 @@ const deleteProfileInfo = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.status(200).json({ user,message:"User Delete Successfully" });
+    res.status(200).json({ user, message: "User Delete Successfully" });
   } catch (error) {
     console.error("Error fetching profile info:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'info@makelastingchange.com',
+    pass: 'vcvk scep luhp qosk',
+  },
+});
+
+const generateOTP = () => {
+  return crypto.randomInt(100000, 999999).toString();
+};
+
+const sendOTP = async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Email is required" 
+      });
+    }
+
+    const user = await User.findOne({ userProfileEmail: email });
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found with this email" 
+      });
+    }
+
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.otp = otp;
+    user.otpExpires = otpExpires;
+    await user.save();
+
+    const mailOptions = {
+      from: process.env.EMAIL_USERNAME,
+      to: email,
+      subject: 'Your OTP for verification',
+      text: `Your OTP is: ${otp}. It will expire in 10 minutes.`
+    };
+
+    await transporter.sendMail(mailOptions);
+    
+    return res.status(200).json({ 
+      success: true, 
+      message: "OTP sent successfully" 
+    });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Internal server error",
+      error: error.message 
+    });
+  }
+};
+
+const verifyOTP = async (req, res) => {
+  try {
+    await connectToDatabase();
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Email and OTP are required" 
+      });
+    }
+
+    const user = await User.findOne({
+      userProfileEmail: email,
+      otp: otp,
+      otpExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid OTP or OTP expired" 
+      });
+    }
+
+    user.otp = undefined;
+    user.otpExpires = undefined;
+    await user.save();
+
+    const token = generateAuthToken(user); 
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+      user: {
+        userId: user.userId,
+        userName: user.userName,
+        userEmail: user.userProfileEmail,
+        userPhoto: user.userProfilePhoto,
+        charityCompany: user.charityCompany
+      },
+      token
+    });
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Internal server error",
+      error: error.message 
+    });
+  }
+};
+
+function generateAuthToken(user) {
+  return jwt.sign(
+    { userId: user._id, email: user.userProfileEmail },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+}
+
+
 module.exports = {
   addProfileInfo,
   checkUser,
   getProfileInfo,
   editProfileInfo,
-  deleteProfileInfo
+  deleteProfileInfo,
+  sendOTP,
+  verifyOTP
 };
