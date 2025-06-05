@@ -1,6 +1,10 @@
-// /login/page.js
+import { Suspense } from 'react';
 import SignupFlow from "@/components/Signup";
 
 export default function SignupPage() {
-    return <SignupFlow />;
+  return (
+    <Suspense>
+      <SignupFlow />
+    </Suspense>
+  );
 }
