@@ -564,6 +564,7 @@ const SignupFlow = ({ searchParams }) => {
             });
 
             router.push(`/${response.data.user.userId}/dashboard`);
+            
           } catch (error) {
             console.error("Error occurred:", error);
             alert(

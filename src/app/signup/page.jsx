@@ -1,5 +1,10 @@
+import { Suspense } from 'react';
 import SignupFlow from "@/components/Signup";
 
-export default async function SignupPage({ searchParams }) {
-  return <SignupFlow searchParams={searchParams} />;
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupFlow />
+    </Suspense>
+  );
 }

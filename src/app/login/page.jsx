@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Input } from "../../components/ui/input";
 import { Button } from '../../components/ui/button';
@@ -12,14 +12,23 @@ import Cookies from 'js-cookie';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const [errors, setErrors] = useState({
     email: '',
     otp: ''
   });
+  const otpInputRefs = useRef([]);
   const router = useRouter();
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [countdown]);
 
   const validateEmail = () => {
     if (!email.trim()) {
@@ -35,12 +44,13 @@ const LoginPage = () => {
   };
 
   const validateOtp = () => {
-    if (!otp.trim()) {
+    const otpString = otp.join('');
+    if (!otpString.trim()) {
       setErrors(prev => ({ ...prev, otp: 'OTP is required' }));
       return false;
     }
-    if (otp.length !== 6) {
-      setErrors(prev => ({ ...prev, otp: 'OTP must be 6 digits' }));
+    if (otpString.length !== 6) {
+      setErrors(prev => ({ ...prev, otp: 'Please enter complete 6-digit OTP' }));
       return false;
     }
     setErrors(prev => ({ ...prev, otp: '' }));
@@ -61,11 +71,61 @@ const LoginPage = () => {
       }
 
       setIsOtpSent(true);
+      setCountdown(30); // 30 seconds countdown
+      // Focus first OTP input
+      if (otpInputRefs.current[0]) {
+        otpInputRefs.current[0].focus();
+      }
     } catch (error) {
-      console.log("error",error)
+      console.log("error", error)
       setErrors(prev => ({ ...prev, email: error.response?.data?.message || 'Error sending OTP' }));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!validateEmail()) return;
+
+    setIsLoading(true);
+    try {
+      const response = await axios.post('/api/routes/ProfileInfo?action=sendOTP', {
+        email,
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data?.message || 'Failed to resend OTP');
+      }
+
+      setCountdown(30); // Reset countdown
+      setOtp(['', '', '', '', '', '']); // Clear OTP fields
+      if (otpInputRefs.current[0]) {
+        otpInputRefs.current[0].focus();
+      }
+    } catch (error) {
+      setErrors(prev => ({ ...prev, email: error.response?.data?.message || 'Error resending OTP' }));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return; // Only allow numbers
+    
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    // Auto focus to next input if a digit was entered
+    if (value && index < 5 && otpInputRefs.current[index + 1]) {
+      otpInputRefs.current[index + 1].focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0 && otpInputRefs.current[index - 1]) {
+      // Move focus to previous input on backspace if current is empty
+      otpInputRefs.current[index - 1].focus();
     }
   };
 
@@ -76,13 +136,12 @@ const LoginPage = () => {
     try {
       const response = await axios.post('/api/routes/ProfileInfo?action=verifyOTP', {
         email,
-        otp,
+        otp: otp.join(''),
       });
 
       if (!response.data.success) {
         throw new Error(response.data?.message || 'Failed to verify OTP');
       }
-
 
       if (response.data.user) {
         const { userEmail, userName, userPhoto, token, charityCompany, userId } = response.data.user;
@@ -187,30 +246,46 @@ const LoginPage = () => {
             {isOtpSent && (
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">OTP</Label>
-                <div className="flex items-center px-3 gap-2 border-2 rounded-lg w-full bg-white">
-                  <Lock className="text-[rgba(44,81,76,1)] size-5" />
-                  <Input
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    type="text"
-                    placeholder="Enter 6-digit OTP"
-                    className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
-                    maxLength={6}
-                  />
+                <div className="flex justify-between gap-2">
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <Input
+                      key={index}
+                      ref={(el) => (otpInputRefs.current[index] = el)}
+                      value={otp[index]}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      type="text"
+                      maxLength={1}
+                      className="w-12 h-12 text-center text-xl border-2 border-[rgba(44,81,76,0.5)] rounded-lg focus:border-[rgba(44,81,76,1)] focus-visible:ring-0"
+                    />
+                  ))}
                 </div>
                 {errors.otp && (
                   <p className="text-red-500 text-sm">{errors.otp}</p>
                 )}
-                <div className="text-right">
+                <div className="flex justify-between items-center">
                   <button
                     className="text-sm text-[#2c514c] hover:underline"
                     onClick={() => {
                       setIsOtpSent(false);
-                      setOtp('');
+                      setOtp(['', '', '', '', '', '']);
                     }}
                   >
                     Change Email
                   </button>
+                  {countdown > 0 ? (
+                    <span className="text-sm text-gray-500">
+                      Resend code in {countdown}s
+                    </span>
+                  ) : (
+                    <button
+                      className="text-sm text-[#2c514c] hover:underline"
+                      onClick={handleResendOtp}
+                      disabled={isLoading}
+                    >
+                      Resend Code
+                    </button>
+                  )}
                 </div>
               </div>
             )}

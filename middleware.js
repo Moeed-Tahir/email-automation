@@ -11,10 +11,9 @@ export function middleware(request) {
   const { pathname } = request.nextUrl;
 
   const userEmail = request.cookies.get('userEmail')?.value;
-  const userId = request.cookies.get('userId')?.value;
-  const token = request.cookies.get('token')?.value;
+  const userId = request.cookies.get('UserId')?.value;
+  const token = request.cookies.get('Token')?.value;
   const adminAccessible = request.cookies.get('adminAccessible')?.value === 'true';
-
 
   const isAuthenticated = userEmail && userId && token;
 
