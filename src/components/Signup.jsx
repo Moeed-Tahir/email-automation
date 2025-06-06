@@ -472,7 +472,7 @@ const SignupFlow = ({ searchParams }) => {
 
               <div className="gap-2 flex flex-col w-full">
                 <h1 className="text-base sm:text-lg font-[500] text-[var(--secondary-color)]">
-                  Minimum Bid Donation
+                  Minimum Bid
                 </h1>
                 <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
                   <CircleDollarSign className="text-[rgba(44,81,76,1)]" />
