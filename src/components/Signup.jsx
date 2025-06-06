@@ -10,14 +10,17 @@ import {
   Briefcase,
   MapPin,
   Building,
+  Loader2
 } from "lucide-react";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-const SignupFlow = ({ searchParams }) => {
+const SignupFlow = () => {
+  const searchParams = useSearchParams();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [direction, setDirection] = useState(1);
   const [formData, setFormData] = useState({
@@ -28,8 +31,8 @@ const SignupFlow = ({ searchParams }) => {
     calendarLink: "",
     charityCompany: "",
     minBidDonation: "",
-    motivation: "Describe your solution and its key features.",
-    howHeard: "Give a brief description of your solution.",
+    motivation: "Please describe your solution and its key features.",
+    howHeard: "How will your solution help me solve my core business challenges?",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -79,11 +82,7 @@ const SignupFlow = ({ searchParams }) => {
       isValid = false;
     }
 
-    if (currentStep === 4) {
-      if (!formData.charityCompany.trim()) {
-        newErrors.charityCompany = "Charity company is required";
-        isValid = false;
-      }
+    if (currentStep === 3) {
       if (!formData.minBidDonation.trim()) {
         newErrors.minBidDonation = "Minimum bid donation is required";
         isValid = false;
@@ -132,63 +131,17 @@ const SignupFlow = ({ searchParams }) => {
   };
 
   useEffect(() => {
-    const code = searchParams?.code;
-    const currentStepParam = searchParams?.currentStep;
+    const currentStepParam = searchParams.get('currentStep');
+    const userEmail = searchParams.get('userEmail');
 
-    if (code) {
-      axios
-        .get(`${process.env.NEXT_PUBLIC_REQUEST_URL}/api/routes/LinkedIn`, {
-          params: {
-            action: "linkedInCallback",
-            code: code,
-          },
-        })
-        .then((response) => {
-          if (
-            response.data.message ===
-            "Login successful! Please complete your profile by filling the next steps."
-          ) {
-            Cookies.set("userEmail", response.data.userProfileEmail, {
-              path: "/",
-              expires: 7,
-            });
-            nextStep();
-          } else if (
-            response.data.message ===
-            "Welcome back! You're logged in successfully."
-          ) {
-            Cookies.set("UserId", response.data.userId, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("Token", response.data.token, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("userName", response.data.userName, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("userEmail", response.data.userProfileEmail, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("userPhoto", response.data.userProfilePhoto, {
-              path: "/",
-              expires: 7,
-            });
-            Cookies.set("charityCompany", response.data.charityCompany, {
-              path: "/",
-              expires: 7,
-            });
+    if (userEmail) {
+      Cookies.set("userEmail", userEmail, {
+        path: "/",
+        expires: 7,
+      });
+    }
 
-            router.push("/");
-          }
-        })
-        .catch((err) => {
-          console.error("Login error:", err);
-        });
-    } else if (currentStepParam) {
+    if (currentStepParam) {
       const step = parseInt(currentStepParam, 10);
       if (!isNaN(step) && step >= 1 && step <= 5) {
         setCurrentStep(step);
@@ -415,7 +368,27 @@ const SignupFlow = ({ searchParams }) => {
                   </p>
                 )}
               </div>
-
+              <div className="gap-2 flex flex-col w-full">
+                <h1 className="text-base sm:text-lg font-[500] text-[var(--secondary-color)]">
+                  Minimum Bid Donation
+                </h1>
+                <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                  <CircleDollarSign className="text-[rgba(44,81,76,1)]" />
+                  <Input
+                    onChange={handleInputChange}
+                    value={formData.minBidDonation}
+                    name="minBidDonation"
+                    type="string"
+                    placeholder="Enter amount (e.g., 50)"
+                    className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
+                  />
+                </div>
+                {errors.minBidDonation && (
+                  <p className="text-red-500 text-sm">
+                    {errors.minBidDonation}
+                  </p>
+                )}
+              </div>
               <div className="flex justify-between w-full gap-4">
                 <Button
                   variant="outline"
@@ -437,88 +410,14 @@ const SignupFlow = ({ searchParams }) => {
           </motion.div>
         );
       case 4:
-        return (
-          <motion.div
-            key="step4"
-            custom={direction}
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
-            className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 sm:px-8"
-          >
-            <div className="w-full lg:max-w-md space-y-8">
-              <div className="gap-2 flex flex-col w-full">
-                <h1 className="text-base sm:text-lg font-[500] text-[var(--secondary-color)]">
-                  Charity Company
-                </h1>
-                <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
-                  <Input
-                    onChange={handleInputChange}
-                    value={formData.charityCompany}
-                    name="charityCompany"
-                    type="text"
-                    placeholder="UNICEF"
-                    className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
-                  />
-                </div>
-                {errors.charityCompany && (
-                  <p className="text-red-500 text-sm">
-                    {errors.charityCompany}
-                  </p>
-                )}
-              </div>
-
-              <div className="gap-2 flex flex-col w-full">
-                <h1 className="text-base sm:text-lg font-[500] text-[var(--secondary-color)]">
-                  Minimum Bid
-                </h1>
-                <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
-                  <CircleDollarSign className="text-[rgba(44,81,76,1)]" />
-                  <Input
-                    onChange={handleInputChange}
-                    value={formData.minBidDonation}
-                    name="minBidDonation"
-                    type="string"
-                    placeholder="Enter amount (e.g., 50)"
-                    className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
-                  />
-                </div>
-                {errors.minBidDonation && (
-                  <p className="text-red-500 text-sm">
-                    {errors.minBidDonation}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex justify-between w-full gap-4">
-                <Button
-                  variant="outline"
-                  onClick={prevStep}
-                  className="h-12 w-32 md:w-36 cursor-pointer text-base sm:text-lg border-gray-300 text-gray-700"
-                >
-                  Back
-                </Button>
-                <Button
-                  onClick={nextStep}
-                  size={"default"}
-                  className="h-12 w-44 text-lg bg-[#2c514c] text-white cursor-pointer border-2 
-                  border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)]"
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        );
-      case 5:
         const submitProfileInformation = async () => {
+          setLoading(true);
           try {
-            const userEmail = searchParams?.userEmail;
+            const userEmail = Cookies.get("userEmail");
 
             if (!userEmail) {
               alert("User email not found. Please log in again.");
+              setLoading(false);
               return;
             }
 
@@ -564,13 +463,14 @@ const SignupFlow = ({ searchParams }) => {
             });
 
             router.push(`/${response.data.user.userId}/dashboard`);
-            
+
           } catch (error) {
             console.error("Error occurred:", error);
             alert(
               error.response?.data?.message ||
-                "Failed to update profile. Please try again."
+              "Failed to update profile. Please try again."
             );
+            setLoading(false); // Reset loading state on error
           }
         };
         return (
@@ -633,8 +533,16 @@ const SignupFlow = ({ searchParams }) => {
                   <Button
                     onClick={submitProfileInformation}
                     className="h-12 w-32 md:w-44 text-base sm:text-lg bg-[#2c514c] text-white border-2 border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)] cursor-pointer"
+                    disabled={loading}
                   >
-                    {loading ? "Finishing..." : "Finish"}
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Finishing...
+                      </>
+                    ) : (
+                      "Finish"
+                    )}
                   </Button>
                 </div>
               </div>
