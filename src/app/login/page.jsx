@@ -160,11 +160,11 @@ const LoginPage = () => {
             expires: 7,
           });
         }
-        Cookies.set("token", response.data.token, {
+        Cookies.set("Token", response.data.token, {
           path: "/",
           expires: 7,
         });
-        Cookies.set("userId", userId, {
+        Cookies.set("UserId", userId, {
           path: "/",
           expires: 7,
         });
