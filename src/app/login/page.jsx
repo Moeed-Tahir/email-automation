@@ -204,10 +204,10 @@ const LoginPage = () => {
           userEmail,
           userName,
           userPhoto,
-          token,
-          charityCompany,
           userId,
         } = response.data.user;
+        const token = response.data.token;
+        const charityCompany = response.data.user.charityCompany;
 
         Cookies.set("userEmail", userEmail, {
           path: "/",
@@ -223,7 +223,7 @@ const LoginPage = () => {
             expires: 7,
           });
         }
-        Cookies.set("Token", response.data.token, {
+        Cookies.set("Token", token, {
           path: "/",
           expires: 7,
         });
@@ -238,7 +238,7 @@ const LoginPage = () => {
           });
         }
 
-        conole.log("Login successful:", {
+        console.log("Login successful:", {
           userEmail,
           userName,
           userPhoto,
