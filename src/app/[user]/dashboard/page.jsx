@@ -7,7 +7,6 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useEmailMonitoring } from "@/hooks/useEmailMonitoring";
 
 export default function Page() {
   const userId = Cookies.get("UserId");
@@ -18,23 +17,31 @@ export default function Page() {
     averageBidAmount: "0",
     pendingBidsCount: 0,
     totalBidsCount: 0,
-    validBidsCount: 0
+    validBidsCount: 0,
+    totalBidsCountChange: "0.0",
+    highestBidChange: "0.0",
+    averageBidChange: "0.0",
+    pendingBidsChange: "0.0"
   });
+
+  const formatChange = (value) => {
+    const num = parseFloat(value);
+    const prefix = num > 0 ? "+" : "";
+    return `${prefix}${num.toFixed(1)}%`;
+  };
 
   useEffect(() => {
     const fetchBidInfo = async () => {
       try {
-        const response = await axios.post("/api/routes/SurvayForm?action=getBidInfo",{userId});
+        const response = await axios.post("/api/routes/SurvayForm?action=getBidInfo", { userId });
         setBidInfo(response.data);
-      } catch(error) {
+      } catch (error) {
         console.error("Error occurred", error);
       }
     };
 
     fetchBidInfo();
   }, []);
-
-  // useEmailMonitoring();
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 w-full">
@@ -83,13 +90,15 @@ export default function Page() {
           <div className="w-full">
             <p className="text-[15px] font-semibold">Total Bids Received</p>
             <p className="text-[15px] font-semibold">
-              +18.2%
+              {formatChange(bidInfo.totalBidsCountChange)}
               <span className="text-gray-400 text[13px] font-[400] pl-2">
                 than last week
               </span>
             </p>
           </div>
         </div>
+
+        {/* Highest Bid */}
         <div className="bg-white rounded-xl p-5 flex flex-col items-start justify-center gap-5 border-b-2 hover:border-b-3 border-[#EA5455]/50 shadow-[0_8px_30px_rgb(0,0,0,0.10)]">
           <div className="flex items-center gap-4">
             <span className="p-2 bg-[#EA545529]/80 rounded-lg">
@@ -105,13 +114,14 @@ export default function Page() {
           <div className="w-full">
             <p className="text-[15px] font-semibold">Highest Bid</p>
             <p className="text-[15px] font-semibold">
-              -8.7%
+              {formatChange(bidInfo.highestBidChange)}
               <span className="text-gray-400 text[13px] font-[400] pl-2">
                 than last week
               </span>
             </p>
           </div>
         </div>
+
         <div className="bg-white rounded-xl p-5 flex flex-col items-start justify-center gap-5 border-b-2 hover:border-b-3 border-[#00CFE8] shadow-[0_8px_30px_rgb(0,0,0,0.10)]">
           <div className="flex items-center gap-4">
             <span className="p-2 bg-[#00CFE829] rounded-lg">
@@ -127,13 +137,14 @@ export default function Page() {
           <div className="w-full">
             <p className="text-[15px] font-semibold">Average Bid</p>
             <p className="text-[15px] font-semibold">
-              +4.3%
+              {formatChange(bidInfo.averageBidChange)}
               <span className="text-gray-400 text[13px] font-[400] pl-2">
                 than last week
               </span>
             </p>
           </div>
         </div>
+
         <div className="bg-white rounded-xl p-5 flex flex-col items-start justify-center gap-5 border-b-2 hover:border-b-3 border-[#FF9F43] shadow-[0_8px_30px_rgb(0,0,0,0.10)]">
           <div className="flex items-center gap-4">
             <span className="p-2 bg-[#FF9F4329] rounded-lg">
@@ -151,7 +162,7 @@ export default function Page() {
               Pending Bids
             </p>
             <p className="text-[15px] font-semibold text-[#FF9F43]">
-              -2.5%
+              {formatChange(bidInfo.pendingBidsChange)}
               <span className="text-gray-400 text[13px] font-[400] pl-2">
                 than last week
               </span>
@@ -159,6 +170,7 @@ export default function Page() {
           </div>
         </div>
       </div>
+
       <div className="flex flex-col w-full bg-white rounded-xl p-4 border">
         <div className="flex items-center justify-end w-full ">
           <Button className="text-sm font-semibold text-[#2C514C] border-none bg-transparent hover:bg-transparent shadow-none cursor-pointer">

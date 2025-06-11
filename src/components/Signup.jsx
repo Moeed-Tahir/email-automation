@@ -31,6 +31,7 @@ const SignupFlow = () => {
     calendarLink: "",
     charityCompany: "",
     minBidDonation: "",
+    industry:"",
     motivation: "Please describe your solution and its key features.",
     howHeard: "How will your solution help me solve my core business challenges?",
   });
@@ -43,6 +44,7 @@ const SignupFlow = () => {
     calendarLink: "",
     charityCompany: "",
     minBidDonation: "",
+    industry:""
   });
   const router = useRouter();
 
@@ -56,6 +58,7 @@ const SignupFlow = () => {
       calendarLink: "",
       charityCompany: "",
       minBidDonation: "",
+      industry:""
     };
 
     if (currentStep === 2) {
@@ -88,6 +91,9 @@ const SignupFlow = () => {
         isValid = false;
       } else if (isNaN(Number(formData.minBidDonation))) {
         newErrors.minBidDonation = "Please enter a valid number";
+        isValid = false;
+      } else if (!formData.industry.trim()) {
+        newErrors.industry = "Please enter your Industry";
         isValid = false;
       }
     }
@@ -345,51 +351,75 @@ const SignupFlow = () => {
             transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
             className="flex flex-col justify-center items-center w-full mx-auto h-full text-left px-7 sm:px-8"
           >
-            <div className="w-full lg:max-w-md space-y-8 text-start">
-              <h1 className="text-base sm:text-lg font-[500] text-[#413E5E] mb-4">
-                Submit your pre-existing calendar links
+            <div className="w-full lg:max-w-md space-y-6">
+              <h1 className="text-3xl md:text-[40px] font-semibold text-[var(--secondary-color)] mb-4 text-left leading-[51px]">
+                Charity & Calendar Information
               </h1>
-              <div>
-                <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
-                  <Link className="text-[rgba(44,81,76,1)]" />
-                  <Input
-                    onChange={handleInputChange}
-                    value={formData.calendarLink}
-                    name="calendarLink"
-                    type="link"
-                    placeholder="Calendar Link"
-                    required
-                    className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
-                  />
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Calendar Link
+                  </Label>
+                  <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                    <Link className="text-[rgba(44,81,76,1)] size-5" />
+                    <Input
+                      onChange={handleInputChange}
+                      value={formData.calendarLink}
+                      name="calendarLink"
+                      type="link"
+                      placeholder="Enter your calendar link"
+                      className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
+                      required
+                    />
+                  </div>
+                  {errors.calendarLink && (
+                    <p className="text-red-500 text-sm mt-1">{errors.calendarLink}</p>
+                  )}
                 </div>
-                {errors.calendarLink && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.calendarLink}
-                  </p>
-                )}
-              </div>
-              <div className="gap-2 flex flex-col w-full">
-                <h1 className="text-base sm:text-lg font-[500] text-[var(--secondary-color)]">
-                  Minimum Bid Donation
-                </h1>
-                <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
-                  <CircleDollarSign className="text-[rgba(44,81,76,1)]" />
-                  <Input
-                    onChange={handleInputChange}
-                    value={formData.minBidDonation}
-                    name="minBidDonation"
-                    type="string"
-                    placeholder="Enter amount (e.g., 50)"
-                    className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
-                  />
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Minimum Bid Donation
+                  </Label>
+                  <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                    <CircleDollarSign className="text-[rgba(44,81,76,1)] size-5" />
+                    <Input
+                      onChange={handleInputChange}
+                      value={formData.minBidDonation}
+                      name="minBidDonation"
+                      type="text"
+                      placeholder="Enter amount (e.g., 50)"
+                      className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
+                    />
+                  </div>
+                  {errors.minBidDonation && (
+                    <p className="text-red-500 text-sm mt-1">{errors.minBidDonation}</p>
+                  )}
                 </div>
-                {errors.minBidDonation && (
-                  <p className="text-red-500 text-sm">
-                    {errors.minBidDonation}
-                  </p>
-                )}
+
+                  <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Industry
+                  </Label>
+                  <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                    <CircleDollarSign className="text-[rgba(44,81,76,1)] size-5" />
+                    <Input
+                      onChange={handleInputChange}
+                      value={formData.industry}
+                      name="industry"
+                      type="text"
+                      placeholder="Enter Industry"
+                      className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
+                    />
+                  </div>
+                  {errors.industry && (
+                    <p className="text-red-500 text-sm mt-1">{errors.industry}</p>
+                  )}
+                </div>
               </div>
-              <div className="flex justify-between w-full gap-4">
+
+              <div className="flex justify-between w-full gap-4 pt-4">
                 <Button
                   variant="outline"
                   onClick={prevStep}
@@ -401,12 +431,13 @@ const SignupFlow = () => {
                   onClick={nextStep}
                   size={"default"}
                   className="h-12 w-44 text-lg bg-[#2c514c] text-white cursor-pointer border-2 
-                  border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)]"
+      border-[rgba(44,81,76,1)] hover:bg-transparent hover:text-[rgba(44,81,76,1)]"
                 >
                   Next
                 </Button>
               </div>
             </div>
+
           </motion.div>
         );
       case 4:
@@ -434,6 +465,7 @@ const SignupFlow = () => {
                 charityCompany: formData.charityCompany,
                 minimumBidDonation: formData.minBidDonation,
                 howHeard: formData.howHeard,
+                industry:formData.industry
               }
             );
 

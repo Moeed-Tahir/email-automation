@@ -9,7 +9,7 @@ dotenv.config();
 const addProfileInfo = async (req, res) => {
   try {
     await connectToDatabase();
-    const { userEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard, jobDescription, location, companyName, jobTitle } = req.body;
+    const { userEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard, jobDescription, location, companyName, jobTitle,industry } = req.body;
 
     const user = await User.findOne({ userProfileEmail: userEmail });
     if (!user) {
@@ -21,6 +21,7 @@ const addProfileInfo = async (req, res) => {
     user.minimumBidDonation = minimumBidDonation;
     user.questionSolution = questionSolution;
     user.howHeard = howHeard;
+    user.industry = industry;
     user.jobDescription = jobDescription,
       user.location = location,
       user.jobTitle = jobTitle,
@@ -200,17 +201,17 @@ const sendOTP = async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Email is required" 
+      return res.status(400).json({
+        success: false,
+        message: "Email is required"
       });
     }
 
     const user = await User.findOne({ userProfileEmail: email });
     if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "User not found with this email" 
+      return res.status(404).json({
+        success: false,
+        message: "User not found with this email"
       });
     }
 
@@ -229,17 +230,17 @@ const sendOTP = async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-    
-    return res.status(200).json({ 
-      success: true, 
-      message: "OTP sent successfully" 
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully"
     });
   } catch (error) {
     console.error("Error sending OTP:", error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: "Internal server error",
-      error: error.message 
+      error: error.message
     });
   }
 };
@@ -250,9 +251,18 @@ const verifyOTP = async (req, res) => {
     const { email, otp } = req.body;
 
     if (!email || !otp) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Email and OTP are required" 
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required"
+      });
+    }
+
+    const userEmail = await User.findOne({ userProfileEmail: email });
+
+    if (!userEmail) {
+      return res.status(404).json({
+        success: false,
+        message: "Email does not exist"
       });
     }
 
@@ -263,9 +273,9 @@ const verifyOTP = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Invalid OTP or OTP expired" 
+      return res.status(401).json({
+        success: false,
+        message: "Invalid OTP or OTP expired"
       });
     }
 
@@ -273,7 +283,7 @@ const verifyOTP = async (req, res) => {
     user.otpExpires = undefined;
     await user.save();
 
-    const token = generateAuthToken(user); 
+    const token = generateAuthToken(user);
 
     return res.status(200).json({
       success: true,
@@ -289,10 +299,10 @@ const verifyOTP = async (req, res) => {
     });
   } catch (error) {
     console.error("Error verifying OTP:", error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: "Internal server error",
-      error: error.message 
+      error: error.message
     });
   }
 };

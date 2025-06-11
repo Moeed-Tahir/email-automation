@@ -316,31 +316,64 @@ const fetchSurvayDataAgainstObjectId = async (req, res) => {
 
 const getBidInfo = async (req, res) => {
   try {
-    await connectToDatabase()
+    await connectToDatabase();
     const { userId } = req.body;
     const allBids = await SurvayForm.find({ userId });
 
     const validBids = allBids.filter(bid => bid.bidAmount && !isNaN(parseFloat(bid.bidAmount)));
-
     const totalBidAmount = validBids.reduce((sum, bid) => sum + parseFloat(bid.bidAmount), 0);
-
-    const highestBid = validBids.length > 0
-      ? Math.max(...validBids.map(bid => parseFloat(bid.bidAmount)))
-      : 0;
-
-    const averageBid = validBids.length > 0
-      ? totalBidAmount / validBids.length
-      : 0;
-
+    const highestBid = validBids.length > 0 ? Math.max(...validBids.map(bid => parseFloat(bid.bidAmount))) : 0;
+    const averageBid = validBids.length > 0 ? totalBidAmount / validBids.length : 0;
     const pendingBidsCount = allBids.filter(bid => bid.status === "Pending").length;
+
+    const now = new Date();
+    const lastWeek = new Date();
+    lastWeek.setDate(now.getDate() - 7);
+    const previousWeek = new Date();
+    previousWeek.setDate(lastWeek.getDate() - 7);
+
+    const lastWeekBids = await SurvayForm.find({
+      userId,
+      createdAt: { $gte: lastWeek, $lte: now }
+    });
+    const weekBeforeLastBids = await SurvayForm.find({
+      userId,
+      createdAt: { $gte: previousWeek, $lt: lastWeek }
+    });
+
+    const percentChange = (current, previous) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
+
+    // Extract amounts
+    const lastWeekAmounts = lastWeekBids.map(b => parseFloat(b.bidAmount)).filter(n => !isNaN(n));
+    const previousWeekAmounts = weekBeforeLastBids.map(b => parseFloat(b.bidAmount)).filter(n => !isNaN(n));
+
+    // Calculate values
+    const lastWeekTotal = lastWeekAmounts.reduce((a, b) => a + b, 0);
+    const previousWeekTotal = previousWeekAmounts.reduce((a, b) => a + b, 0);
+
+    const highestLastWeek = Math.max(...lastWeekAmounts, 0);
+    const highestPreviousWeek = Math.max(...previousWeekAmounts, 0);
+
+    const avgLastWeek = lastWeekAmounts.length > 0 ? lastWeekTotal / lastWeekAmounts.length : 0;
+    const avgPreviousWeek = previousWeekAmounts.length > 0 ? previousWeekTotal / previousWeekAmounts.length : 0;
+
+    const lastWeekPending = lastWeekBids.filter(bid => bid.status === "Pending").length;
+    const previousWeekPending = weekBeforeLastBids.filter(bid => bid.status === "Pending").length;
 
     const response = {
       totalBidAmount: totalBidAmount.toFixed(2),
       highestBidAmount: highestBid.toFixed(2),
       averageBidAmount: averageBid.toFixed(2),
-      pendingBidsCount: pendingBidsCount,
+      pendingBidsCount,
       totalBidsCount: allBids.length,
-      validBidsCount: validBids.length
+      validBidsCount: validBids.length,
+      totalBidsCountChange: percentChange(lastWeekBids.length, weekBeforeLastBids.length).toFixed(1),
+      highestBidChange: percentChange(highestLastWeek, highestPreviousWeek).toFixed(1),
+      averageBidChange: percentChange(avgLastWeek, avgPreviousWeek).toFixed(1),
+      pendingBidsChange: percentChange(lastWeekPending, previousWeekPending).toFixed(1),
     };
 
     res.status(200).json(response);
@@ -349,6 +382,9 @@ const getBidInfo = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+
 
 
 module.exports = { getQuestionFromUserId, sendSurveyForm, fetchSurvayData, getBidInfo, fetchNameAgainstId, fetchSurvayDataAgainstObjectId };

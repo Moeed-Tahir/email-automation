@@ -18,6 +18,7 @@ export default function Layout({ children }) {
     const userEmail = Cookies.get("userEmail");
     const userName = Cookies.get("userName");
     const userPhoto = Cookies.get("userPhoto") || "/user.svg";
+    const userId = Cookies.get("UserId");
 
     const [profileData, setProfileData] = useState({
         userName: "",
@@ -67,7 +68,7 @@ export default function Layout({ children }) {
                     </div>
                     <div className="flex items-center justify-end w-full gap-2 mx-auto pl-10 p-5">
                        
-                        <Link className="flex items-center gap-2 py-1 px-3 border-1 rounded-md" href="/user/profile">
+                        <Link className="flex items-center gap-2 py-1 px-3 border-1 rounded-md" href={`/${userId}/profile`}>
                             <span className="hidden lg:block bg-[#2C514C]/10  rounded-full">
                                 <Image
                                     src={`${userPhoto}`}

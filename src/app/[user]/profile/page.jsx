@@ -23,8 +23,8 @@ export default function Page() {
     charityCompany: "",
     minimumBidDonation: "",
     calendarLink: "",
-    howHeard:"",
-    questionSolution:""
+    howHeard: "",
+    questionSolution: ""
   });
   const [formData, setFormData] = useState({ ...profileData });
 
@@ -145,13 +145,18 @@ export default function Page() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { id: "charityCompany", label: "Charity Company", key: "charityCompany", placeholder: "Enter charity name" },
-                { id: "minimumBidDonation", label: "Minimum Bid", key: "minimumBidDonation", placeholder: "Enter minimum bid" }
+                {
+                  id: "minimumBidDonation",
+                  label: "Minimum Bid",
+                  key: "minimumBidDonation",
+                  placeholder: "Enter minimum bid",
+                },
               ].map(({ id, label, key, placeholder }) => (
-                <div key={id} className="space-y-2">
+                <div key={id} className="space-y-2 w-full col-span-2">
                   <Label htmlFor={id}>{label}</Label>
                   <Input
                     id={id}
+                    className="w-full"
                     value={formData[key]}
                     placeholder={placeholder}
                     onChange={(e) =>
@@ -162,6 +167,7 @@ export default function Page() {
                 </div>
               ))}
             </div>
+
           </div>
 
           {/* Schedule */}

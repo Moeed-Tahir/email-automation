@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
         userProfilePhoto: { type: String, required: false },
         userProfileEmail: { type: String, required: false },
         companyName: { type: String, required: false, default: null },
+        industry: { type: String, required: false, default: null },
         jobTitle: { type: String, required: false, default: null },
         jobDescription: { type: String, required: false, default: null },
         location: { type: String, required: false, default: null },
