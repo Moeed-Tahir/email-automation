@@ -352,23 +352,25 @@ const getDonation = async (req, res) => {
   try {
     await connectToDatabase();
     const { userId } = req.body;
-
-    const query = userId ? { userId } : {};
-    const donations = await Donation.find(query);
+    console.log("userId",userId);
+    
+    const donations = await Donation.find({ userId });
+    console.log("donations", donations);
 
     res.status(200).json({
       success: true,
       message: "Donations retrieved successfully",
-      data: donations
+      data: donations,
     });
   } catch (error) {
     console.error("Error fetching donations:", error);
     res.status(500).json({
       success: false,
       message: "Failed to retrieve donations",
-      error: error.message
+      error: error.message,
     });
   }
-}
+};
+
 
 module.exports = { uploadReciptData, fetchReciptData, sendAcceptEmailFromAdmin, addDonation, getDonation, sendRejectEmailFromAdmin };

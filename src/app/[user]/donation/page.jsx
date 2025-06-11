@@ -10,7 +10,7 @@ const Page = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const userId = Cookies.get("userId");
+  const userId = Cookies.get("UserId");
 
   const getDonationData = async () => {
     try {
