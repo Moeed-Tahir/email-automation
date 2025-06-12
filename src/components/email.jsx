@@ -6,7 +6,7 @@ export default function ConfirmationPage() {
     <div className="min-h-fit flex flex-col items-center py-12 px-8 max-w-2xl mx-auto bg-[#F2F5F8]">
       {/* Logo */}
       <div className="mb-8 flex items-start justify-start w-full">
-        <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Logo" className="h-10" />
+        <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Logo" className="h-10" />
       </div>
 
       {/* Card */}
@@ -71,7 +71,7 @@ export default function ConfirmationPage() {
 
       {/* Footer */}
       <div className="flex items-center justify-between w-full max-w-2xl mt-8 text-gray-500 text-xs px-4">
-        <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Footer Logo" className="h-6" />
+        <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Footer Logo" className="h-6" />
         <div className="flex space-x-4">
           <a href="#">
             <img src="/twitter.svg" alt="Twitter" className="h-5" />

@@ -319,7 +319,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                 <!-- Logo -->
                 <tr>
                   <td align="left" style="padding: 20px;">
-                    <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Logo" style="height: 40px;">
+                    <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Logo" style="height: 40px;">
                   </td>
                 </tr>
     
@@ -364,12 +364,12 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                     <table width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
                         <td align="left">
-                          <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Footer Logo" style="height: 24px;">
+                          <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Footer Logo" style="height: 24px;">
                         </td>
                         <td align="right">
-                          <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(1).png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                          <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(2).png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
                         </td>
                       </tr>
                     </table>
@@ -471,7 +471,7 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
         <!-- Logo -->
         <tr>
           <td align="left" style="padding: 20px;">
-            <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Logo" style="height: 40px;">
+            <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Logo" style="height: 40px;">
           </td>
         </tr>
 
@@ -504,12 +504,12 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td align="left">
-                  <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Footer Logo" style="height: 24px;">
+                  <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Footer Logo" style="height: 24px;">
                 </td>
                  <td align="right">
-                  <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                  <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                  <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                  <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                  <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(1).png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                  <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(2).png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
                 </td>
               </tr>
             </table>
