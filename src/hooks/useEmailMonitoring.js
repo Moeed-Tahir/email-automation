@@ -12,6 +12,7 @@ export function useEmailMonitoring() {
       if (!isMounted) return;
       
       const userEmail = Cookies.get('userEmail');
+      const userName = Cookies.get('userName');
       
       if (!userEmail) {
         console.log('No user email found in cookies');
@@ -26,7 +27,7 @@ export function useEmailMonitoring() {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ userEmail }),
+            body: JSON.stringify({ userEmail,userName }),
           }
         );
 

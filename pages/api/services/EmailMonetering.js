@@ -10,9 +10,11 @@ const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = `${process.env.REQUEST_URL}/api/routes/Google?action=handleOAuth2Callback`;
 
 const startEmailMonitoring = async (req, res) => {
-  const { userEmail } = req.body;
+  const { userEmail, userName } = req.body;
   try {
-    await checkAndProcessEmails(userEmail);
+    console.log("userName", userName);
+
+    await checkAndProcessEmails(userEmail, userName);
     res.status(200).json({ message: `Email monitoring started for ${userEmail}` });
   } catch (error) {
     console.error(`Initial email check failed for ${userEmail}:`, error);
@@ -20,7 +22,7 @@ const startEmailMonitoring = async (req, res) => {
   }
 };
 
-async function checkAndProcessEmails(userEmail) {
+async function checkAndProcessEmails(userEmail, userName) {
   try {
     await connectToDatabase();
     const user = await User.findOne({ userProfileEmail: userEmail });
@@ -160,7 +162,8 @@ async function checkAndProcessEmails(userEmail) {
             user.userId,
             subject,
             references ? `${references} ${messageId}` : messageId,
-            inReplyTo
+            inReplyTo,
+            user.userName
           );
 
           await gmail.users.messages.modify({
@@ -182,7 +185,7 @@ async function checkAndProcessEmails(userEmail) {
   }
 }
 
-async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSubject, references, inReplyTo) {
+async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSubject, references, inReplyTo, userName) {
   try {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -195,6 +198,14 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSub
         accessToken: tokens.access_token,
       },
     });
+
+    const adminTransport = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'info@makelastingchange.com',
+        pass: 'vcvk scep luhp qosk',
+      },
+    })
 
     const mailOptions = {
       from: userEmail,
@@ -272,7 +283,121 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSub
       }
     };
 
+    const adminMailOption = {
+      from: "info@makelastingchange.com",
+      to: "info@makelastingchange.com",
+      subject: `Automated Reply: Survey Request from ${userName}`,
+      html: `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+            
+            <!-- Logo -->
+            <tr>
+              <td align="left" style="padding: 20px;">
+                <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Logo" style="height: 40px;">
+              </td>
+            </tr>
 
+            <!-- Heading -->
+            <tr>
+              <td style="padding: 0 20px;">
+                <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
+                  Automated Survey Request Notification
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Automated Message -->
+            <tr>
+              <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                <p><em>This is an automated message. Please do not reply directly to this email.</em></p>
+                <p>A survey request has been automatically generated from the following executive:</p>
+              </td>
+            </tr>
+
+            <!-- Executive and Sales Details -->
+            <tr>
+              <td style="padding: 0 20px 20px 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                <table cellpadding="10" style="background-color: #F7FAFC; border-radius: 4px; width: 100%;">
+                  <tr>
+                    <td style="border-bottom: 1px solid #E2E8F0;">
+                      <strong>Executive Name:</strong> ${userName}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="border-bottom: 1px solid #E2E8F0;">
+                      <strong>Executive Email:</strong> ${userEmail}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong>Recipient Email:</strong> ${toEmail}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Instructions -->
+            <tr>
+              <td style="padding: 0 20px 20px 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                <p>Please click the button below to complete the survey. Your feedback is valuable to us.</p>
+              </td>
+            </tr>
+
+            <!-- Button -->
+            <tr>
+              <td align="left" style="padding: 0 20px 20px 20px;">
+                <a href="${process.env.REQUEST_URL}/survay-form/${userId}?userId=${userId}"
+                   style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
+                  Complete Survey
+                </a>
+              </td>
+            </tr>
+            
+            <!-- Additional Info -->
+            <tr>
+              <td style="padding: 0 20px 20px 20px; font-size: 14px; color: #718096; line-height: 1.6;">
+                <p>If you did not expect to receive this survey or need assistance, please contact our support team.</p>
+              </td>
+            </tr>
+            
+          </table>
+
+          <!-- Footer -->
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
+            <tr>
+              <td align="center" style="font-size: 12px; color: #A0AEC0;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="left">
+                      <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project//Logo%20(6).png" alt="Footer Logo" style="height: 24px;">
+                    </td>
+                    <td align="right">
+                      <a href="#"><img src="https://i.ibb.co/Cs6pK9z4/line-md-twitter.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                      <a href="#"><img src="https://i.ibb.co/5XBf27WK/ic-baseline-facebook.png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                      <a href="#"><img src="https://i.ibb.co/XfqBK7wS/mdi-linkedin.png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  `,
+      headers: {
+        'References': references,
+        'In-Reply-To': inReplyTo,
+        'Auto-Submitted': 'auto-generated'
+      }
+    };
+
+    await adminTransport.sendMail(adminMailOption);
     await transporter.sendMail(mailOptions);
     console.log(`Sent reply email from ${userEmail} to ${toEmail} in thread ${inReplyTo}`);
   } catch (error) {
