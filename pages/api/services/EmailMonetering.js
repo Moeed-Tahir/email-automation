@@ -285,7 +285,7 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSub
 
     const adminMailOption = {
       from: "info@makelastingchange.com",
-      to: "info@makelastingchange.com",
+      to:toEmail,
       subject: `Automated Reply: Survey Request from ${userName}`,
       html: `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
@@ -337,13 +337,6 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSub
                     </td>
                   </tr>
                 </table>
-              </td>
-            </tr>
-
-            <!-- Instructions -->
-            <tr>
-              <td style="padding: 0 20px 20px 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
-                <p>Please click the button below to complete the survey. Your feedback is valuable to us.</p>
               </td>
             </tr>
 
