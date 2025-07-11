@@ -34,7 +34,7 @@ const sendSurveyForm = async (req, res) => {
   try {
 
     await connectToDatabase();
-    
+
     const {
       userId,
       bidAmount,
@@ -69,7 +69,7 @@ const sendSurveyForm = async (req, res) => {
     }
 
     if (Number(bidAmount) < Number(userData.minimumBidDonation)) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: `Bid amount must be greater than ${userData.minimumBidDonation}`,
         minimumBid: userData.minimumBidDonation
       });
@@ -96,8 +96,8 @@ const sendSurveyForm = async (req, res) => {
 
     const newSurvey = new SurvayForm(surveyData);
     await newSurvey.save();
-    
-    sendEmailFromCompany(email); 
+
+    sendEmailFromCompany(email, name, userData.userName, userData.location, userData.jobTitle, userData.industry,);
 
     return res.status(201).json({
       success: true,
@@ -107,7 +107,7 @@ const sendSurveyForm = async (req, res) => {
 
   } catch (error) {
     console.error("Error submitting survey:", error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
       message: "Internal server error",
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -115,11 +115,18 @@ const sendSurveyForm = async (req, res) => {
   }
 };
 
-const sendEmailFromCompany = async (sendEmailTo) => {
+const sendEmailFromCompany = async (
+  sendEmailTo,
+  recipientName,
+  executiveName,
+  location,
+  jobTitle,
+  companyName,
+  industry
+) => {
   try {
-
     if (!sendEmailTo) {
-      return res.status(400).json({ message: "sendEmailTo are required" });
+      return res.status(400).json({ message: "sendEmailTo is required" });
     }
 
     const transporter = nodemailer.createTransport({
@@ -131,69 +138,100 @@ const sendEmailFromCompany = async (sendEmailTo) => {
     });
 
     const mailOptions = {
-      from: 'Email-Automation',
+      from: 'Give2Meet <info@makelastingchange.com>',
       to: sendEmailTo,
-      subject: 'Thank You for Completing the Survey!',
+      subject: `Your Meeting Request Has Been Submitted to ${executiveName}`,
       html: `
-            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
-              <tr>
-                <td align="center">
-                  <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+                
+                <!-- Logo Header -->
+                <tr>
+                  <td align="left" style="padding: 20px;">
+                    <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Give2Meet Logo" style="height: 40px;">
+                  </td>
+                </tr>
+                
+                <!-- Main Content -->
+                <tr>
+                  <td style="padding: 20px;">
+                    <h1 style="font-size: 22px; font-weight: 600; color: #2D3748; margin: 0 0 20px 0;">
+                      Here's What Happens Next
+                    </h1>
                     
-                    <tr>
-                      <td align="left" style="padding: 20px;">
-                        <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Logo" style="height: 40px;">
-                      </td>
-                    </tr>
-        
-                    <tr>
-                      <td style="padding: 0 20px;">
-                        <h1 style="font-size: 22px; font-weight: 600; color: #2D3748; padding-bottom: 10px; margin: 0;">
-                          Thank You!
-                        </h1>
-                      </td>
-                    </tr>
-        
-                    <tr>
-                      <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
-                        <p>Hi,</p>
-                        <p>Thank you for taking the time to complete our survey. Your feedback is greatly appreciated!</p>
-                      </td>
-                    </tr>
-        
-                  </table>
-        
-                  <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
-                    <tr>
-                      <td align="center" style="font-size: 12px; color: #A0AEC0;">
-                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                          <tr>
-                            <td align="left">
-                              <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Footer Logo" style="height: 24px;">
-                            </td>
-                           <td align="right">
+                    <p style="font-size: 16px; color: #4A5568; line-height: 1.6; margin-bottom: 20px;">
+                      Hi ${recipientName || 'there'},
+                    </p>
+                    
+                    <p style="font-size: 16px; color: #4A5568; line-height: 1.6; margin-bottom: 20px;">
+                      Thanks for submitting your meeting request through Give2Meet.
+                    </p>
+                    
+                    <h2 style="font-size: 18px; font-weight: 600; color: #2D3748; margin: 20px 0 10px 0;">
+                      What Happens Next:
+                    </h2>
+                    
+                    <ul style="font-size: 16px; color: #4A5568; line-height: 1.6; margin: 0 0 20px 0; padding-left: 20px;">
+                      <li style="margin-bottom: 8px;">If your request is accepted, you'll receive an email with a link to schedule the meeting.</li>
+                      <li style="margin-bottom: 8px;">Your pledged donation will only be processed after the meeting takes place.</li>
+                      <li>If ${executiveName} decides not to move forward, you'll also be notified.</li>
+                    </ul>
+                    
+                    <p style="font-size: 16px; color: #4A5568; line-height: 1.6; margin-bottom: 20px;">
+                      I appreciate your thoughtful approach and for your willingness to support a worthy cause.
+                    </p>
+                    
+                    <p style="font-size: 16px; color: #4A5568; line-height: 1.6; margin-bottom: 0;">
+                      Thanks again for your submission!
+                    </p>
+                  </td>
+                </tr>
+                
+                <!-- Executive Signature -->
+                <tr>
+                  <td style="padding: 20px; border-top: 1px solid #E2E8F0; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                    <p style="margin: 0 0 5px 0;">Best,</p>
+                    <p style="margin: 0 0 5px 0; font-weight: 600;">${executiveName}</p>
+                    <p style="margin: 0 0 5px 0;">${jobTitle}</p>
+                    <p style="margin: 0 0 5px 0;">${companyName}</p>
+                    <p style="margin: 0;">${location}</p>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Footer -->
+              <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
+                <tr>
+                  <td align="center" style="font-size: 12px; color: #A0AEC0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="left">
+                          <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Footer Logo" style="height: 24px;">
+                        </td>
+                        <td align="right">
                           <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
                           <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(1).png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
                           <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(2).png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
                         </td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
-                  </table>
-        
-                </td>
-              </tr>
-            </table>
-          `
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      `
     };
 
-
     await transporter.sendMail(mailOptions);
+    console.log(`Confirmation email sent to ${sendEmailTo}`);
 
   } catch (error) {
     console.error("Error sending email:", error);
-    res.status(500).json({ message: "Failed to send email", error: error.message });
+    throw error;
   }
 };
 
@@ -211,6 +249,7 @@ const fetchSurvayData = async (req, res) => {
     }
 
     const surveyData = await SurvayForm.find({ userId }).lean();
+    const userData = await User.find({ userId }).lean();
 
     if (!surveyData || surveyData.length === 0) {
       return res.status(200).json({
@@ -220,10 +259,30 @@ const fetchSurvayData = async (req, res) => {
       });
     }
 
+    // If user data exists, add the required properties to each survey item
+    if (userData && userData.length > 0) {
+      const user = userData[0]; // Assuming there's only one user per userId
+      
+      const enrichedSurveyData = surveyData.map(survey => ({
+        ...survey,
+        location: user.location,
+        companyName: user.companyName,
+        jobTitle: user.jobTitle,
+        industry: user.industry
+      }));
+
+      return res.status(200).json({
+        success: true,
+        message: "Survey data retrieved successfully",
+        data: enrichedSurveyData,
+      });
+    }
+
+    // If no user data found, return the original survey data
     return res.status(200).json({
       success: true,
       message: "Survey data retrieved successfully",
-      data: surveyData
+      data: surveyData,
     });
 
   } catch (error) {

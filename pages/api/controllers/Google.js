@@ -44,7 +44,7 @@ exports.startAuth = (req, res) => {
 exports.handleOAuth2Callback = async (req, res) => {
   try {
     await connectToDatabase();
-    
+
     const code = req.query.code;
     if (!code) {
       throw new Error('Authorization code missing');
@@ -62,7 +62,7 @@ exports.handleOAuth2Callback = async (req, res) => {
       auth: oAuth2Client,
       version: 'v2'
     });
-    
+
     const userInfo = await oauth2.userinfo.get();
     const googleEmail = userInfo.data.email;
     const googleName = userInfo.data.name || 'No name provided';
@@ -104,11 +104,10 @@ exports.handleOAuth2Callback = async (req, res) => {
       stack: error.stack,
       name: error.name
     });
-    
-    const errorUrl = `${process.env.REQUEST_URL}/auth-error?message=${
-      encodeURIComponent(error.message)
-    }&code=${encodeURIComponent(error.code || 'UNKNOWN_ERROR')}`;
-    
+
+    const errorUrl = `${process.env.REQUEST_URL}/auth-error?message=${encodeURIComponent(error.message)
+      }&code=${encodeURIComponent(error.code || 'UNKNOWN_ERROR')}`;
+
     res.redirect(errorUrl);
   }
 };
@@ -255,7 +254,7 @@ exports.stopMonitoring = (userEmail) => {
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId, userName,charityCompany } = req.body;
+    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId, userName, charityCompany, companyName, industry, jobTitle, location } = req.body;
 
     const user = await User.findOne({ userProfileEmail: sendFromEmail });
     if (!user) {
@@ -310,77 +309,86 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
     const mailOptions = {
       from: sendFromEmail,
       to: sendToEmail,
-      subject: `Meeting Confirmed with ${userName}`,
+      subject: `Your Donation Is Confirmed — Schedule Your Meeting with ${userName}`,
       html: `
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
-          <tr>
-            <td align="center">
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
-                <!-- Logo -->
-                <tr>
-                  <td align="left" style="padding: 20px;">
-                    <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Logo" style="height: 40px;">
-                  </td>
-                </tr>
-    
-                <!-- Heading -->
-                <tr>
-                  <td style="padding: 0 20px;">
-                    <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
-                      Meeting Confirmed with ${userName}
-                    </h1>
-                  </td>
-                </tr>
-    
-                <!-- Message -->
-                <tr>
-                  <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
-                    <p>Dear <strong>${userName}</strong>,</p>
-                    <p>Great news! ${userName} has accepted your meeting request.</p>
-                    <p>Please complete your donation to ${charityCompany} as per the agreed amount of <strong>${bidAmount}</strong>.</p>
-    
-                    <!-- Closing -->
-                    <p style="margin-top: 20px;">Thank you for your generosity and participation!<br>Best,</p>
-                    <p>Email-Automation Team</p>
-                  </td>
-                </tr>
-    
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+            <!-- Logo -->
+            <tr>
+              <td align="left" style="padding: 20px;">
+                <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Logo" style="height: 40px;">
+              </td>
+            </tr>
+
+            <!-- Heading -->
+            <tr>
+              <td style="padding: 20px 20px 0 20px;">
+                <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; margin: 0; text-align: left;">
+                  You're All Set! Book Your Meeting Now
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Message -->
+            <tr>
+              <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6; text-align: left;">
+                <p style="margin: 0 0 16px 0;">Hi <strong>${name}</strong>,</p>
+                <p style="margin: 0 0 16px 0;">Thank you for completing your donation to <strong>${charityCompany}</strong>. Your support means a lot, and we're one step closer to meeting!</p>
+                
+                <h2 style="font-size: 18px; margin: 24px 0 16px 0;">What's Next:</h2>
+                <p style="margin: 0 0 16px 0;">Please use the link below to select a date and time that works best for you. The meeting will be added directly to my calendar and you will receive a calendar invitation to accept.</p>
+                
                 <!-- Button -->
-                <tr>
-  <td align="left" style="padding: 20px;">
-    <a href="${process.env.REQUEST_URL}/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}&surveyId=${surveyId}&surveyObjectId=${objectId}"
-       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
-      Upload Receipt
-    </a>
-  </td>
-</tr>
-    
-              </table>
-    
-              <!-- Footer -->
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
-                <tr>
-                  <td align="center" style="font-size: 12px; color: #A0AEC0;">
-                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <td align="left">
-                          <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Footer Logo" style="height: 24px;">
-                        </td>
-                        <td align="right">
-                          <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(1).png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(2).png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-    
-            </td>
-          </tr>
-        </table>
-      `
+                <p style="margin: 24px 0 16px 0;">
+                  <a href="${process.env.REQUEST_URL}/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}&surveyId=${surveyId}&surveyObjectId=${objectId}"
+                    style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
+                    👉 Schedule Your Meeting Here
+                  </a>
+                </p>
+                
+                <p style="margin: 0 0 16px 0;">A few quick reminders. Your donation will be held in escrow until the meeting takes place. If the meeting is completed as scheduled, the donation will be released to the charity.</p>
+                
+                <p style="margin: 24px 0 0 0;">Thanks again for using Give2Meet to make our time together meaningful and impactful.</p>
+                
+                <!-- Signature -->
+                <p style="margin: 24px 0 0 0;">
+                  Best,<br>
+                  <strong>${userName}</strong><br>
+                  ${jobTitle}<br>
+                  ${companyName}<br>
+                  ${location}
+                </p>
+              </td>
+            </tr>
+
+          </table>
+
+          <!-- Footer -->
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
+            <tr>
+              <td align="center" style="font-size: 12px; color: #A0AEC0;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="left" style="text-align: left;">
+                      <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Footer Logo" style="height: 24px;">
+                    </td>
+                    <td align="right" style="text-align: right;">
+                      <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                      <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(1).png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                      <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(2).png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  `
     };
 
 
@@ -403,7 +411,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
 
 exports.sendRejectEmailToAdmin = async (req, res) => {
   try {
-    const { sendFromEmail, sendToEmail, objectId,userName } = req.body;
+    const { sendFromEmail, sendToEmail, objectId, userName } = req.body;
 
     await connectToDatabase();
 

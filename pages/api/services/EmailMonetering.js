@@ -12,7 +12,6 @@ const REDIRECT_URI = `${process.env.REQUEST_URL}/api/routes/Google?action=handle
 const startEmailMonitoring = async (req, res) => {
   const { userEmail, userName } = req.body;
   try {
-    console.log("userName", userName);
 
     await checkAndProcessEmails(userEmail, userName);
     res.status(200).json({ message: `Email monitoring started for ${userEmail}` });
@@ -163,7 +162,10 @@ async function checkAndProcessEmails(userEmail, userName) {
             subject,
             references ? `${references} ${messageId}` : messageId,
             inReplyTo,
-            user.userName
+            user.userName,
+            user.jobTitle,
+            user.companyName,
+            user.location
           );
 
           await gmail.users.messages.modify({
@@ -185,7 +187,19 @@ async function checkAndProcessEmails(userEmail, userName) {
   }
 }
 
-async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSubject, references, inReplyTo, userName) {
+async function sendResponseEmail(
+  userEmail,
+  toEmail,
+  tokens,
+  userId,
+  originalSubject,
+  references,
+  inReplyTo,
+  userName,
+  jobTitle,
+  companyName,
+  location
+) {
   try {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -210,73 +224,83 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSub
     const mailOptions = {
       from: userEmail,
       to: toEmail,
-      subject: `Re: ${originalSubject}`,
+      subject: `You Contacted ${userName} — Here's the Next Step`,
       html: `
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
-          <tr>
-            <td align="center">
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
-                
-                <!-- Logo -->
-                <tr>
-                  <td align="left" style="padding: 20px;">
-                    <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Logo" style="height: 40px;">
-                  </td>
-                </tr>
-    
-                <!-- Heading -->
-                <tr>
-                  <td style="padding: 0 20px;">
-                    <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
-                      Survey Form
-                    </h1>
-                  </td>
-                </tr>
-    
-                <!-- Message -->
-                <tr>
-                  <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
-                    <p>Hello,</p>
-                    <p>We would appreciate your feedback! Please fill out our short survey by clicking the button below:</p>
-                  </td>
-                </tr>
-    
-                <!-- Button -->
-<tr>
-  <td align="left" style="padding: 20px;">
-    <a href="${process.env.REQUEST_URL}/survay-form/${userId}?userId=${userId}"
-       style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
-      Complete Survey
-    </a>
-  </td>
-</tr>
-    
-              </table>
-    
-              <!-- Footer -->
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
-                <tr>
-                  <td align="center" style="font-size: 12px; color: #A0AEC0;">
-                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                      <tr>
-                        <td align="left">
-                          <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Footer Logo" style="height: 24px;">
-                        </td>
-                         <td align="right">
-                          <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(1).png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
-                          <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(2).png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-    
-            </td>
-          </tr>
-        </table>
-      `,
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+            <!-- Logo -->
+            <tr>
+              <td align="left" style="padding: 20px;">
+                <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Logo" style="height: 40px;">
+              </td>
+            </tr>
+            
+            <!-- Header -->
+            <tr>
+              <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                <p style="font-size: 24px; font-weight: 600; color: #2D3748; margin: 0 0 20px 0;">
+                  ${userName} Reviews Meeting Requests Through Give2Meet
+                </p>
+                <p>Hi [First Name],</p>
+                <p>Thanks for reaching out!</p>
+                <p>To manage a high volume of sales requests and make time count for more than just business, I use Give2Meet to review and qualify meetings. If you'd like to be considered, here's how to move forward:</p>
+                <p>You'll be asked to:</p>
+                <ul>
+                  <li>Share a few quick details about how you can help</li>
+                  <li>Pledge a donation to their chosen charity (only processed if the meeting happens)</li>
+                </ul>
+                <p>It's a simple way to prove the value of your outreach while supporting a good cause.</p>
+              </td>
+            </tr>
+            
+            <!-- Button -->
+            <tr>
+              <td align="left" style="padding: 0 20px 20px 20px;">
+                <a href="${process.env.REQUEST_URL}/survay-form/${userId}?userId=${userId}"
+                   style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
+                  Submit a Meeting Request
+                </a>
+              </td>
+            </tr>
+            
+            <!-- Signature -->
+            <tr>
+              <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6; border-top: 1px solid #E2E8F0;">
+                <p>Thanks again for your interest.</p>
+                <p>Best,<br>
+                <strong>${userName}</strong><br>
+                ${jobTitle}<br>
+                ${companyName}<br>
+                ${location}</p>
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Footer -->
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="margin-top: 30px;">
+            <tr>
+              <td align="center" style="font-size: 12px; color: #A0AEC0;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="left">
+                      <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Footer Logo" style="height: 24px;">
+                    </td>
+                    <td align="right">
+                      <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame.png" alt="Twitter" style="height: 20px; margin-left: 10px;"></a>
+                      <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(1).png" alt="Facebook" style="height: 20px; margin-left: 10px;"></a>
+                      <a href="#"><img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Frame%20(2).png" alt="LinkedIn" style="height: 20px; margin-left: 10px;"></a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `,
       headers: {
         'References': references,
         'In-Reply-To': inReplyTo
@@ -285,7 +309,7 @@ async function sendResponseEmail(userEmail, toEmail, tokens, userId, originalSub
 
     const adminMailOption = {
       from: "info@makelastingchange.com",
-      to:"info@makelastingchange.com",
+      to: "info@makelastingchange.com",
       subject: `Automated Reply: Survey Request from ${userName}`,
       html: `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">

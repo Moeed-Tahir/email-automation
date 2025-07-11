@@ -9,7 +9,6 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { SidebarInset } from "@/components/ui/sidebar";
-import ConfirmationPage from "@/components/email";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogTrigger, DialogContent, DialogFooter } from "@/components/ui/dialog";
 

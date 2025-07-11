@@ -196,6 +196,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
 
   const handleConfirmAction = async () => {
     const { survey, actionType } = confirmationDialog;
+    console.log("survey",survey);
     if (!survey) return;
 
     setActionLoading({ id: survey._id, type: actionType });
@@ -222,7 +223,11 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
             name: survey.name,
             surveyId: survey._id,
             userName: userName,
-            charityCompany: charityCompany
+            charityCompany: charityCompany,
+            location:survey.location,
+            jobTitle:survey.jobTitle,
+            industry:survey.industry,
+            companyName:survey.companyName
           }
         );
 

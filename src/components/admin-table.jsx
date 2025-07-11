@@ -35,6 +35,8 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 
 const AdminTable = ({ tableData, fetchAdminData }) => {
+  console.log("tableData",tableData,"fetchAdminData",fetchAdminData);
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [statusFilters, setStatusFilters] = useState([]);
@@ -46,7 +48,7 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
   const [confirmationDialog, setConfirmationDialog] = useState({
     open: false,
     request: null,
-    actionType: null, // 'accept' or 'reject'
+    actionType: null,
   });
 
   useEffect(() => {
@@ -119,6 +121,7 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
 
   const handleConfirmAction = async () => {
     const { request, actionType } = confirmationDialog;
+    console.log("request",request);
     if (!request) return;
 
     try {
@@ -193,6 +196,7 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
   const endIndex = startIndex + itemsPerPage;
   const currentData = sortedData.slice(startIndex, endIndex);
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  console.log("currentData",currentData);
 
   return (
     <div className="w-full h-max">

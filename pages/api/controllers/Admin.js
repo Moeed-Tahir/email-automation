@@ -104,7 +104,6 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       },
     });
 
-    // First Email (with CC)
     const mailOptions1 = {
       from: 'Email-Automation <info@makelastingchange.com>',
       to: salesRepresentiveEmail,
