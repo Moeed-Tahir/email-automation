@@ -38,7 +38,8 @@ const sendSurveyForm = async (req, res) => {
     const {
       userId,
       bidAmount,
-      name,
+      firstName,
+      lastName,
       email,
       solutionDescription,
       businessChallengeSolution,
@@ -50,7 +51,13 @@ const sendSurveyForm = async (req, res) => {
       DonationWilling,
       escrowDonation,
       charityDonation,
-      totalScore
+      totalScore,
+      company,
+      jobTitle,
+      phoneNumber,
+      city,
+      state,
+      country
     } = req.body;
 
     if (!userId) {
@@ -78,7 +85,7 @@ const sendSurveyForm = async (req, res) => {
     const surveyData = {
       userId,
       bidAmount: Number(bidAmount),
-      name,
+      name: `${firstName} ${lastName}`,
       email,
       questionOneSolution: solutionDescription,
       questionTwoSolution: businessChallengeSolution,
@@ -91,13 +98,20 @@ const sendSurveyForm = async (req, res) => {
       escrowDonation: Boolean(escrowDonation),
       charityDonation,
       totalScore: Number(totalScore) || 0,
-      submittedAt: new Date()
+      submittedAt: new Date(),
+      company,
+      jobTitle,
+      phoneNumber,
+      city,
+      state,
+      country
     };
 
     const newSurvey = new SurvayForm(surveyData);
     await newSurvey.save();
+    let finalName = `${firstName} ${lastName}`;
 
-    sendEmailFromCompany(email, name, userData.userName, userData.location, userData.jobTitle, userData.industry,);
+    sendEmailFromCompany(email, finalName, userData.userName, userData.location, userData.jobTitle, userData.industry,);
 
     return res.status(201).json({
       success: true,
@@ -259,10 +273,9 @@ const fetchSurvayData = async (req, res) => {
       });
     }
 
-    // If user data exists, add the required properties to each survey item
     if (userData && userData.length > 0) {
-      const user = userData[0]; // Assuming there's only one user per userId
-      
+      const user = userData[0];
+
       const enrichedSurveyData = surveyData.map(survey => ({
         ...survey,
         location: user.location,

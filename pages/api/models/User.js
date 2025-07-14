@@ -27,7 +27,12 @@ const userSchema = new mongoose.Schema(
         questionSolution: { type: String, required: false },
         howHeard: { type: String, required: false },
         otp: { type: String, required: false },
-        otpExpires: { type: Date, required: false }
+        otpExpires: { type: Date, required: false },
+        linkedInProfile: { type: String, required: false },
+        location: { type: String, required: false },
+        aboutMe: { type: String, required: false },
+        department: { type: String, required: false },
+        focus: { type: String, required: false },
     },
     { timestamps: true }
 );

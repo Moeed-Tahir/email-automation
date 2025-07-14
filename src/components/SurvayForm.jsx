@@ -8,6 +8,10 @@ import {
   BadgeDollarSign,
   ChevronRight,
   ChevronLeft,
+  Briefcase,
+  Building,
+  Phone,
+  MapPin,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -20,8 +24,15 @@ const SurveyForm = ({ userId }) => {
   });
   const [formData, setFormData] = useState({
     bidAmount: "",
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
+    company: "",
+    jobTitle: "",
+    phoneNumber: "",
+    city: "",
+    state: "",
+    country: "",
     solutionDescription: "",
     businessChallengeSolution: "",
     businessProblem: "",
@@ -53,16 +64,50 @@ const SurveyForm = ({ userId }) => {
     if (currentTab === 1) {
       const newErrors = {};
 
-      if (!formData.name.trim()) {
-        newErrors.name = "Name is required";
+      // Validate first name
+      if (!formData.firstName.trim()) {
+        newErrors.firstName = "First name is required";
       }
 
+      // Validate last name
+      if (!formData.lastName.trim()) {
+        newErrors.lastName = "Last name is required";
+      }
+
+      // Validate email
       if (!formData.email.trim()) {
         newErrors.email = "Email is required";
       } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
         newErrors.email = "Email is invalid";
       }
 
+      // Validate company
+      if (!formData.company.trim()) {
+        newErrors.company = "Company is required";
+      }
+
+      // Validate job title
+      if (!formData.jobTitle.trim()) {
+        newErrors.jobTitle = "Job title is required";
+      }
+
+      // Validate phone number
+      if (!formData.phoneNumber.trim()) {
+        newErrors.phoneNumber = "Phone number is required";
+      }
+
+      // Validate location fields
+      if (!formData.city.trim()) {
+        newErrors.city = "City is required";
+      }
+      if (!formData.state.trim()) {
+        newErrors.state = "State is required";
+      }
+      if (!formData.country.trim()) {
+        newErrors.country = "Country is required";
+      }
+
+      // Validate bid amount
       if (!formData.bidAmount) {
         newErrors.bidAmount = "Bid amount is required";
       } else if (isNaN(formData.bidAmount) || Number(formData.bidAmount) <= 0) {
@@ -227,10 +272,7 @@ const SurveyForm = ({ userId }) => {
               </div>
 
               <div className="flex-1">
-                <h1
-                  className="text-3xl font-bold"
-                  style={{ color: "rgba(44, 81, 76, 1)" }}
-                >
+                <h1 className="text-3xl font-bold">
                   {profileData.userName || "No name provided"}
                 </h1>
                 <p className="text-lg text-gray-600">
@@ -238,92 +280,196 @@ const SurveyForm = ({ userId }) => {
                   {profileData.companyName && ` at ${profileData.companyName}`}
                 </p>
 
-                <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-green-100 border border-green-200">
-                  <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
-                  <span className="text-sm font-medium text-green-800">
-                    Instant response
-                  </span>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 border border-green-200">
+                    <span className="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                    <span className="text-sm font-medium text-green-800">
+                      Responsive
+                    </span>
+                  </div>
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 border border-blue-200">
+                    <span className="text-sm font-medium text-blue-800">
+                      Company
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-6 mb-8">
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold text-gray-700 mb-3">Position</h3>
-                <p className="text-lg">
-                  {profileData.jobTitle || "Not specified"}
-                </p>
+              {/* Personal Information */}
+              <div className="col-span-1">
+                <h2 className="text-xl font-semibold mb-4">Personal</h2>
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-semibold text-gray-700 mb-2">LinkedIn</h3>
+                    <p className="text-lg">
+                      {profileData.linkedInProfile || "Not specified"}
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-semibold text-gray-700 mb-2">My Home Base</h3>
+                    <div className="flex gap-4">
+                      <p className="text-lg">
+                        {profileData.location || "Not specified"}
+                      </p>
+                      <p className="text-lg">
+                        {profileData.timezone || "America/New York"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-semibold text-gray-700 mb-2">About Me</h3>
+                    <p className="text-lg">
+                      {profileData.aboutMe || "Not specified"}
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-semibold text-gray-700 mb-2">My Department</h3>
+                    <p className="text-lg">
+                      {profileData.department || "Not specified"}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold text-gray-700 mb-3">Industry</h3>
-                <p className="text-lg">
-                  {profileData.industry || "Not specified"}
-                </p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold text-gray-700 mb-3">Charity</h3>
-                <p className="text-lg">
-                  {profileData.charityCompany || "Not specified"}
-                </p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold text-gray-700 mb-3">
-                  Minimum Bid
-                </h3>
-                <p className="text-lg">
-                  {profileData.minimumBidDonation
-                    ? `$${profileData.minimumBidDonation}`
-                    : "Not specified"}
-                </p>
-              </div>
-            </div>
 
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 mb-8">
-              <h3 className="text-xl font-bold mb-3">Pitch Me</h3>
-              <p className="mb-4">
-                Please fill out the form below to help me understand you.
-              </p>
-              <p className="text-sm italic text-gray-600">
-                Note: please use this instead of cold prospecting.
-              </p>
+              {/* Company Information */}
+              <div className="col-span-1">
+                <h2 className="text-xl font-semibold mb-4">Response Status</h2>
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-semibold text-gray-700 mb-2">Company</h3>
+                    <p className="text-lg">
+                      {profileData.companyName || "Not specified"}
+                    </p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h3 className="font-semibold text-gray-700 mb-2">My Position In The Company</h3>
+                    <p className="text-lg">
+                      {profileData.jobTitle || "Not specified"}
+                    </p>
+                  </div>
+                </div>
+
+                <h2 className="text-xl font-semibold mb-4 mt-6">Focused On</h2>
+                <div className="p-4 border rounded-lg">
+                  <p className="text-lg">
+                    {profileData.focus || "Not specified"}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         );
       case 1:
         return (
           <>
-            <p className="font-medium text-2xl mb-6">
-              Enter Your Name and Email
-            </p>
-            <InputField
-              label="Name"
-              type="text"
-              icon={<User />}
-              value={formData.name}
-              onChange={(val) => setFormData({ ...formData, name: val })}
-              error={errors.name}
-            />
-            <InputField
-              label="Email Address"
-              type="email"
-              icon={<Mail />}
-              value={formData.email}
-              onChange={(val) => setFormData({ ...formData, email: val })}
-              error={errors.email}
-            />
-            <InputField
-              label="Bid Amount ($)"
-              type="number"
-              icon={<BadgeDollarSign />}
-              value={formData.bidAmount}
-              onChange={(val) => setFormData({ ...formData, bidAmount: val })}
-              error={errors.bidAmount}
-              hint={
-                profileData.minimumBidDonation
-                  ? `Minimum bid: $${profileData.minimumBidDonation}`
-                  : null
-              }
-            />
+            <p className="font-medium text-2xl mb-6">Enter Your Information</p>
+
+            {/* Name Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputField
+                label="First Name *"
+                type="text"
+                icon={<User />}
+                value={formData.firstName}
+                onChange={(val) => setFormData({ ...formData, firstName: val })}
+                error={errors.firstName}
+              />
+              <InputField
+                label="Last Name *"
+                type="text"
+                icon={<User />}
+                value={formData.lastName}
+                onChange={(val) => setFormData({ ...formData, lastName: val })}
+                error={errors.lastName}
+              />
+            </div>
+
+            {/* Company Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputField
+                label="Company *"
+                type="text"
+                icon={<Building />}
+                value={formData.company}
+                onChange={(val) => setFormData({ ...formData, company: val })}
+                error={errors.company}
+              />
+              <InputField
+                label="Job Title *"
+                type="text"
+                icon={<Briefcase />}
+                value={formData.jobTitle}
+                onChange={(val) => setFormData({ ...formData, jobTitle: val })}
+                error={errors.jobTitle}
+              />
+            </div>
+
+            {/* Contact Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputField
+                label="Email Address *"
+                type="email"
+                icon={<Mail />}
+                value={formData.email}
+                onChange={(val) => setFormData({ ...formData, email: val })}
+                error={errors.email}
+              />
+              <InputField
+                label="Phone Number *"
+                type="tel"
+                icon={<Phone />}
+                value={formData.phoneNumber}
+                onChange={(val) => setFormData({ ...formData, phoneNumber: val })}
+                error={errors.phoneNumber}
+              />
+            </div>
+
+            {/* Location Information */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <InputField
+                label="City *"
+                type="text"
+                icon={<MapPin />}
+                value={formData.city}
+                onChange={(val) => setFormData({ ...formData, city: val })}
+                error={errors.city}
+              />
+              <InputField
+                label="State *"
+                type="text"
+                icon={<MapPin />}
+                value={formData.state}
+                onChange={(val) => setFormData({ ...formData, state: val })}
+                error={errors.state}
+              />
+              <InputField
+                label="Country *"
+                type="text"
+                icon={<MapPin />}
+                value={formData.country}
+                onChange={(val) => setFormData({ ...formData, country: val })}
+                error={errors.country}
+              />
+            </div>
+
+            {/* Bid Amount */}
+            <div className="mt-4">
+              <InputField
+                label="Bid Amount ($) *"
+                type="number"
+                icon={<BadgeDollarSign />}
+                value={formData.bidAmount}
+                onChange={(val) => setFormData({ ...formData, bidAmount: val })}
+                error={errors.bidAmount}
+                hint={
+                  profileData.minimumBidDonation
+                    ? `Minimum bid: $${profileData.minimumBidDonation}`
+                    : null
+                }
+              />
+            </div>
           </>
         );
       case 2:
@@ -441,33 +587,35 @@ const SurveyForm = ({ userId }) => {
               }
               error={errors.DonationWilling}
             />
-            <>
-              <RadioGroup
-                label="Would you be willing to escrow this donation amount to be released after the meeting takes place?"
-                options={["No", "Yes"]}
-                value={formData.escrowDonation}
-                onChange={(val) =>
-                  setFormData({ ...formData, escrowDonation: val })
-                }
-                error={errors.escrowDonation}
-              />
-              <RadioGroup
-                label="How much would you be willing to donate?"
-                options={[
-                  "$10-$50",
-                  "$51-$100",
-                  "$101-$200",
-                  "$201-$300",
-                  "$301-$400",
-                  "$401-$500",
-                ]}
-                value={formData.charityDonation}
-                onChange={(val) =>
-                  setFormData({ ...formData, charityDonation: val })
-                }
-                error={errors.charityDonation}
-              />
-            </>
+            {formData.DonationWilling === "Yes" && (
+              <>
+                <RadioGroup
+                  label="Would you be willing to escrow this donation amount to be released after the meeting takes place?"
+                  options={["No", "Yes"]}
+                  value={formData.escrowDonation}
+                  onChange={(val) =>
+                    setFormData({ ...formData, escrowDonation: val })
+                  }
+                  error={errors.escrowDonation}
+                />
+                <RadioGroup
+                  label="How much would you be willing to donate?"
+                  options={[
+                    "$10-$50",
+                    "$51-$100",
+                    "$101-$200",
+                    "$201-$300",
+                    "$301-$400",
+                    "$401-$500",
+                  ]}
+                  value={formData.charityDonation}
+                  onChange={(val) =>
+                    setFormData({ ...formData, charityDonation: val })
+                  }
+                  error={errors.charityDonation}
+                />
+              </>
+            )}
           </>
         );
       default:
@@ -560,9 +708,8 @@ const InputField = ({ label, type, icon, value, onChange, error, hint }) => (
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full pl-10 p-3 border ${
-          error ? "border-red-500" : "border-gray-300"
-        } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
+        className={`w-full pl-10 p-3 border ${error ? "border-red-500" : "border-gray-300"
+          } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
       />
     </div>
     {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
@@ -582,9 +729,8 @@ const TextAreaField = ({ label, value, onChange, error }) => (
       value={value}
       onChange={(e) => onChange(e.target.value)}
       rows={5}
-      className={`w-full p-3 border ${
-        error ? "border-red-500" : "border-gray-300"
-      } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
+      className={`w-full p-3 border ${error ? "border-red-500" : "border-gray-300"
+        } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}
     />
     {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
   </div>
@@ -594,9 +740,8 @@ const TextAreaField = ({ label, value, onChange, error }) => (
 const RadioGroup = ({ label, options, value, onChange, error }) => (
   <div className="space-y-2">
     <label
-      className={`block font-medium ${
-        error ? "text-red-500" : "text-[rgba(33, 37, 41, 1)]"
-      }`}
+      className={`block font-medium ${error ? "text-red-500" : "text-[rgba(33, 37, 41, 1)]"
+        }`}
       style={{ fontSize: "16px" }}
     >
       {label}
@@ -611,9 +756,8 @@ const RadioGroup = ({ label, options, value, onChange, error }) => (
             value={option}
             checked={value === option}
             onChange={(e) => onChange(e.target.value)}
-            className={`h-4 w-4 ${
-              error ? "text-red-500" : "text-[rgba(112,122,136,1)]"
-            } border-gray-900`}
+            className={`h-4 w-4 ${error ? "text-red-500" : "text-[rgba(112,122,136,1)]"
+              } border-gray-900`}
           />
           <label
             htmlFor={option}

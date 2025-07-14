@@ -22,7 +22,13 @@ const survayFormSchema = new mongoose.Schema(
         escrowDonation: { type: String, required: false },
         charityDonation: { type: String, required: false },
         status: { type: String, required: false, default: "Pending" },
-        totalScore: { type: String, required: false }
+        totalScore: { type: String, required: false },
+        company: { type: String, required: false },
+        jobTitle: { type: String, required: false },
+        phoneNumber: { type: String, required: false },
+        city: { type: String, required: false },
+        state: { type: String, required: false },
+        country: { type: String, required: false },
     },
     { timestamps: true }
 );

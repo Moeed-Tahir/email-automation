@@ -4,7 +4,6 @@ import { Link } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -14,7 +13,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogFooter } from "@/components
 
 export default function Page() {
   const [profileData, setProfileData] = useState({
-    userProfileName: "",
+    userName: "",
     userProfileEmail: "",
     companyName: "",
     jobTitle: "",
@@ -23,7 +22,12 @@ export default function Page() {
     minimumBidDonation: "",
     calendarLink: "",
     howHeard: "",
-    questionSolution: ""
+    questionSolution: "",
+    linkedInProfile: "",
+    location: "",
+    aboutMe: "",
+    department: "",
+    focus: ""
   });
   const [formData, setFormData] = useState({ ...profileData });
 
@@ -109,17 +113,57 @@ export default function Page() {
     <SidebarInset>
       <div className="flex flex-1 flex-col w-full mx-auto py-3 px-5 space-y-10">
         <div className="flex flex-1 flex-col w-full mx-auto py-4 px-6 space-y-10 border rounded-xl">
-          {/* Personal Information */}
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Personal Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { id: "userName", label: "Full Name", key: "userName", placeholder: "Enter your full name" },
+                { id: "email", label: "Email", key: "userProfileEmail", placeholder: "Enter your email", type: "email" },
+                { id: "location", label: "Location", key: "location", placeholder: "Enter your location" },
+                { id: "linkedInProfile", label: "LinkedIn Profile", key: "linkedInProfile", placeholder: "Enter your LinkedIn profile URL", type: "url" },
+              ].map(({ id, label, key, placeholder, type = "text" }) => (
+                <div key={id} className="space-y-2">
+                  <Label htmlFor={id}>{label}</Label>
+                  <Input
+                    id={id}
+                    type={type}
+                    value={formData[key]}
+                    placeholder={placeholder}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, [key]: e.target.value }))
+                    }
+                    disabled={!isEditing}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="aboutMe">About Me</Label>
+              <textarea
+                id="aboutMe"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={formData.aboutMe}
+                placeholder="Tell us about yourself"
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, aboutMe: e.target.value }))
+                }
+                disabled={!isEditing}
+                rows={4}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">Company Information</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { id: "fullName", label: "Full Name", key: "userName", placeholder: "Enter your full name" },
-                { id: "email", label: "Email", key: "userProfileEmail", placeholder: "Enter your email", type: "email" },
                 { id: "companyName", label: "Company Name", key: "companyName", placeholder: "Enter your company name" },
                 { id: "jobTitle", label: "Job Title", key: "jobTitle", placeholder: "Enter your job title" },
-                { id: "industry", label: "Industry", key: "industry", placeholder: "Enter your industry" }
+                { id: "department", label: "Department", key: "department", placeholder: "Enter your department" },
+                { id: "industry", label: "Industry", key: "industry", placeholder: "Enter your industry" },
+                { id: "focus", label: "Focus", key: "focus", placeholder: "Enter your focus area" },
               ].map(({ id, label, key, placeholder, type = "text" }) => (
                 <div key={id} className="space-y-2">
                   <Label htmlFor={id}>{label}</Label>
@@ -138,7 +182,6 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Donation Information */}
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Donation Information</h2>
 
@@ -166,10 +209,8 @@ export default function Page() {
                 </div>
               ))}
             </div>
-
           </div>
 
-          {/* Schedule */}
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">Schedule</h2>
             <div className="space-y-2">
