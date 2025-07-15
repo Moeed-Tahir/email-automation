@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const SurvayForm = require("../models/SurvayForm");
+const AdminForm = require("../models/Admin");
+const Donation = require("../models/Donation");
 const connectToDatabase = require("../lib/db");
 const nodemailer = require('nodemailer');
 const dotenv = require("dotenv");
@@ -262,8 +264,12 @@ const fetchSurvayData = async (req, res) => {
       });
     }
 
-    const surveyData = await SurvayForm.find({ userId }).lean();
-    const userData = await User.find({ userId }).lean();
+    // Fetch all necessary data in parallel for better performance
+    const [surveyData, userData, adminForms] = await Promise.all([
+      SurvayForm.find({ userId }).lean(),
+      User.find({ userId }).lean(),
+      AdminForm.find().lean()
+    ]);
 
     if (!surveyData || surveyData.length === 0) {
       return res.status(200).json({
@@ -273,29 +279,54 @@ const fetchSurvayData = async (req, res) => {
       });
     }
 
-    if (userData && userData.length > 0) {
-      const user = userData[0];
+    // Create a map of adminForms by surveyId for faster lookup
+    const adminFormMap = adminForms.reduce((map, form) => {
+      if (form.surveyId) {
+        map[form.surveyId.toString()] = form;
+      }
+      return map;
+    }, {});
 
-      const enrichedSurveyData = surveyData.map(survey => ({
+    const enrichSurveyData = (survey) => {
+      const adminForm = adminFormMap[survey._id.toString()];
+      const status = adminForm ? adminForm.status : "Not Submitted";
+
+      const baseData = {
         ...survey,
-        location: user.location,
-        companyName: user.companyName,
-        jobTitle: user.jobTitle,
-        industry: user.industry
-      }));
+        donationStatus: status,
+        ...(adminForm && {
+          executiveEmail: adminForm.executiveEmail,
+          executiveName: adminForm.executiveName,
+          salesRepresentiveEmail: adminForm.salesRepresentiveEmail,
+          salesRepresentiveName: adminForm.salesRepresentiveName,
+          donation: adminForm.donation,
+          receiptFormLink: adminForm.receiptFormLink
+        })
+      };
 
-      return res.status(200).json({
-        success: true,
-        message: "Survey data retrieved successfully",
-        data: enrichedSurveyData,
-      });
-    }
+      if (userData && userData.length > 0) {
+        const user = userData[0];
+        return {
+          ...baseData,
+          location: user.location,
+          companyName: user.companyName,
+          jobTitle: user.jobTitle,
+          industry: user.industry,
+          city: survey.city,
+          state: survey.state,
+          country: survey.country
+        };
+      }
 
-    // If no user data found, return the original survey data
+      return baseData;
+    };
+
+    const enrichedSurveyData = surveyData.map(enrichSurveyData);
+
     return res.status(200).json({
       success: true,
       message: "Survey data retrieved successfully",
-      data: surveyData,
+      data: enrichedSurveyData,
     });
 
   } catch (error) {
@@ -359,7 +390,10 @@ const fetchSurvayDataAgainstObjectId = async (req, res) => {
       });
     }
 
-    const surveyData = await SurvayForm.findOne({ _id: surveyId }).lean();
+    const [surveyData, adminForms] = await Promise.all([
+      SurvayForm.findOne({ _id: surveyId }).lean(),
+      AdminForm.find().lean()
+    ]);
 
     if (!surveyData) {
       return res.status(404).json({
@@ -368,10 +402,33 @@ const fetchSurvayDataAgainstObjectId = async (req, res) => {
       });
     }
 
+    const adminFormMap = adminForms.reduce((map, form) => {
+      if (form.surveyId) {
+        map[form.surveyId.toString()] = form;
+      }
+      return map;
+    }, {});
+
+    const adminForm = adminFormMap[surveyId.toString()];
+    const status = adminForm ? adminForm.status : "Not Submitted";
+
+    const enrichedSurveyData = {
+      ...surveyData,
+      donationStatus: status,
+      ...(adminForm && {
+        executiveEmail: adminForm.executiveEmail,
+        executiveName: adminForm.executiveName,
+        salesRepresentiveEmail: adminForm.salesRepresentiveEmail,
+        salesRepresentiveName: adminForm.salesRepresentiveName,
+        donation: adminForm.donation,
+        receiptFormLink: adminForm.receiptFormLink
+      })
+    };
+
     return res.status(200).json({
       success: true,
       message: "Survey data retrieved successfully",
-      data: surveyData
+      data: enrichedSurveyData
     });
 
   } catch (error) {
@@ -383,8 +440,6 @@ const fetchSurvayDataAgainstObjectId = async (req, res) => {
     });
   }
 };
-
-
 
 const getBidInfo = async (req, res) => {
   try {
@@ -455,8 +510,94 @@ const getBidInfo = async (req, res) => {
   }
 };
 
+const getDashboardStatsOfUser = async (req, res) => {
+  try {
+    const { userId, filter } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    let startDate, endDate = new Date();
+
+    switch (filter) {
+      case 'today':
+        startDate = new Date();
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case 'daily':
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 1);
+        break;
+      case 'weekly':
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case 'monthly':
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+      case 'yearly':
+        startDate = new Date();
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
+      default:
+        startDate = new Date(0);
+    }
+
+    const matchQuery = {
+      userId: userId,
+      createdAt: { $gte: startDate, $lte: endDate }
+    };
+
+    const allBids = await SurvayForm.find(matchQuery);
+    const totalDonations = await Donation.countDocuments(matchQuery);
+
+    if (allBids.length === 0 && totalDonations === 0) {
+      return res.json({
+        totalBids: 0,
+        pendingBids: 0,
+        highestBid: 0,
+        averageBid: "0.00",
+        totalDonations: 0,
+        timePeriod: {
+          start: startDate,
+          end: endDate
+        },
+        message: "No bids or donations found for the selected period"
+      });
+    }
+
+    const bidAmounts = allBids
+      .map(bid => {
+        const amount = parseFloat(bid.bidAmount);
+        return isNaN(amount) ? 0 : amount;
+      })
+      .filter(amount => amount > 0);
+
+    const totalBids = allBids.length;
+    const pendingBids = allBids.filter(bid => bid.status === 'Pending').length;
+    const highestBid = bidAmounts.length > 0 ? Math.max(...bidAmounts) : 0;
+    const averageBid = bidAmounts.length > 0 ?
+      (bidAmounts.reduce((sum, amount) => sum + amount, 0) / bidAmounts.length).toFixed(2) : "0.00";
+
+    res.json({
+      totalBids,
+      pendingBids,
+      highestBid,
+      averageBid,
+      totalDonations,
+      timePeriod: {
+        start: startDate,
+        end: endDate
+      }
+    });
+
+  } catch (error) {
+    console.error("Error in getDashboardStatsOfUser:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
 
 
-
-
-module.exports = { getQuestionFromUserId, sendSurveyForm, fetchSurvayData, getBidInfo, fetchNameAgainstId, fetchSurvayDataAgainstObjectId };
+module.exports = { getQuestionFromUserId, sendSurveyForm, fetchSurvayData, getBidInfo, fetchNameAgainstId, fetchSurvayDataAgainstObjectId, getDashboardStatsOfUser };

@@ -8,7 +8,8 @@ const adminFormSchema = new mongoose.Schema(
         salesRepresentiveEmail: { type: String, required: false },
         salesRepresentiveName: { type: String, required: false },
         donation: { type: String, required: false },
-        status: { type: String, required: false, default: "Pending" },
+        status: { type: String, required: false},
+        surveyId: { type: String, required: false},
         receiptFormLink: { type: String, required: false },
     },
     { timestamps: true }

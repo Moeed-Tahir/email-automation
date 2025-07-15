@@ -254,7 +254,7 @@ exports.stopMonitoring = (userEmail) => {
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, bidAmount, name, surveyId, userName, charityCompany, companyName, industry, jobTitle, location } = req.body;
+    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, name, surveyId, userName, charityCompany, companyName, industry, jobTitle, location } = req.body;
 
     const user = await User.findOne({ userProfileEmail: sendFromEmail });
     if (!user) {

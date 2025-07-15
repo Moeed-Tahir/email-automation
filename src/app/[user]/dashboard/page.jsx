@@ -11,18 +11,18 @@ import axios from "axios";
 export default function Page() {
   const userId = Cookies.get("UserId");
   const userName = Cookies.get("userName");
-  const [bidInfo, setBidInfo] = useState({
-    totalBidAmount: "0",
-    highestBidAmount: "0",
-    averageBidAmount: "0",
-    pendingBidsCount: 0,
-    totalBidsCount: 0,
-    validBidsCount: 0,
-    totalBidsCountChange: "0.0",
-    highestBidChange: "0.0",
-    averageBidChange: "0.0",
-    pendingBidsChange: "0.0"
+  const [stats, setStats] = useState({
+    totalBids: 0,
+    pendingBids: 0,
+    highestBid: 0,
+    averageBid: 0,
+    totalDonations: 0,
+    timePeriod: {
+      start: new Date(),
+      end: new Date()
+    }
   });
+  const [filter, setFilter] = useState('weekly'); // default filter
 
   const formatChange = (value) => {
     const num = parseFloat(value);
@@ -31,50 +31,74 @@ export default function Page() {
   };
 
   useEffect(() => {
-    const fetchBidInfo = async () => {
+    const fetchDashboardStats = async () => {
       try {
-        const response = await axios.post("/api/routes/SurvayForm?action=getBidInfo", { userId });
-        setBidInfo(response.data);
+        const response = await axios.post("/api/routes/SurvayForm?action=getDashboardStatsOfUser", { 
+          userId,
+          filter 
+        });
+        setStats(response.data);
       } catch (error) {
-        console.error("Error occurred", error);
+        console.error("Error fetching dashboard stats:", error);
       }
     };
 
-    fetchBidInfo();
-  }, []);
+    if (userId) {
+      fetchDashboardStats();
+    }
+  }, [userId, filter]);
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 w-full">
+      {/* Enhanced Filter Selector */}
+      <div className="flex justify-end">
+        <div className="relative w-48">
+          <select 
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="block w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-[#2C514C] focus:outline-none focus:ring-2 focus:ring-[#2C514C]/50 focus:border-[#2C514C] appearance-none transition-all duration-200 cursor-pointer"
+          >
+            <option value="today">Today</option>
+            <option value="daily">Last 24 Hours</option>
+            <option value="weekly">Last Week</option>
+            <option value="monthly">Last Month</option>
+            <option value="yearly">Last Year</option>
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-        <div className="bg-white col-span-2 flex items-center justify-between rounded-md shadow-md border-b-2 px-2">
-          <div className="flex flex-col gap-2 w-full p-2">
+        {/* Congratulations Card - Image Removed */}
+        <div className="bg-white col-span-2 rounded-md shadow-md border-b-2 px-6 py-4">
+          <div className="flex flex-col gap-2 w-full">
             <div className="flex flex-col">
               <span className="text-lg font-medium w-full">
                 {`Congratulations ${userName || "User"} 🎉`}
               </span>
               <span className="text-[15px] font-[400] text-gray-400">
-                This month you earned
+                {filter === 'today' ? 'Today' : 
+                 filter === 'daily' ? 'Last 24 Hours' :
+                 filter === 'weekly' ? 'Last Week' :
+                 filter === 'monthly' ? 'Last Month' : 'Last Year'} summary
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[20px] font-medium">${bidInfo.totalBidAmount}</span>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-[20px] font-medium">${stats.averageBid * stats.totalBids}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-4">
               <Button className="text-sm font-semibold bg-[#2C514C] border-2 hover:text-[#2C514C] border-[#2C514C] hover:bg-transparent cursor-pointer">
-                <Link href={`/${userId}/bidding-requests`}>View Bids </Link>
+                <Link href={`/${userId}/bidding-requests`}>View Bids</Link>
               </Button>
             </div>
           </div>
-          <div className="">
-            <Image
-              src="/dashboard-boy.svg"
-              alt="Logo"
-              width={150}
-              height={100}
-            />
-          </div>
         </div>
 
+        {/* Total Bids Card */}
         <div className="bg-white rounded-xl p-5 flex flex-col items-start justify-center gap-5 border-b-2 hover:border-b-3 border-[#2C514C] shadow-[0_8px_30px_rgb(0,0,0,0.10)]">
           <div className="flex items-center gap-4">
             <span className="p-2 bg-[#2C514C]/20 rounded-lg">
@@ -85,20 +109,17 @@ export default function Page() {
                 height={30}
               />
             </span>
-            <h2 className="text-[22px] font-medium text-[#4B465C]">{bidInfo.totalBidsCount}</h2>
+            <h2 className="text-[22px] font-medium text-[#4B465C]">{stats.totalBids}</h2>
           </div>
           <div className="w-full">
             <p className="text-[15px] font-semibold">Total Bids Received</p>
-            <p className="text-[15px] font-semibold">
-              {formatChange(bidInfo.totalBidsCountChange)}
-              <span className="text-gray-400 text[13px] font-[400] pl-2">
-                than last week
-              </span>
+            <p className="text-[15px] font-semibold text-gray-400">
+              {new Date(stats.timePeriod.start).toLocaleDateString()} - {new Date(stats.timePeriod.end).toLocaleDateString()}
             </p>
           </div>
         </div>
 
-        {/* Highest Bid */}
+        {/* Highest Bid Card */}
         <div className="bg-white rounded-xl p-5 flex flex-col items-start justify-center gap-5 border-b-2 hover:border-b-3 border-[#EA5455]/50 shadow-[0_8px_30px_rgb(0,0,0,0.10)]">
           <div className="flex items-center gap-4">
             <span className="p-2 bg-[#EA545529]/80 rounded-lg">
@@ -109,19 +130,20 @@ export default function Page() {
                 height={30}
               />
             </span>
-            <h2 className="text-[22px] font-medium text-[#4B465C]">${bidInfo.highestBidAmount}</h2>
+            <h2 className="text-[22px] font-medium text-[#4B465C]">${stats.highestBid}</h2>
           </div>
           <div className="w-full">
             <p className="text-[15px] font-semibold">Highest Bid</p>
-            <p className="text-[15px] font-semibold">
-              {formatChange(bidInfo.highestBidChange)}
-              <span className="text-gray-400 text[13px] font-[400] pl-2">
-                than last week
-              </span>
+            <p className="text-[15px] font-semibold text-gray-400">
+              In {filter === 'today' ? 'today' : 
+                 filter === 'daily' ? '24 hours' :
+                 filter === 'weekly' ? 'week' :
+                 filter === 'monthly' ? 'month' : 'year'}
             </p>
           </div>
         </div>
 
+        {/* Average Bid Card */}
         <div className="bg-white rounded-xl p-5 flex flex-col items-start justify-center gap-5 border-b-2 hover:border-b-3 border-[#00CFE8] shadow-[0_8px_30px_rgb(0,0,0,0.10)]">
           <div className="flex items-center gap-4">
             <span className="p-2 bg-[#00CFE829] rounded-lg">
@@ -132,19 +154,17 @@ export default function Page() {
                 height={30}
               />
             </span>
-            <h2 className="text-[22px] font-medium text-[#4B465C]">${bidInfo.averageBidAmount}</h2>
+            <h2 className="text-[22px] font-medium text-[#4B465C]">${stats.averageBid}</h2>
           </div>
           <div className="w-full">
             <p className="text-[15px] font-semibold">Average Bid</p>
-            <p className="text-[15px] font-semibold">
-              {formatChange(bidInfo.averageBidChange)}
-              <span className="text-gray-400 text[13px] font-[400] pl-2">
-                than last week
-              </span>
+            <p className="text-[15px] font-semibold text-gray-400">
+              {stats.totalBids} bids considered
             </p>
           </div>
         </div>
 
+        {/* Pending Bids Card */}
         <div className="bg-white rounded-xl p-5 flex flex-col items-start justify-center gap-5 border-b-2 hover:border-b-3 border-[#FF9F43] shadow-[0_8px_30px_rgb(0,0,0,0.10)]">
           <div className="flex items-center gap-4">
             <span className="p-2 bg-[#FF9F4329] rounded-lg">
@@ -155,26 +175,46 @@ export default function Page() {
                 height={30}
               />
             </span>
-            <h2 className="text-[22px] font-medium text-[#4B465C]">{bidInfo.pendingBidsCount}</h2>
+            <h2 className="text-[22px] font-medium text-[#4B465C]">{stats.pendingBids}</h2>
           </div>
           <div className="w-full">
             <p className="text-[15px] font-semibold text-[#FF9F43]">
               Pending Bids
             </p>
-            <p className="text-[15px] font-semibold text-[#FF9F43]">
-              {formatChange(bidInfo.pendingBidsChange)}
-              <span className="text-gray-400 text[13px] font-[400] pl-2">
-                than last week
-              </span>
+            <p className="text-[15px] font-semibold text-gray-400">
+              {stats.pendingBids === 0 ? 'No pending bids' : 'Needs your attention'}
+            </p>
+          </div>
+        </div>
+
+        {/* New Total Donations Card */}
+        <div className="bg-white rounded-xl p-5 flex flex-col items-start justify-center gap-5 border-b-2 hover:border-b-3 border-[#7367F0] shadow-[0_8px_30px_rgb(0,0,0,0.10)]">
+          <div className="flex items-center gap-4">
+            <span className="p-2 bg-[#7367F029] rounded-lg">
+              <Image
+                src="/icons8_donation_1.svg"  // You'll need to add this icon
+                alt="Donation"
+                width={30}
+                height={30}
+              />
+            </span>
+            <h2 className="text-[22px] font-medium text-[#4B465C]">{stats.totalDonations}</h2>
+          </div>
+          <div className="w-full">
+            <p className="text-[15px] font-semibold text-[#7367F0]">
+              Total Donations
+            </p>
+            <p className="text-[15px] font-semibold text-gray-400">
+              {stats.totalDonations === 0 ? 'No donations yet' : 'Thank you for your support'}
             </p>
           </div>
         </div>
       </div>
 
       <div className="flex flex-col w-full bg-white rounded-xl p-4 border">
-        <div className="flex items-center justify-end w-full ">
+        <div className="flex items-center justify-end w-full">
           <Button className="text-sm font-semibold text-[#2C514C] border-none bg-transparent hover:bg-transparent shadow-none cursor-pointer">
-            <Link href={`/${userId}/bidding-requests`}> View All </Link>
+            <Link href={`/${userId}/bidding-requests`}>View All</Link>
           </Button>
         </div>
         <DashboardTable userId={userId} />

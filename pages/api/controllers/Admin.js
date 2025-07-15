@@ -3,7 +3,6 @@ const Admin = require('../models/Admin');
 const nodemailer = require('nodemailer');
 const Donation = require('../models/Donation');
 const SurvayForm = require('../models/SurvayForm');
-
 const dotenv = require("dotenv");
 const User = require('../models/User');
 dotenv.config();
@@ -30,7 +29,9 @@ const uploadReciptData = async (req, res) => {
       salesRepresentiveName,
       donation,
       receiptFormLink,
-      userId
+      userId,
+      surveyId,
+      status: "Pending"
     });
 
     res.status(200).json({ message: "Receipt Form Sent Successfully", newAdminForm });
@@ -64,7 +65,6 @@ const fetchReciptData = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
-
 
 const sendAcceptEmailFromAdmin = async (req, res) => {
   try {
@@ -148,7 +148,6 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       `
     };
 
-    // Second Email (from Moeed to Executive directly)
     const mailOptions2 = {
       from: 'Email-Automation <info@makelastingchange.com>',
       to: executiveEmail,
@@ -176,11 +175,9 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       `
     };
 
-    // Send both emails
     await transporter.sendMail(mailOptions1);
     await transporter.sendMail(mailOptions2);
 
-    // Update DB and record donation
     const updatedForm = await Admin.findByIdAndUpdate(
       objectId,
       { status: "Accept" },
@@ -217,7 +214,6 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
     });
   }
 };
-
 
 const sendRejectEmailFromAdmin = async (req, res) => {
   try {
@@ -351,8 +347,8 @@ const getDonation = async (req, res) => {
   try {
     await connectToDatabase();
     const { userId } = req.body;
-    console.log("userId",userId);
-    
+    console.log("userId", userId);
+
     const donations = await Donation.find({ userId });
     console.log("donations", donations);
 
@@ -370,6 +366,5 @@ const getDonation = async (req, res) => {
     });
   }
 };
-
 
 module.exports = { uploadReciptData, fetchReciptData, sendAcceptEmailFromAdmin, addDonation, getDonation, sendRejectEmailFromAdmin };

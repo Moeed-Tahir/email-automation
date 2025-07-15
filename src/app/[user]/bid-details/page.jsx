@@ -25,6 +25,12 @@ export default function MeetingRequest() {
     questionOne: "",
     questionTwo: "",
   });
+  const [actionLoading, setActionLoading] = useState({ id: null, type: null });
+  const [confirmationDialog, setConfirmationDialog] = useState({
+    open: false,
+    survey: null,
+    actionType: null,
+  });
   const userId = Cookies.get("UserId") || null;
 
   useEffect(() => {
@@ -76,6 +82,89 @@ export default function MeetingRequest() {
     fetchSurveyData();
   }, [surveyId]);
 
+  const handleConfirmAction = async () => {
+    const { survey, actionType } = confirmationDialog;
+    if (!survey) return;
+
+    setActionLoading({ id: survey._id, type: actionType });
+    try {
+      const fromEmail = Cookies.get("userEmail");
+      const userName = Cookies.get("userName");
+      const mainUserId = Cookies.get("UserId");
+      const charityCompany = Cookies.get("charityCompany");
+
+      if (!fromEmail) {
+        throw new Error("User email not found in cookies");
+      }
+
+      if (actionType === 'accept') {
+        const response = await axios.post(
+          "/api/routes/Google?action=sendAcceptEmailToAdmin",
+          {
+            sendFromEmail: fromEmail,
+            sendToEmail: survey.email,
+            dashboardUserId: survey.userId,
+            mainUserId: mainUserId,
+            objectId: survey._id,
+            bidAmount: survey.bidAmount,
+            name: survey.name,
+            surveyId: survey._id,
+            userName: userName,
+            charityCompany: charityCompany,
+            location: survey.location,
+            jobTitle: survey.jobTitle,
+            industry: survey.industry,
+            companyName: survey.companyName,
+          }
+        );
+
+        if (!response.data.message) {
+          throw new Error(response.data.message || "Failed to send acceptance email");
+        }
+      } else if (actionType === 'reject') {
+        const response = await axios.post(
+          "/api/routes/Google?action=sendRejectEmailToAdmin",
+          {
+            sendFromEmail: fromEmail,
+            sendToEmail: survey.email,
+            objectId: survey._id,
+            userName: userName
+          }
+        );
+
+        if (!response.data.message) {
+          throw new Error(response.data.message || "Failed to send rejection email");
+        }
+      }
+
+      setSurveyData(prev => ({
+        ...prev,
+        status: actionType === 'accept' ? 'Accepted' : 'Rejected'
+      }));
+    } catch (error) {
+      console.error(`Error in ${actionType} action:`, error);
+    } finally {
+      setActionLoading({ id: null, type: null });
+      closeConfirmationDialog();
+    }
+  };
+
+  const openConfirmationDialog = (survey, actionType) => {
+    setConfirmationDialog({
+      open: true,
+      survey,
+      actionType
+    });
+  };
+
+  const closeConfirmationDialog = () => {
+    setConfirmationDialog({
+      open: false,
+      survey: null,
+      actionType: null
+    });
+  };
+
   if (!surveyData) {
     return <div>Loading...</div>;
   }
@@ -88,32 +177,93 @@ export default function MeetingRequest() {
     "Regulatory compliance",
   ];
 
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      'Accept': 'bg-green-100 text-green-800',
+      'Accepted': 'bg-green-100 text-green-800',
+      'Rejected': 'bg-red-100 text-red-800',
+      'Donated': 'bg-blue-100 text-blue-800',
+      'Pending': 'bg-yellow-100 text-yellow-800'
+    };
+
+    const statusClass = statusMap[status] || 'bg-gray-100 text-gray-800';
+
+    return (
+      <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusClass}`}>
+        {status}
+      </span>
+    );
+  };
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-light">
-            <span>Dear </span>
-            <span className="text-[#2C514C] font-medium">
-              <strong>{Cookies.get("userName")}</strong>
-            </span>
-          </CardTitle>
-          <CardDescription className="text-xl">
-            You have received a meeting request from {surveyData.name}, who is
-            interested in connecting with you. Please review the details below
-            and choose to accept or decline the request.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 text-xl">
+        <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <p className="font-medium">Sales Rep Details:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Name: {surveyData.name}</li>
-              <li>Email: {surveyData.email}</li>
-              <li>
-                Proposed Donation: <strong>${surveyData.bidAmount}</strong>
-              </li>
-            </ul>
+            <CardTitle className="text-xl font-light">
+              <span>Dear </span>
+              <span className="text-[#2C514C] font-medium">
+                <strong>{Cookies.get("userName")}</strong>
+              </span>
+            </CardTitle>
+            <CardDescription className="text-xl">
+              You have received a meeting request from {surveyData.name}, who is
+              interested in connecting with you. Please review the details below
+              and choose to accept or decline the request.
+            </CardDescription>
+          </div>
+          {surveyData.status === 'Accept' || surveyData.status === 'Reject' || surveyData.status === 'Donated' ? (
+            <div>
+              {getStatusBadge(surveyData.status)}
+            </div>
+          ) : (
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                className="bg-red-500 text-white hover:bg-red-600"
+                onClick={() => openConfirmationDialog(surveyData, 'reject')}
+                disabled={actionLoading.id === surveyData._id && actionLoading.type === 'reject'}
+              >
+                {actionLoading.id === surveyData._id && actionLoading.type === 'reject' ? 'Processing...' : 'Reject'}
+              </Button>
+              <Button
+                className="bg-[#2C514C] hover:bg-[#1a3835]"
+                onClick={() => openConfirmationDialog(surveyData, 'accept')}
+                disabled={actionLoading.id === surveyData._id && actionLoading.type === 'accept'}
+              >
+                {actionLoading.id === surveyData._id && actionLoading.type === 'accept' ? 'Processing...' : 'Accept'}
+              </Button>
+            </div>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-6 text-xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p className="font-medium mb-2">Respondent Details:</p>
+              <ul className="space-y-2">
+                <li><strong>Name:</strong> {surveyData.name}</li>
+                <li><strong>Job Title:</strong> {surveyData.jobTitle}</li>
+                <li><strong>Company:</strong> {surveyData.company}</li>
+                <li><strong>Location:</strong> {surveyData.city}, {surveyData.state}, {surveyData.country}</li>
+                <li><strong>Email:</strong> {surveyData.email}</li>
+                <li><strong>Phone:</strong> {surveyData.phoneNumber}</li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-medium mb-2">Donation Details:</p>
+              <ul className="space-y-2">
+                <li>
+                  <strong>Proposed Donation:</strong>
+                  <span className="ml-2 font-bold text-[#2C514C]">${surveyData.bidAmount}</span>
+                </li>
+                <li>
+                  <strong>Donation Status:</strong>
+                  <span className="ml-2">
+                    {getStatusBadge(surveyData.donationStatus)}
+                  </span>
+                </li>
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -393,6 +543,36 @@ export default function MeetingRequest() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      {confirmationDialog.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-semibold mb-4">
+              Confirm {confirmationDialog.actionType === 'accept' ? 'Acceptance' : 'Rejection'}
+            </h3>
+            <p className="mb-6">
+              Are you sure you want to {confirmationDialog.actionType} this meeting request?
+              {confirmationDialog.actionType === 'accept' && ' A donation will be expected if the meeting occurs.'}
+            </p>
+            <div className="flex justify-end gap-4">
+              <Button
+                variant="outline"
+                onClick={closeConfirmationDialog}
+              >
+                Cancel
+              </Button>
+              <Button
+                className={confirmationDialog.actionType === 'accept' ? 'bg-[#2C514C] hover:bg-[#1a3835]' : 'bg-red-500 hover:bg-red-600'}
+                onClick={handleConfirmAction}
+                disabled={actionLoading.id === confirmationDialog.survey?._id}
+              >
+                {actionLoading.id === confirmationDialog.survey?._id ? 'Processing...' : 'Confirm'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

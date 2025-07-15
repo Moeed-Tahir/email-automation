@@ -35,7 +35,6 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 
 const AdminTable = ({ tableData, fetchAdminData }) => {
-  console.log("tableData",tableData,"fetchAdminData",fetchAdminData);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });

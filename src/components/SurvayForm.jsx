@@ -64,39 +64,32 @@ const SurveyForm = ({ userId }) => {
     if (currentTab === 1) {
       const newErrors = {};
 
-      // Validate first name
       if (!formData.firstName.trim()) {
         newErrors.firstName = "First name is required";
       }
 
-      // Validate last name
       if (!formData.lastName.trim()) {
         newErrors.lastName = "Last name is required";
       }
 
-      // Validate email
       if (!formData.email.trim()) {
         newErrors.email = "Email is required";
       } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
         newErrors.email = "Email is invalid";
       }
 
-      // Validate company
       if (!formData.company.trim()) {
         newErrors.company = "Company is required";
       }
 
-      // Validate job title
       if (!formData.jobTitle.trim()) {
         newErrors.jobTitle = "Job title is required";
       }
 
-      // Validate phone number
       if (!formData.phoneNumber.trim()) {
         newErrors.phoneNumber = "Phone number is required";
       }
 
-      // Validate location fields
       if (!formData.city.trim()) {
         newErrors.city = "City is required";
       }
@@ -107,7 +100,6 @@ const SurveyForm = ({ userId }) => {
         newErrors.country = "Country is required";
       }
 
-      // Validate bid amount
       if (!formData.bidAmount) {
         newErrors.bidAmount = "Bid amount is required";
       } else if (isNaN(formData.bidAmount) || Number(formData.bidAmount) <= 0) {
@@ -472,31 +464,8 @@ const SurveyForm = ({ userId }) => {
             </div>
           </>
         );
+
       case 2:
-        return (
-          <>
-            <p className="font-medium text-2xl mb-6">
-              Open-Ended Questions (Qualitative Insight)
-            </p>
-            <TextAreaField
-              label={`${userQuestions.questionOne}`}
-              value={formData.solutionDescription}
-              onChange={(val) =>
-                setFormData({ ...formData, solutionDescription: val })
-              }
-              error={errors.solutionDescription}
-            />
-            <TextAreaField
-              label={`${userQuestions.questionTwo}`}
-              value={formData.businessChallengeSolution}
-              onChange={(val) =>
-                setFormData({ ...formData, businessChallengeSolution: val })
-              }
-              error={errors.businessChallengeSolution}
-            />
-          </>
-        );
-      case 3:
         return (
           <>
             <p className="font-medium text-2xl mb-6">
@@ -559,7 +528,7 @@ const SurveyForm = ({ userId }) => {
             />
           </>
         );
-      case 4:
+      case 3:
         return (
           <>
             <p className="font-medium text-2xl mb-6">
@@ -616,6 +585,30 @@ const SurveyForm = ({ userId }) => {
                 />
               </>
             )}
+          </>
+        );
+      case 4:
+        return (
+          <>
+            <p className="font-medium text-2xl mb-6">
+              Open-Ended Questions (Qualitative Insight)
+            </p>
+            <TextAreaField
+              label={`${userQuestions.questionOne}`}
+              value={formData.solutionDescription}
+              onChange={(val) =>
+                setFormData({ ...formData, solutionDescription: val })
+              }
+              error={errors.solutionDescription}
+            />
+            <TextAreaField
+              label={`${userQuestions.questionTwo}`}
+              value={formData.businessChallengeSolution}
+              onChange={(val) =>
+                setFormData({ ...formData, businessChallengeSolution: val })
+              }
+              error={errors.businessChallengeSolution}
+            />
           </>
         );
       default:

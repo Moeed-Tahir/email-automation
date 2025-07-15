@@ -51,6 +51,8 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
     survey: null,
     actionType: null,
   });
+  const [selectedSurvey, setSelectedSurvey] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const fetchExistingSurveys = async () => {
     setLoading(true);
@@ -79,13 +81,13 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
 
   const downloadPdf = () => {
     const doc = new jsPDF();
-    
+
     doc.setFontSize(18);
     doc.text("Bid Requests Report", 14, 22);
-    
+
     doc.setFontSize(10);
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
-    
+
     const tableData = existingSurveys.map(survey => [
       survey.name,
       new Date(survey.createdAt).toLocaleDateString(),
@@ -93,7 +95,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
       `$${survey.bidAmount}`,
       survey.status
     ]);
-    
+
     autoTable(doc, {
       head: [['Representative', 'Proposed Date', 'Score', 'Bid', 'Status']],
       body: tableData,
@@ -118,7 +120,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
       },
       margin: { top: 40 }
     });
-    
+
     doc.save('bid-requests-report.pdf');
   };
 
@@ -196,7 +198,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
 
   const handleConfirmAction = async () => {
     const { survey, actionType } = confirmationDialog;
-    console.log("survey",survey);
+    console.log("survey", survey);
     if (!survey) return;
 
     setActionLoading({ id: survey._id, type: actionType });
@@ -224,10 +226,10 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
             surveyId: survey._id,
             userName: userName,
             charityCompany: charityCompany,
-            location:survey.location,
-            jobTitle:survey.jobTitle,
-            industry:survey.industry,
-            companyName:survey.companyName
+            location: survey.location,
+            jobTitle: survey.jobTitle,
+            industry: survey.industry,
+            companyName: survey.companyName,
           }
         );
 
@@ -259,7 +261,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
     }
   };
 
-  const filteredData = existingSurveys.filter(item => 
+  const filteredData = existingSurveys.filter(item =>
     statusFilters.length === 0 || statusFilters.includes(item.status)
   );
 
@@ -295,8 +297,8 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmationDialog.actionType === 'accept' 
-                ? 'Confirm Acceptance' 
+              {confirmationDialog.actionType === 'accept'
+                ? 'Confirm Acceptance'
                 : 'Confirm Rejection'}
             </AlertDialogTitle>
             <AlertDialogDescription>
@@ -307,7 +309,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleConfirmAction}
               className={
                 confirmationDialog.actionType === 'accept'
@@ -410,7 +412,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
                 onClick={() => handleHeaderSort("createdAt")}
               >
                 <div className="flex items-center justify-between">
-                  Proposed Date{" "}
+                  Submission Date{" "}
                   <ChevronsUpDown className="size-4 text-gray-500" />
                 </div>
               </TableHead>
@@ -430,6 +432,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
                   Bid <ChevronsUpDown className="size-4 text-gray-500" />
                 </div>
               </TableHead>
+              <TableHead>Donation Status</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -453,7 +456,15 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
               currentData.map((survey) => (
                 <TableRow key={survey._id}>
                   <TableCell className="min-w-[200px]">
-                    <div className="font-medium">{survey.name}</div>
+                    <div
+                      className="font-medium cursor-pointer hover:underline"
+                      onClick={() => {
+                        setSelectedSurvey(survey);
+                        setShowDetailsModal(true);
+                      }}
+                    >
+                      {survey.name}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       {survey.email}
                     </div>
@@ -465,12 +476,11 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
                     {survey.totalScore || "-"}
                   </TableCell>
                   <TableCell className="min-w-[120px]">
-                    <Badge
-                      variant="outline"
-                      className="bg-gray-200 p-2 px-3 rounded-sm"
-                    >
-                      {survey.bidAmount}
-                    </Badge>
+
+                    {`$${survey.bidAmount}`}
+                  </TableCell>
+                   <TableCell className="min-w-[150px]">
+                    {getStatusBadge(survey.donationStatus)}
                   </TableCell>
                   <TableCell className="min-w-[150px]">
                     {getStatusBadge(survey.status)}
@@ -539,7 +549,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
             >
               Previous
             </Button>
-            
+
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum;
               if (totalPages <= 5) {
@@ -551,7 +561,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
               } else {
                 pageNum = currentPage - 2 + i;
               }
-              
+
               return (
                 <Button
                   key={pageNum}
@@ -613,6 +623,56 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
           Showing the only bid available
         </div>
       )}
+
+      <AlertDialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Representative Details</AlertDialogTitle>
+          </AlertDialogHeader>
+          {selectedSurvey && (
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Name</p>
+                  <p>{selectedSurvey.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Email</p>
+                  <p>{selectedSurvey.email}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Company</p>
+                  <p>{selectedSurvey.companyName || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Job Title</p>
+                  <p>{selectedSurvey.jobTitle || 'N/A'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">City</p>
+                  <p>{selectedSurvey.city || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">State</p>
+                  <p>{selectedSurvey.state || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Country</p>
+                  <p>{selectedSurvey.country || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogAction>Close</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 });
