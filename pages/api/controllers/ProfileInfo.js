@@ -9,8 +9,8 @@ dotenv.config();
 const addProfileInfo = async (req, res) => {
   try {
     await connectToDatabase();
-    const { userEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard, jobDescription, location, companyName, jobTitle,industry } = req.body;
-
+    const { userEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard, jobDescription, location, companyName, jobTitle,industry,closeEndedQuestions } = req.body;
+    
     const user = await User.findOne({ userProfileEmail: userEmail });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -23,9 +23,10 @@ const addProfileInfo = async (req, res) => {
     user.howHeard = howHeard;
     user.industry = industry;
     user.jobDescription = jobDescription,
-      user.location = location,
-      user.jobTitle = jobTitle,
-      user.companyName = companyName
+    user.location = location,
+    user.jobTitle = jobTitle,
+    user.companyName = companyName
+    user.closeEndedQuestions = closeEndedQuestions;
 
     await user.save();
     const token = jwt.sign(
@@ -315,6 +316,120 @@ function generateAuthToken(user) {
   );
 }
 
+const getCloseEndedQuestion = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const user = await User.findOne({ userId });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({
+      closeEndedQuestions: user.closeEndedQuestions || []
+    });
+  } catch (error) {
+    console.error("Error fetching close-ended questions:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const postCloseEndedQuestion = async (req, res) => {
+  try {
+    const { questionText, options,userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    if (!questionText || !options || !Array.isArray(options) || options.length === 0) {
+      return res.status(400).json({ error: "Question text and options are required" });
+    }
+
+    for (const option of options) {
+      if (!option.text || option.score === undefined) {
+        return res.status(400).json({ error: "Each option must have text and score" });
+      }
+    }
+
+    const newQuestion = {
+      questionText,
+      options
+    };
+
+    const user = await User.findOneAndUpdate(
+      { userId },
+      { $push: { closeEndedQuestions: newQuestion } },
+      { new: true, upsert: false }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(201).json({
+      message: "Close-ended question added successfully",
+      questions: user.closeEndedQuestions
+    });
+  } catch (error) {
+    console.error("Error adding close-ended question:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const updateCloseEndedQuestion = async (req, res) => {
+  try {
+    const { userId, questionId, questionText, options } = req.body;
+
+    if (!userId || !questionId) {
+      return res.status(400).json({ error: "User ID and Question ID are required" });
+    }
+
+    if (!questionText || !options || !Array.isArray(options) || options.length === 0) {
+      return res.status(400).json({ error: "Question text and options are required" });
+    }
+
+    for (const option of options) {
+      if (!option.text || option.score === undefined) {
+        return res.status(400).json({ error: "Each option must have text and score" });
+      }
+    }
+
+    const user = await User.findOne({ userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const questionIndex = user.closeEndedQuestions.findIndex(
+      q => q.questionId === questionId
+    );
+
+    if (questionIndex === -1) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+
+    user.closeEndedQuestions[questionIndex] = {
+      questionId,
+      questionText,
+      options
+    };
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Question updated successfully",
+      questions: user.closeEndedQuestions
+    });
+  } catch (error) {
+    console.error("Error updating close-ended question:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 module.exports = {
   addProfileInfo,
@@ -323,5 +438,8 @@ module.exports = {
   editProfileInfo,
   deleteProfileInfo,
   sendOTP,
-  verifyOTP
+  verifyOTP,
+  getCloseEndedQuestion,
+  postCloseEndedQuestion,
+  updateCloseEndedQuestion
 };

@@ -10,7 +10,9 @@ import {
   Briefcase,
   MapPin,
   Building,
-  Loader2
+  Loader2,
+  Trash2,
+  Plus
 } from "lucide-react";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
@@ -31,9 +33,84 @@ const SignupFlow = () => {
     calendarLink: "",
     charityCompany: "",
     minBidDonation: "",
-    industry:"",
+    industry: "",
     motivation: "Please describe your solution and its key features.",
     howHeard: "How will your solution help me solve my core business challenges?",
+    businessChallenge: {
+      question: "What business challenge does your solution help solve?",
+      options: [
+        { text: "Reduce costs", score: 0 },
+        { text: "Increase revenue", score: 0 },
+        { text: "Improve operational efficiency", score: 0 },
+        { text: "Accelerate time-to-market", score: 0 },
+        { text: "Enhance security or compliance", score: 0 },
+        { text: "Improve customer experience", score: 0 },
+        { text: "Other (please specify)", score: 0 }
+      ]
+    },
+    solutionType: {
+      question: "What type of solution are you offering?",
+      options: [
+        { text: "Product (SaaS or Hardware)", score: 0 },
+        { text: "Service (Consulting, Agency, etc.)", score: 0 },
+        { text: "Hybrid (Product + Service)", score: 0 },
+        { text: "Marketplace / Platform", score: 0 },
+        { text: "Other (please specify)", score: 0 }
+      ]
+    },
+    industryExperience: {
+      question: "Have you worked with companies in this executive's industry before?",
+      options: [
+        { text: "Yes", score: 0 },
+        { text: "No", score: 0 },
+        { text: "Not sure", score: 0 }
+      ]
+    },
+    proofOfSuccess: {
+      question: "Do you have a relevant case study, customer example, or proof of success?",
+      options: [
+        { text: "Yes, and I can share it", score: 0 },
+        { text: "No, not yet", score: 0 },
+        { text: "Working on it", score: 0 }
+      ]
+    },
+    customerSegment: {
+      question: "What is your typical customer size or segment?",
+      options: [
+        { text: "Startups (<50 employees)", score: 0 },
+        { text: "Mid-Market (50–500 employees)", score: 0 },
+        { text: "Enterprise (500+ employees)", score: 0 },
+        { text: "We serve all sizes", score: 0 },
+        { text: "Not sure / varies", score: 0 }
+      ]
+    },
+    salesTiming: {
+      question: "How soon are you looking to engage with a solution like yours?",
+      options: [
+        { text: "Actively seeking now", score: 0 },
+        { text: "Within 3 months", score: 0 },
+        { text: "Within 6 months", score: 0 },
+        { text: "Longer-term", score: 0 },
+        { text: "Just exploring", score: 0 }
+      ]
+    },
+    familiarity: {
+      question: "How familiar are you with this executive's company or industry?",
+      options: [
+        { text: "Very familiar – We've researched their company and market", score: 0 },
+        { text: "Somewhat familiar – We understand the basics", score: 0 },
+        { text: "Not very familiar – We're still learning", score: 0 },
+        { text: "New to this industry but believe we can bring value", score: 0 }
+      ]
+    },
+    donationEscrowPreference: {
+    question: "Are you open to putting the donation into escrow until after the meeting?",
+    options: [
+      { text: "Yes", score: 0 },
+      { text: "No", score: 0 },
+      { text: "Need more information", score: 0 }
+    ]
+  }
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -44,7 +121,7 @@ const SignupFlow = () => {
     calendarLink: "",
     charityCompany: "",
     minBidDonation: "",
-    industry:""
+    industry: ""
   });
   const router = useRouter();
 
@@ -58,7 +135,7 @@ const SignupFlow = () => {
       calendarLink: "",
       charityCompany: "",
       minBidDonation: "",
-      industry:""
+      industry: ""
     };
 
     if (currentStep === 2) {
@@ -98,8 +175,97 @@ const SignupFlow = () => {
       }
     }
 
+    if (currentStep === 5) {
+      const questions = [
+        'businessChallenge',
+        'solutionType',
+        'industryExperience',
+        'proofOfSuccess',
+        'customerSegment',
+        'salesTiming',
+        'familiarity'
+      ];
+
+      questions.forEach(q => {
+        const hasScore = formData[q].options.some(opt => opt.score > 0);
+        if (!hasScore) {
+          newErrors[q] = "Please select at least one option with a score > 0";
+          isValid = false;
+        }
+      });
+    }
+
     setErrors(newErrors);
     return isValid;
+  };
+
+  const handleQuestionChange = (questionName, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [questionName]: {
+        ...prev[questionName],
+        question: value
+      }
+    }));
+  };
+
+  const handleOptionChange = (questionName, optionIndex, value) => {
+    setFormData(prev => {
+      const updatedOptions = [...prev[questionName].options];
+      updatedOptions[optionIndex] = {
+        ...updatedOptions[optionIndex],
+        text: value
+      };
+      return {
+        ...prev,
+        [questionName]: {
+          ...prev[questionName],
+          options: updatedOptions
+        }
+      };
+    });
+  };
+
+  const handleScoreChange = (questionName, optionIndex, value) => {
+    const scoreValue = Math.min(10, Math.max(0, parseInt(value) || 0));
+    setFormData(prev => {
+      const updatedOptions = [...prev[questionName].options];
+      updatedOptions[optionIndex] = {
+        ...updatedOptions[optionIndex],
+        score: scoreValue
+      };
+      return {
+        ...prev,
+        [questionName]: {
+          ...prev[questionName],
+          options: updatedOptions
+        }
+      };
+    });
+  };
+
+  const addOption = (questionName) => {
+    setFormData(prev => ({
+      ...prev,
+      [questionName]: {
+        ...prev[questionName],
+        options: [...prev[questionName].options, { text: "", score: 0 }]
+      }
+    }));
+  };
+
+  const removeOption = (questionName, optionIndex) => {
+    setFormData(prev => {
+      const updatedOptions = [...prev[questionName].options];
+      updatedOptions.splice(optionIndex, 1);
+      return {
+        ...prev,
+        [questionName]: {
+          ...prev[questionName],
+          options: updatedOptions
+        }
+      };
+    });
   };
 
   const handleInputChange = (e) => {
@@ -113,7 +279,7 @@ const SignupFlow = () => {
   const nextStep = () => {
     if (!validateStep()) return;
     setDirection(1);
-    setCurrentStep((prev) => Math.min(prev + 1, 5));
+    setCurrentStep((prev) => Math.min(prev + 1, 6));
   };
 
   const prevStep = () => {
@@ -398,7 +564,7 @@ const SignupFlow = () => {
                   )}
                 </div>
 
-                  <div className="space-y-2">
+                <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">
                     Industry
                   </Label>
@@ -441,6 +607,237 @@ const SignupFlow = () => {
           </motion.div>
         );
       case 4:
+        return (
+          <motion.div
+            key="step4"
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
+            className="flex flex-col justify-start items-center w-full mx-auto h-full text-left px-4 sm:px-6"
+          >
+            <div className="w-full max-w-4xl space-y-6 py-6">
+              <h1 className="text-3xl font-semibold text-[var(--secondary-color)]">
+                Close-Ended Questions
+              </h1>
+
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="p-6 space-y-2">
+                  <h2 className="text-lg font-medium text-gray-800">
+                    Please set weights (0-10) for each option based on relevance
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Score each option from 0 (not relevant) to 10 (very relevant)
+                  </p>
+                </div>
+
+                <div className="divide-y divide-gray-200 max-h-[60vh] overflow-y-auto">
+                  {[
+                    'businessChallenge',
+                    'solutionType',
+                    'industryExperience',
+                    'proofOfSuccess',
+                  ].map((questionName) => (
+                    <div key={questionName} className="p-6 space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">Question</Label>
+                        <Input
+                          value={formData[questionName].question}
+                          onChange={(e) => handleQuestionChange(questionName, e.target.value)}
+                          className="text-base"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium text-gray-700">Options</Label>
+                        <div className="space-y-2">
+                          {formData[questionName].options.map((option, index) => (
+                            <div key={index} className="grid grid-cols-12 gap-3 items-center">
+                              <div className="col-span-8">
+                                <Input
+                                  value={option.text}
+                                  onChange={(e) => handleOptionChange(questionName, index, e.target.value)}
+                                  placeholder="Option text"
+                                />
+                              </div>
+                              <div className="col-span-2">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="10"
+                                  value={option.score}
+                                  onChange={(e) => handleScoreChange(questionName, index, e.target.value)}
+                                  className="text-center"
+                                  placeholder="Score"
+                                />
+                              </div>
+                              <div className="col-span-2 flex justify-end">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeOption(questionName, index)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => addOption(questionName)}
+                          className="mt-2"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Option
+                        </Button>
+                      </div>
+                      {errors[questionName] && (
+                        <p className="text-red-500 text-sm">{errors[questionName]}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-6 border-t border-gray-200 flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={prevStep}
+                    className="h-12 w-32"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={nextStep}
+                    className="h-12 w-44 bg-[#2c514c] text-white hover:bg-[#1f3a36]"
+                  >
+                    Continue to Part 2
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      case 5:
+        return (
+          <motion.div
+            key="step4"
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: "tween", ease: "easeInOut", duration: 0.5 }}
+            className="flex flex-col justify-start items-center w-full mx-auto h-full text-left px-4 sm:px-6"
+          >
+            <div className="w-full max-w-4xl space-y-6 py-6">
+              <h1 className="text-3xl font-semibold text-[var(--secondary-color)]">
+                Close-Ended Questions
+              </h1>
+
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="p-6 space-y-2">
+                  <h2 className="text-lg font-medium text-gray-800">
+                    Please set weights (0-10) for each option based on relevance
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Score each option from 0 (not relevant) to 10 (very relevant)
+                  </p>
+                </div>
+
+                <div className="divide-y divide-gray-200 max-h-[60vh] overflow-y-auto">
+                  {[
+                    'customerSegment',
+                    'salesTiming',
+                    'familiarity',
+                    'donationEscrowPreference'
+                  ].map((questionName) => (
+                    <div key={questionName} className="p-6 space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">Question</Label>
+                        <Input
+                          value={formData[questionName].question}
+                          onChange={(e) => handleQuestionChange(questionName, e.target.value)}
+                          className="text-base"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium text-gray-700">Options</Label>
+                        <div className="space-y-2">
+                          {formData[questionName].options.map((option, index) => (
+                            <div key={index} className="grid grid-cols-12 gap-3 items-center">
+                              <div className="col-span-8">
+                                <Input
+                                  value={option.text}
+                                  onChange={(e) => handleOptionChange(questionName, index, e.target.value)}
+                                  placeholder="Option text"
+                                />
+                              </div>
+                              <div className="col-span-2">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max="10"
+                                  value={option.score}
+                                  onChange={(e) => handleScoreChange(questionName, index, e.target.value)}
+                                  className="text-center"
+                                  placeholder="Score"
+                                />
+                              </div>
+                              <div className="col-span-2 flex justify-end">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeOption(questionName, index)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => addOption(questionName)}
+                          className="mt-2"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Option
+                        </Button>
+                      </div>
+                      {errors[questionName] && (
+                        <p className="text-red-500 text-sm">{errors[questionName]}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-6 border-t border-gray-200 flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={prevStep}
+                    className="h-12 w-32"
+                  >
+                    Back to Part 1
+                  </Button>
+                  <Button
+                    onClick={nextStep}
+                    className="h-12 w-44 bg-[#2c514c] text-white hover:bg-[#1f3a36]"
+                  >
+                    Continue to Final Step
+
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      case 6:
         const submitProfileInformation = async () => {
           setLoading(true);
           try {
@@ -451,6 +848,19 @@ const SignupFlow = () => {
               setLoading(false);
               return;
             }
+
+            const closeEndedQuestions = Object.entries(formData)
+              .filter(([key, value]) =>
+                typeof value === 'object' &&
+                value !== null &&
+                value.question &&
+                Array.isArray(value.options)
+              )
+              .map(([key, value]) => ({
+                questionText: value.question,
+                options: value.options
+              }));
+
 
             const response = await axios.post(
               "/api/routes/ProfileInfo?action=addProfileInfo",
@@ -465,7 +875,8 @@ const SignupFlow = () => {
                 charityCompany: formData.charityCompany,
                 minimumBidDonation: formData.minBidDonation,
                 howHeard: formData.howHeard,
-                industry:formData.industry
+                industry: formData.industry,
+                closeEndedQuestions: closeEndedQuestions
               }
             );
 

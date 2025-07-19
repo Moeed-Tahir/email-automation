@@ -5,7 +5,9 @@ import {
     editProfileInfo,
     deleteProfileInfo,
     sendOTP,
-    verifyOTP
+    verifyOTP,
+    getCloseEndedQuestion,
+    updateCloseEndedQuestion
 } from "../controllers/ProfileInfo";
 
 export default async function handler(req, res) {
@@ -27,6 +29,12 @@ export default async function handler(req, res) {
             return await editProfileInfo(req, res);
         } else if (req.method === 'POST' && action === 'deleteProfileInfo') {
             return await deleteProfileInfo(req, res);
+        } else if (req.method === 'POST' && action === 'getCloseEndedQuestion') {
+            return await getCloseEndedQuestion(req, res);
+        } else if (req.method === 'POST' && action === 'postCloseEndedQuestion') {
+            return await postCloseEndedQuestion(req, res);
+        } else if (req.method === 'POST' && action === 'updateCloseEndedQuestion') {
+            return await updateCloseEndedQuestion(req, res);
         } else if (req.method === 'POST' && action === 'verifyOTP') {
             return await verifyOTP(req, res);
         }
