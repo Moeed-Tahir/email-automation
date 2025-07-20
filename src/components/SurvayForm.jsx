@@ -45,6 +45,8 @@ const SurveyForm = ({ userId }) => {
     charityDonation: "",
   });
   const [profileData, setProfileData] = useState([]);
+  const [case2Questions, setCase2Questions] = useState([]);
+  const [case3Questions, setCase3Questions] = useState([]);
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -59,6 +61,20 @@ const SurveyForm = ({ userId }) => {
 
   const isLastTab = currentTab === tabs.length - 1;
   const isFirstTab = currentTab === 0;
+
+  const fetchCloseEndedQuestions = async () => {
+    try {
+      const response = await axios.post('/api/routes/ProfileInfo?action=getCloseEndedQuestion', {
+        userId
+      });
+      const allQuestions = response.data.closeEndedQuestions || [];
+
+      setCase2Questions(allQuestions.slice(0, 4));
+      setCase3Questions(allQuestions.slice(4, 8));
+    } catch (error) {
+      console.error("Error fetching close-ended questions:", error);
+    }
+  };
 
   const handleNext = () => {
     if (currentTab === 1) {
@@ -128,6 +144,27 @@ const SurveyForm = ({ userId }) => {
   const calculateTotalScore = (formData) => {
     let score = 0;
 
+    // Add scores from case 2 questions
+    case2Questions.forEach(question => {
+      const selectedOption = question.options.find(
+        opt => opt.text === formData[`question_${question.questionId}`]
+      );
+      if (selectedOption) {
+        score += selectedOption.score;
+      }
+    });
+
+    // Add scores from case 3 questions
+    case3Questions.forEach(question => {
+      const selectedOption = question.options.find(
+        opt => opt.text === formData[`question_${question.questionId}`]
+      );
+      if (selectedOption) {
+        score += selectedOption.score;
+      }
+    });
+
+    // Existing scoring logic for other questions
     if (formData.performanceGuarantee === "No") {
       score += 1;
     } else if (formData.performanceGuarantee === "Yes, but with conditions") {
@@ -177,6 +214,21 @@ const SurveyForm = ({ userId }) => {
       setLoading(true);
       const totalScore = calculateTotalScore(formData);
 
+      const questionAnswers = [
+        ...case2Questions.map(question => ({
+          questionId: question.questionId,
+          questionText: question.questionText,
+          answer: formData[`question_${question.questionId}`],
+          score: question.options.find(opt => opt.text === formData[`question_${question.questionId}`])?.score || 0
+        })),
+        ...case3Questions.map(question => ({
+          questionId: question.questionId,
+          questionText: question.questionText,
+          answer: formData[`question_${question.questionId}`],
+          score: question.options.find(opt => opt.text === formData[`question_${question.questionId}`])?.score || 0
+        }))
+      ];
+
       const response = await fetch(
         "/api/routes/SurvayForm?action=sendSurveyForm",
         {
@@ -188,6 +240,7 @@ const SurveyForm = ({ userId }) => {
             userId,
             ...formData,
             totalScore,
+            questionAnswers
           }),
         }
       );
@@ -223,6 +276,10 @@ const SurveyForm = ({ userId }) => {
             response.data.user.howHeard ||
             "Give a brief description of your solution.",
         });
+
+        
+        await fetchCloseEndedQuestions();
+
       } catch (error) {
         console.error("Error fetching profile data:", error);
       }
@@ -469,124 +526,50 @@ const SurveyForm = ({ userId }) => {
         return (
           <>
             <p className="font-medium text-2xl mb-6">
-              Close-Ended Questions (Qualitative Insight)
+              Close-Ended Questions (Part 1/2)
             </p>
-            <RadioGroup
-              label="What specific business problem does your solution address?"
-              options={[
-                "Reducing operational costs",
-                "Increasing revenue",
-                "Enhancing customer experience",
-                "Improving productivity/efficiency",
-                "Regulatory compliance",
-              ]}
-              value={formData.businessProblem}
-              onChange={(val) =>
-                setFormData({ ...formData, businessProblem: val })
-              }
-              error={errors.businessProblem}
-            />
-            <RadioGroup
-              label="How long does it typically take for clients to see results with your solution?"
-              options={[
-                "Over 12 months",
-                "6-12 months",
-                "3-6 months",
-                "1-3 months",
-                "Immediate",
-              ]}
-              value={formData.resultsTimeframe}
-              onChange={(val) =>
-                setFormData({ ...formData, resultsTimeframe: val })
-              }
-              error={errors.resultsTimeframe}
-            />
-            <RadioGroup
-              label="Do you have proven results or case studies in my industry that you would be willing to provide?"
-              options={[
-                "No case studies available",
-                "One relevant case study",
-                "Multiple relevant case studies",
-              ]}
-              value={formData.caseStudies}
-              onChange={(val) => setFormData({ ...formData, caseStudies: val })}
-              error={errors.caseStudies}
-            />
-            <RadioGroup
-              label="How would you summarize your offering?"
-              options={[
-                "Product",
-                "Service",
-                "Consulting/Advisory",
-                "Comprehensive Solution",
-              ]}
-              value={formData.offeringType}
-              onChange={(val) =>
-                setFormData({ ...formData, offeringType: val })
-              }
-              error={errors.offeringType}
-            />
+            {case2Questions.map((question, index) => (
+              <RadioGroup
+                key={question.questionId}
+                label={`${index + 1}. ${question.questionText}`}
+                options={question.options.map(opt => opt.text)}
+                value={formData[`question_${question.questionId}`] || ''}
+                onChange={(val) =>
+                  setFormData({
+                    ...formData,
+                    [`question_${question.questionId}`]: val
+                  })
+                }
+                error={errors[`question_${question.questionId}`]}
+              />
+            ))}
           </>
         );
+
       case 3:
         return (
           <>
             <p className="font-medium text-2xl mb-6">
-              Close-Ended Questions (Qualitative Insight)
+              Close-Ended Questions (Part 2/2)
             </p>
-            <RadioGroup
-              label="Are you willing to offer a performance-based guarantee or proof of concept?"
-              options={[
-                "No",
-                "Yes, but with conditions",
-                "Yes, unconditionally",
-              ]}
-              value={formData.performanceGuarantee}
-              onChange={(val) =>
-                setFormData({ ...formData, performanceGuarantee: val })
-              }
-              error={errors.performanceGuarantee}
-            />
-            <RadioGroup
-              label="Are you willing to make a donation to my favorite charity if a meeting is accepted?"
-              options={["No", "Yes"]}
-              value={formData.DonationWilling}
-              onChange={(val) =>
-                setFormData({ ...formData, DonationWilling: val })
-              }
-              error={errors.DonationWilling}
-            />
-            {formData.DonationWilling === "Yes" && (
-              <>
-                <RadioGroup
-                  label="Would you be willing to escrow this donation amount to be released after the meeting takes place?"
-                  options={["No", "Yes"]}
-                  value={formData.escrowDonation}
-                  onChange={(val) =>
-                    setFormData({ ...formData, escrowDonation: val })
-                  }
-                  error={errors.escrowDonation}
-                />
-                <RadioGroup
-                  label="How much would you be willing to donate?"
-                  options={[
-                    "$10-$50",
-                    "$51-$100",
-                    "$101-$200",
-                    "$201-$300",
-                    "$301-$400",
-                    "$401-$500",
-                  ]}
-                  value={formData.charityDonation}
-                  onChange={(val) =>
-                    setFormData({ ...formData, charityDonation: val })
-                  }
-                  error={errors.charityDonation}
-                />
-              </>
-            )}
+            {case3Questions.map((question, index) => (
+              <RadioGroup
+                key={question.questionId}
+                label={`${index + 5}. ${question.questionText}`} // Continue numbering from 5
+                options={question.options.map(opt => opt.text)}
+                value={formData[`question_${question.questionId}`] || ''}
+                onChange={(val) =>
+                  setFormData({
+                    ...formData,
+                    [`question_${question.questionId}`]: val
+                  })
+                }
+                error={errors[`question_${question.questionId}`]}
+              />
+            ))}
           </>
         );
+
       case 4:
         return (
           <>
@@ -618,7 +601,6 @@ const SurveyForm = ({ userId }) => {
 
   return (
     <div className="max-w-7xl mx-auto p-8 bg-white mt-10 relative overflow-hidden flex flex-col justify-between gap-10">
-      {/* Progress bar */}
       <div className="w-full h-2 bg-[rgba(75,70,92,0.08)] rounded-full overflow-hidden mb-8">
         <motion.div
           className="h-full"
@@ -629,7 +611,6 @@ const SurveyForm = ({ userId }) => {
         />
       </div>
 
-      {/* Form */}
       <form onSubmit={(e) => e.preventDefault()}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -644,7 +625,6 @@ const SurveyForm = ({ userId }) => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Buttons */}
         <div className="flex justify-between mt-10 flex-wrap gap-4">
           <button
             type="button"
@@ -683,7 +663,6 @@ const SurveyForm = ({ userId }) => {
   );
 };
 
-// Input field component
 const InputField = ({ label, type, icon, value, onChange, error, hint }) => (
   <div className="space-y-2">
     <label
@@ -709,7 +688,6 @@ const InputField = ({ label, type, icon, value, onChange, error, hint }) => (
   </div>
 );
 
-// TextArea field component
 const TextAreaField = ({ label, value, onChange, error }) => (
   <div className="space-y-2">
     <label
@@ -729,7 +707,6 @@ const TextAreaField = ({ label, value, onChange, error }) => (
   </div>
 );
 
-// Radio group component
 const RadioGroup = ({ label, options, value, onChange, error }) => (
   <div className="space-y-2">
     <label
