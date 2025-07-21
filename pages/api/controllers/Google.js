@@ -309,7 +309,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
     const mailOptions = {
       from: sendFromEmail,
       to: sendToEmail,
-      subject: `Your Donation Is Confirmed — Schedule Your Meeting with ${userName}`,
+      subject: `Good News — ${userName} Accepted Your Meeting Request`,
       html: `
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
       <tr>
@@ -326,7 +326,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
             <tr>
               <td style="padding: 20px 20px 0 20px;">
                 <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; margin: 0; text-align: left;">
-                  You're All Set! Book Your Meeting Now
+                  Your Meeting Was Accepted
                 </h1>
               </td>
             </tr>
@@ -335,22 +335,25 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
             <tr>
               <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6; text-align: left;">
                 <p style="margin: 0 0 16px 0;">Hi <strong>${name}</strong>,</p>
-                <p style="margin: 0 0 16px 0;">Thank you for completing your donation to <strong>${charityCompany}</strong>. Your support means a lot, and we're one step closer to meeting!</p>
+                <p style="margin: 0 0 16px 0;">Great news! I have accepted your request to meet!</p>
+                <p style="margin: 0 0 16px 0;">To move forward, please complete your pledged donation to my selected charity using the secure link below. Once your donation is confirmed, you'll receive a final email with a link to schedule the meeting directly on my calendar.</p>
                 
-                <h2 style="font-size: 18px; margin: 24px 0 16px 0;">What's Next:</h2>
-                <p style="margin: 0 0 16px 0;">Please use the link below to select a date and time that works best for you. The meeting will be added directly to my calendar and you will receive a calendar invitation to accept.</p>
+                <h2 style="font-size: 18px; margin: 24px 0 16px 0;">Step 1: Make Your Donation</h2>
                 
                 <!-- Button -->
                 <p style="margin: 24px 0 16px 0;">
                   <a href="${process.env.REQUEST_URL}/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}&surveyId=${surveyId}&surveyObjectId=${objectId}"
                     style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
-                    👉 Schedule Your Meeting Here
+                    👉 Make Your Donation Here
                   </a>
                 </p>
                 
-                <p style="margin: 0 0 16px 0;">A few quick reminders. Your donation will be held in escrow until the meeting takes place. If the meeting is completed as scheduled, the donation will be released to the charity.</p>
+                <p style="margin: 0 0 16px 0;">Your donation is held in escrow and will only be released after the meeting takes place. If the meeting is canceled or doesn't happen, your donation will be refunded.</p>
                 
-                <p style="margin: 24px 0 0 0;">Thanks again for using Give2Meet to make our time together meaningful and impactful.</p>
+                <h2 style="font-size: 18px; margin: 24px 0 16px 0;">Step 2: Get Your Calendar Link</h2>
+                <p style="margin: 0 0 16px 0;">As soon as the donation is confirmed, I'll send you a follow-up email with a calendar link to choose your meeting time.</p>
+                
+                <p style="margin: 24px 0 0 0;">Thanks for using Give2Meet and for turning your outreach into real-world impact.</p>
                 
                 <!-- Signature -->
                 <p style="margin: 24px 0 0 0;">

@@ -142,20 +142,32 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
             Pending
           </Badge>
         );
+      case "Not Submitted":
+        return (
+          <Badge className="bg-[#FFCC0029] text-[#FFCC00] p-2 px-3 font-medium">
+            Not Submitted
+          </Badge>
+        );
       case "Accept":
+      case "Accepted":
         return (
           <Badge className="bg-[#28C76F29] text-[#28C76F] p-2 px-3 font-medium">
             Accepted
           </Badge>
         );
       case "Reject":
+      case "Rejected":
         return (
           <Badge className="bg-[#EA545529] text-[#EA5455] p-2 px-3 font-medium">
             Rejected
           </Badge>
         );
       default:
-        return null;
+        return (
+          <Badge className="bg-gray-100 text-gray-800 p-2 px-3 font-medium">
+            {status}
+          </Badge>
+        );
     }
   };
 
@@ -479,7 +491,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
 
                     {`$${survey.bidAmount}`}
                   </TableCell>
-                   <TableCell className="min-w-[150px]">
+                  <TableCell className="min-w-[150px]">
                     {getStatusBadge(survey.donationStatus)}
                   </TableCell>
                   <TableCell className="min-w-[150px]">

@@ -34,7 +34,6 @@ const getQuestionFromUserId = async (req, res) => {
 
 const sendSurveyForm = async (req, res) => {
   try {
-
     await connectToDatabase();
 
     const {
@@ -59,7 +58,8 @@ const sendSurveyForm = async (req, res) => {
       phoneNumber,
       city,
       state,
-      country
+      country,
+      questionAnswers
     } = req.body;
 
     if (!userId) {
@@ -106,14 +106,28 @@ const sendSurveyForm = async (req, res) => {
       phoneNumber,
       city,
       state,
-      country
+      country,
+      closeEndedQuestions: questionAnswers.map(qa => ({
+        questionId: qa.questionId,
+        questionText: qa.questionText,
+        correctAnswer: qa.answer,
+        isOther: qa.isOther,
+        originalAnswer: qa.originalAnswer,
+        score: qa.score,
+        options: qa.options.map(opt => ({
+          text: opt.text,
+          score: opt.score,
+          isSelected: opt.isSelected,
+          isOther: opt.text === "Other (please specify)"
+        }))
+      }))
     };
 
     const newSurvey = new SurvayForm(surveyData);
     await newSurvey.save();
     let finalName = `${firstName} ${lastName}`;
 
-    sendEmailFromCompany(email, finalName, userData.userName, userData.location, userData.jobTitle, userData.industry,);
+    sendEmailFromCompany(email, finalName, userData.userName, userData.location, userData.jobTitle, userData.industry);
 
     return res.status(201).json({
       success: true,

@@ -21,11 +21,6 @@ export default function MeetingRequest() {
   const searchParams = useSearchParams();
   const surveyId = searchParams.get("surveyId");
   const [surveyData, setSurveyData] = useState(null);
-  const [userQuestions, setUserQuestions] = useState({
-    questionOne: "",
-    questionTwo: "",
-    closeEndedQuestions: []
-  });
   const [actionLoading, setActionLoading] = useState({ id: null, type: null });
   const [confirmationDialog, setConfirmationDialog] = useState({
     open: false,
@@ -33,28 +28,6 @@ export default function MeetingRequest() {
     actionType: null,
   });
   const userId = Cookies.get("UserId") || null;
-
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        const response = await axios.get(`/api/routes/ProfileInfo`, {
-          params: { userId, action: "getProfileInfo"},
-        });
-
-        setUserQuestions({
-          questionOne: response.data.user.questionSolution || "Describe your solution and its key features.",
-          questionTwo: response.data.user.howHeard || "Give a brief description of your solution.",
-          closeEndedQuestions: response.data.user.closeEndedQuestions || []
-        });
-      } catch (error) {
-        console.error("Error fetching profile data:", error);
-      }
-    };
-
-    if (userId) {
-      fetchProfileData();
-    }
-  }, [userId]);
 
   useEffect(() => {
     const fetchSurveyData = async () => {
@@ -113,10 +86,9 @@ export default function MeetingRequest() {
             surveyId: survey._id,
             userName: userName,
             charityCompany: charityCompany,
-            location: survey.location,
+            location: `${survey.city}, ${survey.state}, ${survey.country}`,
             jobTitle: survey.jobTitle,
-            industry: survey.industry,
-            companyName: survey.companyName,
+            companyName: survey.company,
           }
         );
 
@@ -189,14 +161,6 @@ export default function MeetingRequest() {
     return <div>Loading...</div>;
   }
 
-  const businessProblems = [
-    "Reducing operational costs",
-    "Increasing revenue",
-    "Enhancing customer experience",
-    "Improving productivity/efficiency",
-    "Regulatory compliance",
-  ];
-
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <Card>
@@ -214,7 +178,7 @@ export default function MeetingRequest() {
               and choose to accept or decline the request.
             </CardDescription>
           </div>
-          {surveyData.status === 'Accept' || surveyData.status === 'Reject' || surveyData.status === 'Donated' ? (
+          {surveyData.status === 'Accepted' || surveyData.status === 'Rejected' || surveyData.status === 'Donated' ? (
             <div>
               {getStatusBadge(surveyData.status)}
             </div>
@@ -261,7 +225,7 @@ export default function MeetingRequest() {
                 <li>
                   <strong>Donation Status:</strong>
                   <span className="ml-2">
-                    {getStatusBadge(surveyData.donationStatus)}
+                    {getStatusBadge(surveyData.escrowDonation === "true" ? "Escrowed" : surveyData.DonationWilling === "true" ? "Pending" : "Not Willing")}
                   </span>
                 </li>
               </ul>
@@ -269,8 +233,6 @@ export default function MeetingRequest() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Survey Form */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -291,7 +253,7 @@ export default function MeetingRequest() {
             </h3>
             <div className="grid gap-6">
               <div>
-                <Label>{userQuestions.questionOne}</Label>
+                <Label>Describe your solution and its key features.</Label>
                 <Textarea
                   placeholder="Describe your solution..."
                   className="mt-2"
@@ -300,7 +262,7 @@ export default function MeetingRequest() {
                 />
               </div>
               <div>
-                <Label>{userQuestions.questionTwo}</Label>
+                <Label>Give a brief description of your solution.</Label>
                 <Textarea
                   placeholder="Describe key features..."
                   className="mt-2"
@@ -312,43 +274,66 @@ export default function MeetingRequest() {
           </div>
 
           {/* Closed-Ended Questions */}
-          <div className="pt-6 border-t">
-            <h3 className="text-[23px] font-medium mb-2">
-              Closed-Ended Questions
-            </h3>
-            <div className="grid gap-6">
-              {/* Dynamic Close-Ended Questions */}
-              {userQuestions.closeEndedQuestions?.map((question, qIndex) => (
-                <div key={qIndex}>
-                  <Label>{question.questionText}</Label>
-                  <RadioGroup
-                    className="mt-2"
-                    value={surveyData[`closeEndedQuestion${qIndex}`] || ""}
+<div className="pt-6 border-t">
+  <h3 className="text-[23px] font-medium mb-2">
+    Closed-Ended Questions
+  </h3>
+  <div className="grid gap-6">
+    {surveyData.closeEndedQuestions?.map((question, qIndex) => (
+      <div key={qIndex} className="space-y-2">
+        <Label>{question.questionText}</Label>
+        <div className="space-y-3">
+          {question.options.map((option, oIndex) => (
+            <div key={oIndex} className="flex items-center gap-2">
+              {option.isSelected ? (
+                <>
+                  <Checkbox
+                    id={`question-${qIndex}-option-${oIndex}`}
+                    checked={true}
+                    disabled
+                  />
+                  <Label
+                    htmlFor={`question-${qIndex}-option-${oIndex}`}
+                    className={`${option.isSelected ? 'font-medium' : 'text-gray-500'}`}
                   >
-                    {question.options.map((option, oIndex) => (
-                      <div key={oIndex} className="flex items-center gap-2">
-                        <RadioGroupItem
-                          value={option.text}
-                          id={`question-${qIndex}-option-${oIndex}`}
-                          disabled
-                        />
-                        <Label
-                          htmlFor={`question-${qIndex}-option-${oIndex}`}
-                          className="text-gray-500"
-                        >
-                          {option.text}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-              ))}
+                    {option.text} {option.isSelected && `(Score: ${question.score})`}
+                  </Label>
+                </>
+              ) : (
+                <>
+                  <Checkbox
+                    id={`question-${qIndex}-option-${oIndex}`}
+                    checked={false}
+                    disabled
+                  />
+                  <Label
+                    htmlFor={`question-${qIndex}-option-${oIndex}`}
+                    className="text-gray-500"
+                  >
+                    {option.text}
+                  </Label>
+                </>
+              )}
             </div>
-          </div>
+          ))}
+          {question.isOther && (
+            <div className="mt-2">
+              <Label>Other Answer:</Label>
+              <Textarea
+                className="mt-1"
+                value={question.originalAnswer}
+                readOnly
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
         </CardContent>
       </Card>
 
-      {/* Confirmation Dialog */}
       {confirmationDialog.open && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">

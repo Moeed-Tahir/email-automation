@@ -1,6 +1,27 @@
 const mongoose = require("mongoose");
 const generateRandomId = () => Math.random().toString(36).substr(2, 9);
 
+const optionSchema = new mongoose.Schema({
+    text: { type: String, required: true },
+    score: { type: Number, required: true },
+    isSelected: { type: Boolean, default: false },
+    isOther: { type: Boolean, default: false }
+});
+
+const closeEndedQuestionSchema = new mongoose.Schema({
+    questionId: {
+        type: String,
+        default: generateRandomId,
+        unique: true
+    },
+    questionText: { type: String, required: true },
+    correctAnswer: { type: String, required: true },
+    originalAnswer: { type: String },
+    isOther: { type: Boolean, default: false },
+    score: { type: Number, required: true },
+    options: { type: [optionSchema], required: true },
+});
+
 const survayFormSchema = new mongoose.Schema(
     {
         survayId: {
@@ -29,6 +50,11 @@ const survayFormSchema = new mongoose.Schema(
         city: { type: String, required: false },
         state: { type: String, required: false },
         country: { type: String, required: false },
+        closeEndedQuestions: {
+            type: [closeEndedQuestionSchema],
+            required: false,
+            default: []
+        }
     },
     { timestamps: true }
 );
