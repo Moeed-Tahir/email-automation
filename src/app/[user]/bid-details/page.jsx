@@ -274,11 +274,11 @@ export default function MeetingRequest() {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <CardTitle className="text-[26px] leading-[36px] font-medium">Survey From Sales Rep</CardTitle>
+            <CardTitle className="text-[23px] font-medium mb-2">Survey Responses</CardTitle>
           </div>
           <div
             variant="default"
-            className="bg-[#2C514C] border-2 border-[#2C514C] text-white px-3 py-1.5 rounded-lg text-center text-[20px]"
+            className="bg-[#2C514C] border-2 border-[#2C514C] text-white px-3 py-1.5 rounded-lg text-center text-[16px]"
           >
             {`Survey Score: ${surveyData.totalScore}`}
           </div>
@@ -313,7 +313,7 @@ export default function MeetingRequest() {
 
           {/* Closed-Ended Questions */}
           <div className="pt-6 border-t">
-            <h3 className="text-lg font-semibold mb-4">
+            <h3 className="text-[23px] font-medium mb-2">
               Closed-Ended Questions
             </h3>
             <div className="grid gap-6">

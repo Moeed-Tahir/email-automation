@@ -12,19 +12,46 @@ import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import axios from "axios";
 import Link from "next/link";
-
+import { usePathname } from "next/navigation";
 
 export default function Layout({ children }) {
     const userEmail = Cookies.get("userEmail");
     const userName = Cookies.get("userName");
     const userPhoto = Cookies.get("userPhoto") || "/user.svg";
     const userId = Cookies.get("UserId");
+    const pathname = usePathname();
 
     const [profileData, setProfileData] = useState({
         userName: "",
         userProfileEmail: "",
         userProfilePhoto: "",
     });
+
+    // Function to get page title from URL
+    const getPageTitle = () => {
+        const path = pathname?.split('/').filter(Boolean);
+        if (!path || path.length === 0) return "Dashboard";
+
+        const lastSegment = path[path.length - 1];
+
+        // Custom mapping for specific paths
+        const pageTitles = {
+            'profile': 'Settings',
+            'close-ended-question': 'Close Ended Question',
+            'bid-details': 'Respondent Details',
+            // 'bidding-requests': 'Bidding Requests',
+            // 'settings': 'Settings',
+            // 'notifications': 'Notifications',
+            // Add more mappings as needed
+        };
+
+        // Default to capitalized version of the last segment
+        return pageTitles[lastSegment] ||
+            lastSegment
+                .split('-')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ') || "Dashboard";
+    };
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -50,26 +77,24 @@ export default function Layout({ children }) {
         fetchProfileData();
     }, []);
 
-
     return (
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <nav className=" sticky top-0 z-10 bg-white flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
+                <nav className="sticky top-0 z-10 bg-white flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
                     <div className="flex items-center gap-2 px-4">
                         <SidebarTrigger className="-ml-1 cursor-pointer" />
                         <Separator
                             orientation="vertical"
                             className="mr-2 data-[orientation=vertical]:h-4"
                         />
-                        <div className="flex-1">
-                            <h1 className="text-2xl font-semibold">Dashboard</h1>
+                        <div className="flex-1 w-full">
+                            <h1 className="text-2xl font-semibold w-full text-nowrap">{getPageTitle()}</h1>
                         </div>
                     </div>
                     <div className="flex items-center justify-end w-full gap-2 mx-auto pl-10 p-5">
-                       
                         <Link className="flex items-center gap-2 py-1 px-3 border-1 rounded-md" href={`/${userId}/profile`}>
-                            <span className="hidden lg:block bg-[#2C514C]/10  rounded-full">
+                            <span className="hidden lg:block bg-[#2C514C]/10 rounded-full">
                                 <Image
                                     src={`${userPhoto}`}
                                     alt="Logo"

@@ -34,21 +34,21 @@ const data = {
       url: `/${userId}/dashboard`,
       icon: LayoutDashboardIcon,
     },
-    {
-      title: "Bidding Requests",
-      url: `/${userId}/bidding-requests`,
-      icon: HandCoins,
-    },
+    // {
+    //   title: "Bidding Requests",
+    //   url: `/${userId}/bidding-requests`,
+    //   icon: HandCoins,
+    // },
     {
       title: "Close Ended Question",
       url: `/${userId}/close-ended-question`,
       icon: HandCoins,
     },
-    {
-      title: "Donations",
-      url: `/${userId}/donation`,
-      icon: HeartHandshake,
-    },
+    // {
+    //   title: "Donations",
+    //   url: `/${userId}/donation`,
+    //   icon: HeartHandshake,
+    // },
   ],
   settings: [
     {

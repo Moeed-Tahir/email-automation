@@ -145,13 +145,13 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
       case "Accept":
         return (
           <Badge className="bg-[#28C76F29] text-[#28C76F] p-2 px-3 font-medium">
-            Accept
+            Accepted
           </Badge>
         );
       case "Reject":
         return (
           <Badge className="bg-[#EA545529] text-[#EA5455] p-2 px-3 font-medium">
-            Reject
+            Rejected
           </Badge>
         );
       default:

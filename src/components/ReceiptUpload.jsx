@@ -153,7 +153,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
             <p className="text-lg text-gray-600">
               Your receipt has been submitted to admin for approval.
             </p>
-            <p className="text-md text-gray-500 mt-2">
+            <p className="text-lg text-gray-500 mt-2">
               Thank you for your donation to {profileData?.charityCompany || "the charity"}.
             </p>
           </div>
@@ -242,9 +242,6 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
         </div>
 
         <div className="flex justify-end space-x-4">
-          <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 cursor-pointer">
-            Cancel
-          </button>
           <button
             onClick={sendToAdmin}
             className="px-6 py-3 rounded-lg bg-[rgba(44,81,76,1)] text-white hover:bg-gray-400 disabled:opacity-50 transition cursor-pointer flex items-center justify-center"
