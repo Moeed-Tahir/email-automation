@@ -274,63 +274,81 @@ export default function MeetingRequest() {
           </div>
 
           {/* Closed-Ended Questions */}
-<div className="pt-6 border-t">
-  <h3 className="text-[23px] font-medium mb-2">
-    Closed-Ended Questions
-  </h3>
-  <div className="grid gap-6">
-    {surveyData.closeEndedQuestions?.map((question, qIndex) => (
-      <div key={qIndex} className="space-y-2">
-        <Label>{question.questionText}</Label>
-        <div className="space-y-3">
-          {question.options.map((option, oIndex) => (
-            <div key={oIndex} className="flex items-center gap-2">
-              {option.isSelected ? (
-                <>
-                  <Checkbox
-                    id={`question-${qIndex}-option-${oIndex}`}
-                    checked={true}
-                    disabled
-                  />
-                  <Label
-                    htmlFor={`question-${qIndex}-option-${oIndex}`}
-                    className={`${option.isSelected ? 'font-medium' : 'text-gray-500'}`}
-                  >
-                    {option.text} {option.isSelected && `(Score: ${question.score})`}
-                  </Label>
-                </>
-              ) : (
-                <>
-                  <Checkbox
-                    id={`question-${qIndex}-option-${oIndex}`}
-                    checked={false}
-                    disabled
-                  />
-                  <Label
-                    htmlFor={`question-${qIndex}-option-${oIndex}`}
-                    className="text-gray-500"
-                  >
-                    {option.text}
-                  </Label>
-                </>
-              )}
+          <div className="pt-6 border-t">
+            <h3 className="text-[23px] font-medium mb-2">
+              Closed-Ended Questions
+            </h3>
+            <div className="grid gap-6">
+              {surveyData.closeEndedQuestions?.map((question, qIndex) => {
+                // Define the sequence titles
+                const questionTitles = [
+                  "1. Business Challenge Focus",
+                  "2. Solution Type",
+                  "3. Industry Experience",
+                  "4. Proof of Success",
+                  "5. Customer Segment",
+                  "6. Sales Timing",
+                  "7. Familiarity with Executive's Space",
+                  "8. Donation Escrow Preference"
+                ];
+
+                return (
+                  <div key={qIndex} className="space-y-2">
+                    {/* Add the sequence title above each question */}
+                    <h4 className="text-lg font-medium text-[#2C514C]">
+                      {questionTitles[qIndex]}
+                    </h4>
+                    <Label>{question.questionText}</Label>
+                    <div className="space-y-3">
+                      {question.options.map((option, oIndex) => (
+                        <div key={oIndex} className="flex items-center gap-2">
+                          {option.isSelected ? (
+                            <>
+                              <Checkbox
+                                id={`question-${qIndex}-option-${oIndex}`}
+                                checked={true}
+                                disabled
+                              />
+                              <Label
+                                htmlFor={`question-${qIndex}-option-${oIndex}`}
+                                className={`${option.isSelected ? 'font-medium' : 'text-gray-500'}`}
+                              >
+                                {option.text} {option.isSelected && `(Score: ${question.score})`}
+                              </Label>
+                            </>
+                          ) : (
+                            <>
+                              <Checkbox
+                                id={`question-${qIndex}-option-${oIndex}`}
+                                checked={false}
+                                disabled
+                              />
+                              <Label
+                                htmlFor={`question-${qIndex}-option-${oIndex}`}
+                                className="text-gray-500"
+                              >
+                                {option.text}
+                              </Label>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                      {question.isOther && (
+                        <div className="mt-2">
+                          <Label>Other Answer:</Label>
+                          <Textarea
+                            className="mt-1"
+                            value={question.originalAnswer}
+                            readOnly
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-          {question.isOther && (
-            <div className="mt-2">
-              <Label>Other Answer:</Label>
-              <Textarea
-                className="mt-1"
-                value={question.originalAnswer}
-                readOnly
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
+          </div>
         </CardContent>
       </Card>
 
