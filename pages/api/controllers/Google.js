@@ -283,7 +283,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
 
     const updatedForm = await SurvayForm.findByIdAndUpdate(
       objectId,
-      { status: "Accept" },
+      { status: "Accepted" },
       { new: true }
     );
 
@@ -447,7 +447,7 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
 
     const updatedForm = await SurvayForm.findByIdAndUpdate(
       objectId,
-      { status: "Reject" },
+      { status: "Rejected" },
       { new: true }
     );
 

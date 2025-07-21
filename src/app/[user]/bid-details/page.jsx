@@ -21,6 +21,8 @@ export default function MeetingRequest() {
   const searchParams = useSearchParams();
   const surveyId = searchParams.get("surveyId");
   const [surveyData, setSurveyData] = useState(null);
+  console.log("surveyData", surveyData);
+
   const [actionLoading, setActionLoading] = useState({ id: null, type: null });
   const [confirmationDialog, setConfirmationDialog] = useState({
     open: false,
@@ -225,7 +227,7 @@ export default function MeetingRequest() {
                 <li>
                   <strong>Donation Status:</strong>
                   <span className="ml-2">
-                    {getStatusBadge(surveyData.escrowDonation === "true" ? "Escrowed" : surveyData.DonationWilling === "true" ? "Pending" : "Not Willing")}
+                    {getStatusBadge(surveyData.donationStatus)}
                   </span>
                 </li>
               </ul>
