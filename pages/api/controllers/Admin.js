@@ -46,7 +46,7 @@ const fetchReciptData = async (req, res) => {
     await connectToDatabase();
 
     const receipts = await Admin.find().lean();
-    
+
     const userIds = [...new Set(receipts.map(r => r.userId).filter(Boolean))];
     const surveyIds = [...new Set(receipts.map(r => r.surveyId).filter(Boolean))];
 
@@ -59,7 +59,7 @@ const fetchReciptData = async (req, res) => {
       userIds.length ? User.find({ userId: { $in: userIds } }).lean() : Promise.resolve([]),
       surveyIds.length ? SurvayForm.find({ _id: { $in: surveyIds } }).lean() : Promise.resolve([])
     ]);
-    
+
     surveys.forEach(s => console.log(`Survey found:`, {
       _id: s._id,
       city: s.city,
@@ -102,16 +102,16 @@ const fetchReciptData = async (req, res) => {
 
     const enrichedReceipts = receipts.map(receipt => {
       const result = { ...receipt };
-      
+
       result.userInfo = receipt.userId ? userMap[receipt.userId] || null : null;
 
       if (receipt.surveyId && surveyMap[receipt.surveyId]) {
         const surveyData = surveyMap[receipt.surveyId];
-        
+
         if (!result.userInfo) {
           result.userInfo = {};
         }
-        
+
         if (result.userInfo.city === undefined && surveyData.city) {
           result.userInfo.city = surveyData.city;
         }
@@ -121,27 +121,27 @@ const fetchReciptData = async (req, res) => {
         if (result.userInfo.country === undefined && surveyData.country) {
           result.userInfo.country = surveyData.country;
         }
-        
+
         if (!result.userInfo.companyName && surveyData.company) {
           result.userInfo.companyName = surveyData.company;
         }
         if (!result.userInfo.jobTitle && surveyData.jobTitle) {
           result.userInfo.jobTitle = surveyData.jobTitle;
         }
-        
+
       }
-      
+
       return result;
     });
 
-    res.status(200).json({ 
-      message: "Receipts fetched successfully", 
-      receipts: enrichedReceipts 
+    res.status(200).json({
+      message: "Receipts fetched successfully",
+      receipts: enrichedReceipts
     });
 
   } catch (error) {
     console.error("Error in fetchReciptData:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Server Error',
       error: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -168,7 +168,7 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       country
     } = req.body;
 
-    console.log("req.body",req.body);
+    console.log("req.body", req.body);
 
     if (
       !salesRepresentiveEmail ||
@@ -178,10 +178,10 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       !objectId ||
       !donation ||
       !userId ||
-      !calendarLink || 
-      !jobTitle || 
-      !companyName || 
-      !city || 
+      !calendarLink ||
+      !jobTitle ||
+      !companyName ||
+      !city ||
       !state ||
       !country
     ) {
@@ -206,7 +206,7 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       to: salesRepresentiveEmail,
       subject: `Your Donation Is Confirmed — Schedule Your Meeting with ${executiveName}`,
       html: `
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
           <tr>
             <td style="padding: 40px 20px;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto;">
