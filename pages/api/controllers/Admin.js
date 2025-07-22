@@ -46,23 +46,106 @@ const fetchReciptData = async (req, res) => {
     await connectToDatabase();
 
     const receipts = await Admin.find().lean();
+    
+    const userIds = [...new Set(receipts.map(r => r.userId).filter(Boolean))];
+    const surveyIds = [...new Set(receipts.map(r => r.surveyId).filter(Boolean))];
 
-    const userIds = receipts.map(r => r.userId);
+    receipts.forEach(r => {
+      if (!r.userId) console.log(`Receipt ${r._id} has no userId`);
+      if (!r.surveyId) console.log(`Receipt ${r._id} has no surveyId`);
+    });
 
-    const users = await User.find({ userId: { $in: userIds } }).lean();
-
-    const userMap = Object.fromEntries(users.map(user => [user.userId, user.calendarLink]));
-
-    const enrichedReceipts = receipts.map(receipt => ({
-      ...receipt,
-      calendarLink: userMap[receipt.userId] || null
+    const [users, surveys] = await Promise.all([
+      userIds.length ? User.find({ userId: { $in: userIds } }).lean() : Promise.resolve([]),
+      surveyIds.length ? SurvayForm.find({ _id: { $in: surveyIds } }).lean() : Promise.resolve([])
+    ]);
+    
+    surveys.forEach(s => console.log(`Survey found:`, {
+      _id: s._id,
+      city: s.city,
+      state: s.state,
+      country: s.country
     }));
 
-    res.status(200).json({ message: "Receipts fetched successfully", receipts: enrichedReceipts });
+    const userMap = users.reduce((map, user) => {
+      if (!user.userId) {
+        console.warn('Found user document without userId:', user._id);
+        return map;
+      }
+      return {
+        ...map,
+        [user.userId]: {
+          calendarLink: user.calendarLink,
+          jobTitle: user.jobTitle,
+          companyName: user.companyName,
+          city: user.city,
+          state: user.state,
+          country: user.country,
+          userName: user.userName,
+          userProfileEmail: user.userProfileEmail
+        }
+      };
+    }, {});
+
+    const surveyMap = surveys.reduce((map, survey) => {
+      return {
+        ...map,
+        [survey._id.toString()]: {
+          city: survey.city,
+          state: survey.state,
+          country: survey.country,
+          company: survey.company,
+          jobTitle: survey.jobTitle
+        }
+      };
+    }, {});
+
+    const enrichedReceipts = receipts.map(receipt => {
+      const result = { ...receipt };
+      
+      result.userInfo = receipt.userId ? userMap[receipt.userId] || null : null;
+
+      if (receipt.surveyId && surveyMap[receipt.surveyId]) {
+        const surveyData = surveyMap[receipt.surveyId];
+        
+        if (!result.userInfo) {
+          result.userInfo = {};
+        }
+        
+        if (result.userInfo.city === undefined && surveyData.city) {
+          result.userInfo.city = surveyData.city;
+        }
+        if (result.userInfo.state === undefined && surveyData.state) {
+          result.userInfo.state = surveyData.state;
+        }
+        if (result.userInfo.country === undefined && surveyData.country) {
+          result.userInfo.country = surveyData.country;
+        }
+        
+        if (!result.userInfo.companyName && surveyData.company) {
+          result.userInfo.companyName = surveyData.company;
+        }
+        if (!result.userInfo.jobTitle && surveyData.jobTitle) {
+          result.userInfo.jobTitle = surveyData.jobTitle;
+        }
+        
+      }
+      
+      return result;
+    });
+
+    res.status(200).json({ 
+      message: "Receipts fetched successfully", 
+      receipts: enrichedReceipts 
+    });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    console.error("Error in fetchReciptData:", error);
+    res.status(500).json({ 
+      message: 'Server Error',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
@@ -77,8 +160,15 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       objectId,
       donation,
       userId,
-      calendarLink
+      calendarLink,
+      jobTitle,
+      companyName,
+      city,
+      state,
+      country
     } = req.body;
+
+    console.log("req.body",req.body);
 
     if (
       !salesRepresentiveEmail ||
@@ -88,7 +178,12 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       !objectId ||
       !donation ||
       !userId ||
-      !calendarLink
+      !calendarLink || 
+      !jobTitle || 
+      !companyName || 
+      !city || 
+      !state ||
+      !country
     ) {
       return res.status(400).json({
         success: false,
@@ -104,41 +199,55 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       },
     });
 
+    const firstName = salesRepresentiveName.split(' ')[0];
+
     const mailOptions1 = {
-      from: 'Email-Automation <info@makelastingchange.com>',
+      from: `${executiveName} via Give2Meet <info@makelastingchange.com>`,
       to: salesRepresentiveEmail,
-      cc: salesRepresentiveEmail,
-      subject: 'Payment Verification',
+      subject: `Your Donation Is Confirmed — Schedule Your Meeting with ${executiveName}`,
       html: `
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
           <tr>
-            <td align="center">
-              <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+            <td style="padding: 40px 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto;">
+                <!-- Header -->
                 <tr>
-                  <td align="left" style="padding: 20px;">
-                    <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Logo" style="height: 40px;">
+                  <td style="padding-bottom: 30px; text-align: center;">
+                    <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Give2Meet Logo" style="max-height: 50px;">
                   </td>
                 </tr>
+                
+                <!-- Main Content -->
                 <tr>
-                  <td style="padding: 0 20px;">
-                    <h1 style="font-size: 20px; font-weight: 600; color: #2D3748; border-bottom: 1px dotted #CBD5E0; padding-bottom: 10px; margin: 0;">
-                      Meeting Confirmed with ${executiveName}
-                    </h1>
+                  <td style="padding-bottom: 30px;">
+                    <h1 style="font-size: 24px; color: #2C514C; margin-bottom: 20px;">You're All Set! Book Your Meeting Now</h1>
+                    <p style="margin-bottom: 20px;">Hi ${firstName},</p>
+                    <p style="margin-bottom: 20px;">Thank you for completing your donation to [Charity Name]. Your support means a lot, and we're one step closer to meeting!</p>
+                    
+                    <h2 style="font-size: 18px; color: #2C514C; margin: 30px 0 15px 0;">What's Next:</h2>
+                    <p style="margin-bottom: 20px;">Please use the link below to select a date and time that works best for you. The meeting will be added directly to my calendar and you will receive a calendar invitation to accept.</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                      <a href="${calendarLink}" style="display: inline-block; padding: 12px 24px; background-color: #2C514C; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;">👉 Schedule Your Meeting Here</a>
+                    </div>
+                    
+                    <p style="margin-bottom: 20px;">A few quick reminders. Your donation will be held in escrow until the meeting takes place. If the meeting is completed as scheduled, the donation will be released to the charity.</p>
+                    <p style="margin-bottom: 20px;">Thanks again for using Give2Meet to make our time together meaningful and impactful.</p>
+                    
+                    <p style="margin-top: 30px;">
+                      Best,<br>
+                      <strong>${executiveName}</strong><br>
+                      ${jobTitle}<br>
+                      ${companyName}<br>
+                      ${city}, ${state}, ${country}
+                    </p>
                   </td>
                 </tr>
+                
+                <!-- Footer -->
                 <tr>
-                  <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
-                    <p>Dear <strong>${salesRepresentiveName}</strong>,</p>
-                    <p>Great news! ${executiveName} has accepted your meeting request. You can now schedule your meeting using the link below:</p>
-                    <p style="margin-top: 20px;">Thank you for your generosity and participation!<br>Best,</p>
-                    <p>Email-Automation Team</p>
-                  </td>
-                </tr>
-                <tr>
-                  <td align="center" style="padding: 20px;">
-                    <a href="${calendarLink}" style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
-                      Book a Meeting
-                    </a>
+                  <td style="padding-top: 20px; border-top: 1px solid #eaeaea; font-size: 12px; color: #999999; text-align: center;">
+                    <p>© ${new Date().getFullYear()} Give2Meet. All rights reserved.</p>
                   </td>
                 </tr>
               </table>
@@ -149,7 +258,7 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
     };
 
     const mailOptions2 = {
-      from: 'Email-Automation <info@makelastingchange.com>',
+      from: 'Give2Meet <info@makelastingchange.com>',
       to: executiveEmail,
       subject: 'Payment Successfully Uploaded',
       html: `

@@ -64,13 +64,13 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
             Pending
           </Badge>
         );
-      case "Accepted":
+      case "Accept":
         return (
           <Badge className="bg-[#28C76F29] text-[#28C76F] p-2 px-3 font-medium">
             Accepted
           </Badge>
         );
-      case "Rejected":
+      case "Reject":
         return (
           <Badge className="bg-[#EA545529] text-[#EA5455] p-2 px-3 font-medium">
             Rejected
@@ -118,51 +118,55 @@ const AdminTable = ({ tableData, fetchAdminData }) => {
     });
   };
 
-  const handleConfirmAction = async () => {
-    const { request, actionType } = confirmationDialog;
-    console.log("request",request);
-    if (!request) return;
+const handleConfirmAction = async () => {
+  const { request, actionType } = confirmationDialog;
+  if (!request) return;
 
-    try {
-      setActionLoading({ id: request._id, type: actionType });
-      
-      if (actionType === 'accept') {
-        const emailResponse = await axios.post('/api/routes/Admin?action=sendAcceptEmailFromAdmin', {
-          executiveEmail: request.executiveEmail,
-          executiveName: request.executiveName,
-          salesRepresentiveEmail: request.salesRepresentiveEmail,
-          salesRepresentiveName: request.salesRepresentiveName,
-          objectId: request._id,
-          donation: request.donation,
-          userId: request.userId,
-          calendarLink: request.calendarLink
-        });
+  try {
+    setActionLoading({ id: request._id, type: actionType });
+    
+    if (actionType === 'accept') {
+      const emailResponse = await axios.post('/api/routes/Admin?action=sendAcceptEmailFromAdmin', {
+        executiveEmail: request.executiveEmail,
+        executiveName: request.executiveName,
+        salesRepresentiveEmail: request.salesRepresentiveEmail,
+        salesRepresentiveName: request.salesRepresentiveName,
+        objectId: request._id,
+        donation: request.donation,
+        userId: request.userId,
+        calendarLink: request.userInfo?.calendarLink,
+        jobTitle: request.userInfo?.jobTitle,
+        companyName: request.userInfo?.companyName,
+        city: request.userInfo?.city,
+        state: request.userInfo?.state,
+        country: request.userInfo?.country
+      });
 
-        if (!emailResponse.data.message) {
-          throw new Error(emailResponse.data.message || 'Failed to send acceptance email');
-        }
-      } else if (actionType === 'reject') {
-        const emailResponse = await axios.post('/api/routes/Admin?action=sendRejectEmailFromAdmin', {
-          executiveEmail: request.executiveEmail,
-          executiveName: request.executiveName,
-          salesRepresentiveEmail: request.salesRepresentiveEmail,
-          salesRepresentiveName: request.salesRepresentiveName,
-          objectId: request._id,
-        });
-
-        if (!emailResponse.data.message) {
-          throw new Error(emailResponse.data.message || 'Failed to send rejection email');
-        }
+      if (!emailResponse.data.message) {
+        throw new Error(emailResponse.data.message || 'Failed to send acceptance email');
       }
+    } else if (actionType === 'reject') {
+      const emailResponse = await axios.post('/api/routes/Admin?action=sendRejectEmailFromAdmin', {
+        executiveEmail: request.executiveEmail,
+        executiveName: request.executiveName,
+        salesRepresentiveEmail: request.salesRepresentiveEmail,
+        salesRepresentiveName: request.salesRepresentiveName,
+        objectId: request._id,
+      });
 
-      await fetchAdminData();
-    } catch (error) {
-      console.error(`Error in ${actionType} action:`, error);
-    } finally {
-      setActionLoading({ id: null, type: null });
-      closeConfirmationDialog();
+      if (!emailResponse.data.message) {
+        throw new Error(emailResponse.data.message || 'Failed to send rejection email');
+      }
     }
-  };
+
+    await fetchAdminData();
+  } catch (error) {
+    console.error(`Error in ${actionType} action:`, error);
+  } finally {
+    setActionLoading({ id: null, type: null });
+    closeConfirmationDialog();
+  }
+};
 
   const filteredData =
     statusFilters.length > 0

@@ -14,6 +14,8 @@ import { useEffect, useState } from "react";
 
 export default function page() {
   const [tableData, setTableData] = useState([]);
+  console.log("tableData",tableData);
+
   const fetchAdminData = async () => {
     try {
       const response = await axios.get("/api/routes/Admin?action=fetchReciptData");
@@ -22,6 +24,8 @@ export default function page() {
       console.log("Error is occured", error);
     }
   }
+
+  
   useEffect(() => {
     fetchAdminData();
   }, []);
@@ -44,9 +48,6 @@ export default function page() {
             </div>
           </div>
           <div className="flex items-center justify-end w-full gap-2 mx-auto px-10 p-5">
-            <span className="p-2 bg-[#2C514C]/10 rounded-full">
-              <BellIcon className="fill-[#2C514C] size-6 text-[#2C514C]" />
-            </span>
             <span className="hidden lg:block bg-[#2C514C]/10  rounded-full">
               <Image
                 src="/user.svg"
