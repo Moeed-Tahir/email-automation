@@ -206,55 +206,55 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       to: salesRepresentiveEmail,
       subject: `Your Donation Is Confirmed — Schedule Your Meeting with ${executiveName}`,
       html: `
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
-          <tr>
-            <td style="padding: 40px 20px;">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto;">
-                <!-- Header -->
-                <tr>
-                  <td style="padding-bottom: 30px; text-align: center;">
-                    <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Give2Meet Logo" style="max-height: 50px;">
-                  </td>
-                </tr>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+            <!-- Header -->
+            <tr>
+              <td align="left" style="padding: 20px;">
+                <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Give2Meet Logo" style="height: 40px;">
+              </td>
+            </tr>
+            
+            <!-- Main Content -->
+            <tr>
+              <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                <h1 style="font-size: 24px; color: #2C514C; margin-bottom: 20px;">You're All Set! Book Your Meeting Now</h1>
+                <p style="margin-bottom: 20px;">Hi ${firstName},</p>
+                <p style="margin-bottom: 20px;">Thank you for completing your donation to [Charity Name]. Your support means a lot, and we're one step closer to meeting!</p>
                 
-                <!-- Main Content -->
-                <tr>
-                  <td style="padding-bottom: 30px;">
-                    <h1 style="font-size: 24px; color: #2C514C; margin-bottom: 20px;">You're All Set! Book Your Meeting Now</h1>
-                    <p style="margin-bottom: 20px;">Hi ${firstName},</p>
-                    <p style="margin-bottom: 20px;">Thank you for completing your donation to [Charity Name]. Your support means a lot, and we're one step closer to meeting!</p>
-                    
-                    <h2 style="font-size: 18px; color: #2C514C; margin: 30px 0 15px 0;">What's Next:</h2>
-                    <p style="margin-bottom: 20px;">Please use the link below to select a date and time that works best for you. The meeting will be added directly to my calendar and you will receive a calendar invitation to accept.</p>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                      <a href="${calendarLink}" style="display: inline-block; padding: 12px 24px; background-color: #2C514C; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;">👉 Schedule Your Meeting Here</a>
-                    </div>
-                    
-                    <p style="margin-bottom: 20px;">A few quick reminders. Your donation will be held in escrow until the meeting takes place. If the meeting is completed as scheduled, the donation will be released to the charity.</p>
-                    <p style="margin-bottom: 20px;">Thanks again for using Give2Meet to make our time together meaningful and impactful.</p>
-                    
-                    <p style="margin-top: 30px;">
-                      Best,<br>
-                      <strong>${executiveName}</strong><br>
-                      ${jobTitle}<br>
-                      ${companyName}<br>
-                      ${city}, ${state}, ${country}
-                    </p>
-                  </td>
-                </tr>
+                <h2 style="font-size: 18px; color: #2C514C; margin: 30px 0 15px 0;">What's Next:</h2>
+                <p style="margin-bottom: 20px;">Please use the link below to select a date and time that works best for you. The meeting will be added directly to my calendar and you will receive a calendar invitation to accept.</p>
                 
-                <!-- Footer -->
-                <tr>
-                  <td style="padding-top: 20px; border-top: 1px solid #eaeaea; font-size: 12px; color: #999999; text-align: center;">
-                    <p>© ${new Date().getFullYear()} Give2Meet. All rights reserved.</p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-        </table>
-      `
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${calendarLink}" style="display: inline-block; padding: 12px 24px; background-color: #2C514C; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;">👉 Schedule Your Meeting Here</a>
+                </div>
+                
+                <p style="margin-bottom: 20px;">A few quick reminders. Your donation will be held in escrow until the meeting takes place. If the meeting is completed as scheduled, the donation will be released to the charity.</p>
+                <p style="margin-bottom: 20px;">Thanks again for using Give2Meet to make our time together meaningful and impactful.</p>
+                
+                <p style="margin-top: 30px;">
+                  Best,<br>
+                  <strong>${executiveName}</strong><br>
+                  ${jobTitle}<br>
+                  ${companyName}<br>
+                  ${city}, ${state}, ${country}
+                </p>
+              </td>
+            </tr>
+            
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 20px; border-top: 1px solid #eaeaea; font-size: 12px; color: #999999; text-align: center;">
+                <p>© ${new Date().getFullYear()} Give2Meet. All rights reserved.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `
     };
 
     const mailOptions2 = {
