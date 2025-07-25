@@ -329,7 +329,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
                   : "bg-[#EA5455] hover:bg-[#EA5455]/90"
               }
             >
-              {confirmationDialog.actionType === 'accept' ? 'Accepted' : 'Rejected'}
+              {confirmationDialog.actionType === 'accept' ? 'Accept' : 'Reject'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

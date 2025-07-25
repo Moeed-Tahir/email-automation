@@ -275,14 +275,12 @@ export default function MeetingRequest() {
             </div>
           </div>
 
-          {/* Closed-Ended Questions */}
           <div className="pt-6 border-t">
             <h3 className="text-[23px] font-medium mb-2">
               Closed-Ended Questions
             </h3>
             <div className="grid gap-6">
               {surveyData.closeEndedQuestions?.map((question, qIndex) => {
-                // Define the sequence titles
                 const questionTitles = [
                   "1. Business Challenge Focus",
                   "2. Solution Type",
@@ -296,7 +294,6 @@ export default function MeetingRequest() {
 
                 return (
                   <div key={qIndex} className="space-y-2">
-                    {/* Add the sequence title above each question */}
                     <h4 className="text-lg font-medium text-[#2C514C]">
                       {questionTitles[qIndex]}
                     </h4>

@@ -207,124 +207,124 @@ const SurveyForm = ({ userId }) => {
     return score.toString();
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const newErrors = {};
+    const newErrors = {};
 
-  if (!formData.solutionDescription || formData.solutionDescription.length < 100) {
-    newErrors.solutionDescription = "Please provide at least 100 characters";
-  }
-  if (!formData.businessChallengeSolution || formData.businessChallengeSolution.length < 100) {
-    newErrors.businessChallengeSolution = "Please provide at least 100 characters";
-  }
-
-  [...case2Questions, ...case3Questions].forEach((question) => {
-    const answerKey = `question_${question.questionId}`;
-    if (!formData[answerKey]) {
-      newErrors[answerKey] = "Please select an option";
-    } else if (formData[answerKey] === "Other (please specify)" && !formData[`other_${question.questionId}`]) {
-      newErrors[`other_${question.questionId}`] = "Please specify your answer";
+    if (!formData.solutionDescription || formData.solutionDescription.length < 100) {
+      newErrors.solutionDescription = "Please provide at least 100 characters";
     }
-  });
+    if (!formData.businessChallengeSolution || formData.businessChallengeSolution.length < 100) {
+      newErrors.businessChallengeSolution = "Please provide at least 100 characters";
+    }
 
-  setErrors(newErrors);
-  if (Object.keys(newErrors).length > 0) {
-    return;
-  }
-
-  try {
-    setLoading(true);
-    const totalScore = calculateTotalScore(formData);
-
-    const questionAnswers = [
-      ...case2Questions.map((question) => {
-        const answer = formData[`question_${question.questionId}`];
-        const isOther = answer === "Other (please specify)";
-        const selectedOption = question.options.find(
-          opt => isOther ? opt.text === "Other (please specify)" : opt.text === answer
-        );
-
-        return {
-          questionId: question.questionId,
-          questionText: question.questionText,
-          answer: isOther ? formData[`other_${question.questionId}`] : answer,
-          originalAnswer: answer,
-          isOther: isOther,
-          score: selectedOption?.score || 0,
-          options: question.options.map(opt => ({
-            text: opt.text,
-            score: opt.score,
-            isSelected: opt.text === answer
-          }))
-        };
-      }),
-      ...case3Questions.map((question) => {
-        const answer = formData[`question_${question.questionId}`];
-        const isOther = answer === "Other (please specify)";
-        const selectedOption = question.options.find(
-          opt => isOther ? opt.text === "Other (please specify)" : opt.text === answer
-        );
-
-        return {
-          questionId: question.questionId,
-          questionText: question.questionText,
-          answer: isOther ? formData[`other_${question.questionId}`] : answer,
-          originalAnswer: answer,
-          isOther: isOther,
-          score: selectedOption?.score || 0,
-          options: question.options.map(opt => ({
-            text: opt.text,
-            score: opt.score,
-            isSelected: opt.text === answer
-          }))
-        };
-      }),
-    ];
-
-    const submissionData = {
-      userId,
-      ...formData,
-      totalScore,
-      questionAnswers,
-      submittedAt: new Date().toISOString(),
-      profileData: {
-        userName: profileData.userName,
-        companyName: profileData.companyName,
-        minimumBidDonation: profileData.minimumBidDonation
-      },
-      userQuestions: {
-        questionOne: userQuestions.questionOne,
-        questionTwo: userQuestions.questionTwo
+    [...case2Questions, ...case3Questions].forEach((question) => {
+      const answerKey = `question_${question.questionId}`;
+      if (!formData[answerKey]) {
+        newErrors[answerKey] = "Please select an option";
+      } else if (formData[answerKey] === "Other (please specify)" && !formData[`other_${question.questionId}`]) {
+        newErrors[`other_${question.questionId}`] = "Please specify your answer";
       }
-    };
+    });
 
-    const response = await fetch(
-      "/api/routes/SurvayForm?action=sendSurveyForm",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const totalScore = calculateTotalScore(formData);
+
+      const questionAnswers = [
+        ...case2Questions.map((question) => {
+          const answer = formData[`question_${question.questionId}`];
+          const isOther = answer === "Other (please specify)";
+          const selectedOption = question.options.find(
+            opt => isOther ? opt.text === "Other (please specify)" : opt.text === answer
+          );
+
+          return {
+            questionId: question.questionId,
+            questionText: question.questionText,
+            answer: isOther ? formData[`other_${question.questionId}`] : answer,
+            originalAnswer: answer,
+            isOther: isOther,
+            score: selectedOption?.score || 0,
+            options: question.options.map(opt => ({
+              text: opt.text,
+              score: opt.score,
+              isSelected: opt.text === answer
+            }))
+          };
+        }),
+        ...case3Questions.map((question) => {
+          const answer = formData[`question_${question.questionId}`];
+          const isOther = answer === "Other (please specify)";
+          const selectedOption = question.options.find(
+            opt => isOther ? opt.text === "Other (please specify)" : opt.text === answer
+          );
+
+          return {
+            questionId: question.questionId,
+            questionText: question.questionText,
+            answer: isOther ? formData[`other_${question.questionId}`] : answer,
+            originalAnswer: answer,
+            isOther: isOther,
+            score: selectedOption?.score || 0,
+            options: question.options.map(opt => ({
+              text: opt.text,
+              score: opt.score,
+              isSelected: opt.text === answer
+            }))
+          };
+        }),
+      ];
+
+      const submissionData = {
+        userId,
+        ...formData,
+        totalScore,
+        questionAnswers,
+        submittedAt: new Date().toISOString(),
+        profileData: {
+          userName: profileData.userName,
+          companyName: profileData.companyName,
+          minimumBidDonation: profileData.minimumBidDonation
         },
-        body: JSON.stringify(submissionData),
-      }
-    );
+        userQuestions: {
+          questionOne: userQuestions.questionOne,
+          questionTwo: userQuestions.questionTwo
+        }
+      };
 
-    if (response.ok) {
-      const data = await response.json();
-      router.push("/successful");
-    } else {
-      console.error("Error submitting form");
-      const errorData = await response.json();
-      alert(errorData.message || "Error submitting survey. Please try again.");
+      const response = await fetch(
+        "/api/routes/SurvayForm?action=sendSurveyForm",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submissionData),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        router.push("/successful");
+      } else {
+        console.error("Error submitting form");
+        const errorData = await response.json();
+        alert(errorData.message || "Error submitting survey. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Error submitting survey. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error submitting form:", error);
-    alert("Error submitting survey. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -360,8 +360,7 @@ const handleSubmit = async (e) => {
     switch (currentTab) {
       case 0:
         return (
-          <div className="flex flex-col max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Header Section */}
+          <div className="flex flex-col max-w-7xl  mx-auto pl-0 pr-4 sm:pl-0 sm:pr-6 lg:pl-0 lg:pr-2">            {/* Header Section */}
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6 mb-6">
               {/* Profile Image */}
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden self-center sm:self-start">
@@ -544,23 +543,19 @@ const handleSubmit = async (e) => {
                   </div>
                   <div className="space-y-4 text-sm sm:text-base">
                     <p>
-                      This executive uses CheckMeet to take only the most
-                      relevant, high-value sales meetings.
+                      This executive uses Give2Meet to take only the most relevant, high-value sales meetings.
                     </p>
                     <p>To request a meeting, you'll be asked to:</p>
                     <ol className="list-decimal pl-6 space-y-2">
                       <li>
-                        Pledge a donation to their selected charity (only
-                        charged if they accept your meeting)
+                        Pledge a donation to their selected charity. Only charged if they accept your meeting and it occurs.
                       </li>
                       <li>
-                        Answer questions about who you are and how you can help
-                        solve a business problem
+                        Answer a few quick questions to explain who you are, what you offer, and how you can help solve a real business problem.
                       </li>
                     </ol>
                     <p>
-                      This is a smarter way to earn time with top
-                      decision-makers while supporting good causes.
+                      This isn't a pay-to-play wall. It's a smarter, impact-driven way to earn time with top decision-makers. Make your outreach thoughtful. If accepted, you'll get direct calendar access and your donation will support a great cause.
                     </p>
                   </div>
                 </div>
@@ -689,25 +684,38 @@ const handleSubmit = async (e) => {
             <p className="font-medium text-2xl mb-6">
               Help the Executive Qualify Your Request
             </p>
-            {case2Questions.map((question, index) => (
-              <RadioGroup
-                key={question.questionId}
-                label={`${index + 1}. ${question.questionText}`}
-                options={question.options.map((opt) => opt.text)}
-                value={formData[`question_${question.questionId}`] || ""}
-                onChange={(val) =>
-                  setFormData({
-                    ...formData,
-                    [`question_${question.questionId}`]: val,
-                  })
-                }
-                error={errors[`question_${question.questionId}`]}
-                questionId={question.questionId}
-                formData={formData}
-                setFormData={setFormData}
-                errors={errors}
-              />
-            ))}
+            {case2Questions.map((question, index) => {
+              const questionTitle = [
+                "1. Business Challenge Focus",
+                "2. Solution Type",
+                "3. Industry Experience",
+                "4. Proof of Success"
+              ][index];
+
+              return (
+                <div key={question.questionId} className="mb-6">
+                  <h3 className="text-lg font-medium text-[#2C514C] mb-2">
+                    {questionTitle}
+                  </h3>
+                  <RadioGroup
+                    label={question.questionText}
+                    options={question.options.map((opt) => opt.text)}
+                    value={formData[`question_${question.questionId}`] || ""}
+                    onChange={(val) =>
+                      setFormData({
+                        ...formData,
+                        [`question_${question.questionId}`]: val,
+                      })
+                    }
+                    error={errors[`question_${question.questionId}`]}
+                    questionId={question.questionId}
+                    formData={formData}
+                    setFormData={setFormData}
+                    errors={errors}
+                  />
+                </div>
+              );
+            })}
           </>
         );
 
@@ -717,24 +725,38 @@ const handleSubmit = async (e) => {
             <p className="font-medium text-2xl mb-6">
               Help the Executive Qualify Your Request
             </p>
-            {case3Questions.map((question, index) => (
-              <RadioGroup
-                key={question.questionId}
-                label={`${index + 5}. ${question.questionText}`}
-                options={question.options.map((opt) => opt.text)}
-                value={formData[`question_${question.questionId}`] || ""}
-                onChange={(val) =>
-                  setFormData({
-                    ...formData,
-                    [`question_${question.questionId}`]: val,
-                  })
-                }
-                error={errors[`question_${question.questionId}`]}
-                questionId={question.questionId}
-                formData={formData}
-                setFormData={setFormData}
-              />
-            ))}
+            {case3Questions.map((question, index) => {
+              const questionTitle = [
+                "5. Customer Segment",
+                "6. Sales Timing",
+                "7. Familiarity with Executive's Space",
+                "8. Donation Escrow Preference"
+              ][index];
+
+              return (
+                <div key={question.questionId} className="mb-6">
+                  <h3 className="text-lg font-medium text-[#2C514C] mb-2">
+                    {questionTitle}
+                  </h3>
+                  <RadioGroup
+                    label={question.questionText}
+                    options={question.options.map((opt) => opt.text)}
+                    value={formData[`question_${question.questionId}`] || ""}
+                    onChange={(val) =>
+                      setFormData({
+                        ...formData,
+                        [`question_${question.questionId}`]: val,
+                      })
+                    }
+                    error={errors[`question_${question.questionId}`]}
+                    questionId={question.questionId}
+                    formData={formData}
+                    setFormData={setFormData}
+                    errors={errors}
+                  />
+                </div>
+              );
+            })}
           </>
         );
 

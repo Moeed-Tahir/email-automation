@@ -19,6 +19,17 @@ const CloseEndedQuestionsPage = () => {
     const [error, setError] = useState("");
     const userId = Cookies.get("UserId");
 
+    const questionTitles = [
+        "1. Business Challenge Focus",
+        "2. Solution Type",
+        "3. Industry Experience",
+        "4. Proof of Success",
+        "5. Customer Segment",
+        "6. Sales Timing",
+        "7. Familiarity with Executive's Space",
+        "8. Donation Escrow Preference"
+    ];
+
     useEffect(() => {
         const fetchQuestions = async () => {
             try {
@@ -90,7 +101,7 @@ const CloseEndedQuestionsPage = () => {
         try {
             setLoading(true);
             let response;
-            
+
             if (editingQuestionId) {
                 response = await axios.post("/api/routes/ProfileInfo?action=updateCloseEndedQuestion", {
                     userId,
@@ -146,7 +157,6 @@ const CloseEndedQuestionsPage = () => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {/* Add/Edit Question Form */}
                     <div className="border-b pb-6">
                         <h3 className="text-xl font-medium mb-4">
                             {editingQuestionId ? "Edit Question" : "Add New Question"}
@@ -217,8 +227,8 @@ const CloseEndedQuestionsPage = () => {
                                     className="bg-[#2C514C] hover:bg-[#1a3835]"
                                     disabled={loading}
                                 >
-                                    {loading ? "Processing..." : 
-                                     editingQuestionId ? "Update Question" : "Add Question"}
+                                    {loading ? "Processing..." :
+                                        editingQuestionId ? "Update Question" : "Add Question"}
                                 </Button>
                                 {editingQuestionId && (
                                     <Button
@@ -243,31 +253,39 @@ const CloseEndedQuestionsPage = () => {
                             <div className="text-gray-500">No questions added yet</div>
                         ) : (
                             <div className="space-y-4">
-                                {questions.map((question) => (
-                                    <Card key={question.questionId} className="p-4">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <h4 className="font-medium">{question.questionText}</h4>
-                                                <ul className="mt-2 space-y-1">
-                                                    {question.options.map((option, idx) => (
-                                                        <li key={idx} className="flex items-center gap-2">
-                                                            <span className="text-gray-500">{option.text}</span>
-                                                            <span className="text-sm text-gray-400">(Score: {option.score})</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                {questions.map((question, qIndex) => {
+                                    const questionParts = question.questionText.split('\n');
+                                    const questionTextWithoutTitle = questionParts.length > 1 ? questionParts.slice(1).join('\n') : question.questionText;
+
+                                    return (
+                                        <Card key={question.questionId} className="p-4">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-medium text-[#2C514C]">
+                                                        {qIndex < questionTitles.length ? questionTitles[qIndex] : `Question ${qIndex + 1}`}
+                                                    </h4>
+                                                    <p className="mt-1">{questionTextWithoutTitle}</p>
+                                                    <ul className="mt-3 space-y-2">
+                                                        {question.options.map((option, idx) => (
+                                                            <li key={idx} className="flex items-center gap-2">
+                                                                <span className="text-gray-600">{option.text}</span>
+                                                                <span className="text-sm text-gray-400">(Score: {option.score})</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => handleEditQuestion(question)}
+                                                    disabled={loading}
+                                                >
+                                                    Edit
+                                                </Button>
                                             </div>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleEditQuestion(question)}
-                                                disabled={loading}
-                                            >
-                                                Edit
-                                            </Button>
-                                        </div>
-                                    </Card>
-                                ))}
+                                        </Card>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
