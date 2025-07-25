@@ -86,7 +86,7 @@ export function AppSidebar({ isAdmin = false, ...props }) {
   };
 
   return (
-    <Sidebar collapsible="icon" {...props} className="z-20">
+    <Sidebar collapsible="icon" {...props} className="z-30">
       <SidebarHeader className="bg-[#2C514C] py-6 px-4">
         <Image src={logo} alt="Logo" width={130} height={130} />
       </SidebarHeader>

@@ -1,9 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import DashboardTable from "@/components/dashboard-table";
-import Link from "next/link";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -214,12 +212,6 @@ export default function Page() {
           <div className="bg-white rounded-xl p-6 flex flex-col gap-4 border-b-2 border-[#7367F0] shadow-sm">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-[#7367F0]/20 rounded-lg">
-                {/* <Image
-                  src="/icons8_donation_1.svg"
-                  alt="Donations"
-                  width={30}
-                  height={30}
-                /> */}
                 <DollarSign className="w-6 h-6 text-[#7367F0]" />
               </div>
               <h3 className="text-2xl font-medium">{stats.totalDonations}</h3>
@@ -238,15 +230,6 @@ export default function Page() {
 
       {/* Table Section */}
       <div className="bg-white rounded-xl p-6 shadow-sm border">
-        {/* <div className="flex justify-end items-center mb-4">
-          <h2 className="text-lg font-semibold">Recent Bidding Activity</h2>
-          <Button
-            variant="ghost"
-            className="text-[#2C514C] hover:bg-[#2C514C]/10"
-          >
-            <Link href={`/${userId}/bidding-requests`}>View All</Link>
-          </Button>
-        </div> */}
         <DashboardTable userId={userId} />
       </div>
     </div>

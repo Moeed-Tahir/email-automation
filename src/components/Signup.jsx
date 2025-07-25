@@ -34,9 +34,9 @@ const SignupFlow = () => {
     charityCompany: "",
     minBidDonation: "",
     industry: "",
-    motivation: "Please describe your solution and its key features.",
+    motivation: "What problem does your product or service solve, and why is it relevant to this executive’s business?",
     howHeard:
-      "How will your solution help me solve my core business challenges?",
+      "If this meeting happens, what would success look like for both of you?",
     businessChallenge: {
       questionType: "Business Challenge",
       question: "What business challenge does your solution help solve?",

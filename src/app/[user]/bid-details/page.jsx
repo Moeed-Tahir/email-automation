@@ -160,21 +160,26 @@ export default function MeetingRequest() {
   };
 
   if (!surveyData) {
-    return <div>Loading...</div>;
+    return (
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto flex justify-center items-center h-64">
+        <div className="text-lg font-medium">Loading survey data...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8 max-w-7xl mx-auto">
+      {/* Request Card */}
+      <Card className="overflow-hidden">
+        <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50">
+          <div className="space-y-2">
             <CardTitle className="text-xl font-light">
               <span>Dear </span>
               <span className="text-[#2C514C] font-medium">
                 <strong>{Cookies.get("userName")}</strong>
               </span>
             </CardTitle>
-            <CardDescription className="text-xl">
+            <CardDescription className="text-base">
               You have received a meeting request from {surveyData.name}, who is
               interested in connecting with you. Please review the details below
               and choose to accept or decline the request.
@@ -185,17 +190,17 @@ export default function MeetingRequest() {
               {getStatusBadge(surveyData.status)}
             </div>
           ) : (
-            <div className="flex gap-4">
+            <div className="flex gap-4 flex-wrap">
               <Button
                 variant="outline"
-                className="bg-red-500 text-white hover:bg-red-600"
+                className="bg-red-500 text-white hover:bg-red-600 min-w-[100px]"
                 onClick={() => openConfirmationDialog(surveyData, 'reject')}
                 disabled={actionLoading.id === surveyData._id && actionLoading.type === 'reject'}
               >
                 {actionLoading.id === surveyData._id && actionLoading.type === 'reject' ? 'Processing...' : 'Reject'}
               </Button>
               <Button
-                className="bg-[#2C514C] hover:bg-[#1a3835]"
+                className="bg-[#2C514C] hover:bg-[#1a3835] min-w-[100px]"
                 onClick={() => openConfirmationDialog(surveyData, 'accept')}
                 disabled={actionLoading.id === surveyData._id && actionLoading.type === 'accept'}
               >
@@ -204,142 +209,130 @@ export default function MeetingRequest() {
             </div>
           )}
         </CardHeader>
-        <CardContent className="space-y-6 text-xl">
+        <CardContent className="space-y-6 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <p className="font-medium mb-2">Respondent Details:</p>
-              <ul className="space-y-2">
-                <li><strong>Name:</strong> {surveyData.name}</li>
-                <li><strong>Job Title:</strong> {surveyData.jobTitle}</li>
-                <li><strong>Company:</strong> {surveyData.company}</li>
-                <li><strong>Location:</strong> {surveyData.city}, {surveyData.state}, {surveyData.country}</li>
-                <li><strong>Email:</strong> {surveyData.email}</li>
-                <li><strong>Phone:</strong> {surveyData.phoneNumber}</li>
+            {/* Respondent Details */}
+            <div className="space-y-4">
+              <p className="font-medium text-lg">Respondent Details:</p>
+              <ul className="space-y-3">
+                <li className="break-words"><strong>Name:</strong> {surveyData.name || "Not provided"}</li>
+                <li className="break-words"><strong>Job Title:</strong> {surveyData.jobTitle || "Not provided"}</li>
+                <li className="break-words"><strong>Company:</strong> {surveyData.company || "Not provided"}</li>
+                <li className="break-words">
+                  <strong>Location:</strong> {[surveyData.city, surveyData.state, surveyData.country].filter(Boolean).join(', ') || "Not provided"}
+                </li>
+                <li className="break-words"><strong>Email:</strong> {surveyData.email || "Not provided"}</li>
+                <li className="break-words"><strong>Phone:</strong> {surveyData.phoneNumber || "Not provided"}</li>
               </ul>
             </div>
-            <div>
-              <p className="font-medium mb-2">Donation Details:</p>
-              <ul className="space-y-2">
-                <li>
+
+            {/* Donation Details */}
+            <div className="space-y-4">
+              <p className="font-medium text-lg">Donation Details:</p>
+              <ul className="space-y-3">
+                <li className="break-words">
                   <strong>Proposed Donation:</strong>
-                  <span className="ml-2 font-bold text-[#2C514C]">${surveyData.bidAmount}</span>
-                </li>
-                <li>
-                  <strong>Donation Status:</strong>
-                  <span className="ml-2">
-                    {getStatusBadge(surveyData.donationStatus)}
+                  <span className="ml-2 font-bold text-[#2C514C]">
+                    {surveyData.bidAmount ? `$${surveyData.bidAmount}` : "Not specified"}
                   </span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <strong>Donation Status:</strong>
+                  {getStatusBadge(surveyData.donationStatus || "Not specified")}
                 </li>
               </ul>
             </div>
           </div>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+
+      {/* Survey Responses Card */}
+      <Card className="overflow-hidden">
+        <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50">
           <div>
-            <CardTitle className="text-[23px] font-medium mb-2">Survey Responses</CardTitle>
+            <CardTitle className="text-xl font-medium">Survey Responses</CardTitle>
           </div>
-          <div
-            variant="default"
-            className="bg-[#2C514C] border-2 border-[#2C514C] text-white px-3 py-1.5 rounded-lg text-center text-[16px]"
-          >
-            {`Survey Score: ${surveyData.totalScore}`}
+          <div className="bg-[#2C514C] border-2 border-[#2C514C] text-white px-4 py-2 rounded-lg text-center text-base font-medium">
+            {`Survey Score: ${surveyData.totalScore || "0"}`}
           </div>
         </CardHeader>
-        <CardContent className="space-y-8">
-          {/* Open-Ended Questions */}
-          <div>
-            <h3 className="text-[23px] font-medium mb-2">
+        <CardContent className="space-y-8 p-6">
+          {/* Open-Ended Questions Section */}
+          <div className="space-y-6">
+            <h3 className="text-xl font-medium">
               Open-Ended Questions
             </h3>
-            <div className="grid gap-6">
+            
+            <div className="space-y-4">
               <div>
-                <Label>Describe your solution and its key features.</Label>
-                <Textarea
-                  placeholder="Describe your solution..."
-                  className="mt-2"
-                  value={surveyData.questionOneSolution}
-                  readOnly
-                />
+                <Label className="text-base font-medium">Describe your solution and its key features.</Label>
+                <div className="mt-2 p-4 border rounded-md bg-gray-50 min-h-[100px] whitespace-pre-wrap break-words">
+                  {surveyData.questionOneSolution || "No response provided"}
+                </div>
               </div>
+              
               <div>
-                <Label>Give a brief description of your solution.</Label>
-                <Textarea
-                  placeholder="Describe key features..."
-                  className="mt-2"
-                  value={surveyData.questionTwoSolution}
-                  readOnly
-                />
+                <Label className="text-base font-medium">Give a brief description of your solution.</Label>
+                <div className="mt-2 p-4 border rounded-md bg-gray-50 min-h-[100px] whitespace-pre-wrap break-words">
+                  {surveyData.questionTwoSolution || "No response provided"}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-6 border-t">
-            <h3 className="text-[23px] font-medium mb-2">
+          {/* Closed-Ended Questions Section */}
+          <div className="pt-6 border-t space-y-6">
+            <h3 className="text-xl font-medium">
               Closed-Ended Questions
             </h3>
-            <div className="grid gap-6">
+            
+            <div className="space-y-8">
               {surveyData.closeEndedQuestions?.map((question, qIndex) => {
                 const questionTitles = [
-                  "1. Business Challenge Focus",
-                  "2. Solution Type",
-                  "3. Industry Experience",
-                  "4. Proof of Success",
-                  "5. Customer Segment",
-                  "6. Sales Timing",
-                  "7. Familiarity with Executive's Space",
-                  "8. Donation Escrow Preference"
+                  "Business Challenge Focus",
+                  "Solution Type",
+                  "Industry Experience",
+                  "Proof of Success",
+                  "Customer Segment",
+                  "Sales Timing",
+                  "Familiarity with Executive's Space",
+                  "Donation Escrow Preference"
                 ];
 
                 return (
-                  <div key={qIndex} className="space-y-2">
+                  <div key={qIndex} className="space-y-4">
                     <h4 className="text-lg font-medium text-[#2C514C]">
-                      {questionTitles[qIndex]}
+                      {qIndex + 1}. {questionTitles[qIndex]}
                     </h4>
-                    <Label>{question.questionText}</Label>
-                    <div className="space-y-3">
+                    <Label className="text-base">{question.questionText}</Label>
+                    
+                    <div className="space-y-3 ml-2">
                       {question.options.map((option, oIndex) => (
-                        <div key={oIndex} className="flex items-center gap-2">
-                          {option.isSelected ? (
-                            <>
-                              <Checkbox
-                                id={`question-${qIndex}-option-${oIndex}`}
-                                checked={true}
-                                disabled
-                              />
-                              <Label
-                                htmlFor={`question-${qIndex}-option-${oIndex}`}
-                                className={`${option.isSelected ? 'font-medium' : 'text-gray-500'}`}
-                              >
-                                {option.text} {option.isSelected && `(Score: ${question.score})`}
-                              </Label>
-                            </>
-                          ) : (
-                            <>
-                              <Checkbox
-                                id={`question-${qIndex}-option-${oIndex}`}
-                                checked={false}
-                                disabled
-                              />
-                              <Label
-                                htmlFor={`question-${qIndex}-option-${oIndex}`}
-                                className="text-gray-500"
-                              >
-                                {option.text}
-                              </Label>
-                            </>
-                          )}
+                        <div key={oIndex} className="flex items-start gap-3">
+                          <Checkbox
+                            id={`question-${qIndex}-option-${oIndex}`}
+                            checked={option.isSelected}
+                            disabled
+                            className="mt-1"
+                          />
+                          <Label
+                            htmlFor={`question-${qIndex}-option-${oIndex}`}
+                            className={`${option.isSelected ? 'font-medium' : 'text-gray-600'} break-words`}
+                          >
+                            {option.text} 
+                            {option.isSelected && (
+                              <span className="text-[#2C514C] ml-2">(Score: {question.score})</span>
+                            )}
+                          </Label>
                         </div>
                       ))}
-                      {question.isOther && (
-                        <div className="mt-2">
-                          <Label>Other Answer:</Label>
-                          <Textarea
-                            className="mt-1"
-                            value={question.originalAnswer}
-                            readOnly
-                          />
+                      
+                      {question.isOther && question.originalAnswer && (
+                        <div className="mt-3 ml-7">
+                          <Label className="text-gray-600">Other Answer:</Label>
+                          <div className="mt-1 p-3 border rounded-md bg-gray-50 whitespace-pre-wrap break-words">
+                            {question.originalAnswer}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -351,13 +344,14 @@ export default function MeetingRequest() {
         </CardContent>
       </Card>
 
+      {/* Confirmation Dialog */}
       {confirmationDialog.open && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-xl font-semibold mb-4">
               Confirm {confirmationDialog.actionType === 'accept' ? 'Acceptance' : 'Rejection'}
             </h3>
-            <p className="mb-6">
+            <p className="mb-6 text-gray-700">
               Are you sure you want to {confirmationDialog.actionType} this meeting request?
               {confirmationDialog.actionType === 'accept' && ' A donation will be expected if the meeting occurs.'}
             </p>
@@ -365,11 +359,12 @@ export default function MeetingRequest() {
               <Button
                 variant="outline"
                 onClick={closeConfirmationDialog}
+                className="min-w-[80px]"
               >
                 Cancel
               </Button>
               <Button
-                className={confirmationDialog.actionType === 'accept' ? 'bg-[#2C514C] hover:bg-[#1a3835]' : 'bg-red-500 hover:bg-red-600'}
+                className={`min-w-[80px] ${confirmationDialog.actionType === 'accept' ? 'bg-[#2C514C] hover:bg-[#1a3835]' : 'bg-red-500 hover:bg-red-600'}`}
                 onClick={handleConfirmAction}
                 disabled={actionLoading.id === confirmationDialog.survey?._id}
               >

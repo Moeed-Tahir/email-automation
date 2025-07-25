@@ -574,6 +574,7 @@ const SurveyForm = ({ userId }) => {
               <InputField
                 label="First Name *"
                 type="text"
+                placeholder="John"
                 icon={<User />}
                 value={formData.firstName}
                 onChange={(val) => setFormData({ ...formData, firstName: val })}
@@ -582,6 +583,7 @@ const SurveyForm = ({ userId }) => {
               <InputField
                 label="Last Name *"
                 type="text"
+                placeholder="Doe"
                 icon={<User />}
                 value={formData.lastName}
                 onChange={(val) => setFormData({ ...formData, lastName: val })}
@@ -594,6 +596,7 @@ const SurveyForm = ({ userId }) => {
               <InputField
                 label="Company *"
                 type="text"
+                placeholder="Acme Inc."
                 icon={<Building />}
                 value={formData.company}
                 onChange={(val) => setFormData({ ...formData, company: val })}
@@ -602,6 +605,7 @@ const SurveyForm = ({ userId }) => {
               <InputField
                 label="Job Title *"
                 type="text"
+                placeholder="Marketing Director"
                 icon={<Briefcase />}
                 value={formData.jobTitle}
                 onChange={(val) => setFormData({ ...formData, jobTitle: val })}
@@ -614,6 +618,7 @@ const SurveyForm = ({ userId }) => {
               <InputField
                 label="Email Address *"
                 type="email"
+                placeholder="john.doe@example.com"
                 icon={<Mail />}
                 value={formData.email}
                 onChange={(val) => setFormData({ ...formData, email: val })}
@@ -623,6 +628,7 @@ const SurveyForm = ({ userId }) => {
                 label="Phone Number *"
                 type="tel"
                 icon={<Phone />}
+                placeholder="(123) 456-7890"
                 value={formData.phoneNumber}
                 onChange={(val) =>
                   setFormData({ ...formData, phoneNumber: val })
@@ -636,6 +642,7 @@ const SurveyForm = ({ userId }) => {
               <InputField
                 label="City *"
                 type="text"
+                placeholder="New York"
                 icon={<MapPin />}
                 value={formData.city}
                 onChange={(val) => setFormData({ ...formData, city: val })}
@@ -644,6 +651,7 @@ const SurveyForm = ({ userId }) => {
               <InputField
                 label="State *"
                 type="text"
+                placeholder="NY"
                 icon={<MapPin />}
                 value={formData.state}
                 onChange={(val) => setFormData({ ...formData, state: val })}
@@ -652,6 +660,7 @@ const SurveyForm = ({ userId }) => {
               <InputField
                 label="Country *"
                 type="text"
+                placeholder="United States"
                 icon={<MapPin />}
                 value={formData.country}
                 onChange={(val) => setFormData({ ...formData, country: val })}
@@ -664,6 +673,7 @@ const SurveyForm = ({ userId }) => {
               <InputField
                 label="Bid Amount ($) *"
                 type="number"
+                placeholder="500"
                 icon={<BadgeDollarSign />}
                 value={formData.bidAmount}
                 onChange={(val) => setFormData({ ...formData, bidAmount: val })}
@@ -857,7 +867,7 @@ const SurveyForm = ({ userId }) => {
   );
 };
 
-const InputField = ({ label, type, icon, value, onChange, error, hint }) => {
+const InputField = ({ label, type, icon, value, onChange, error, hint,placeholder }) => {
   const handleChange = (e) => {
     let newValue = e.target.value;
 
@@ -887,6 +897,7 @@ const InputField = ({ label, type, icon, value, onChange, error, hint }) => {
         <input
           type={type}
           value={value}
+          placeholder={placeholder}
           onChange={handleChange}
           className={`w-full pl-10 p-3 border ${error ? "border-red-500" : "border-gray-300"
             } rounded-lg focus:ring-2 focus:ring-[#2C514C] focus:outline-none`}

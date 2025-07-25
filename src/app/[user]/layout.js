@@ -27,25 +27,17 @@ export default function Layout({ children }) {
         userProfilePhoto: "",
     });
 
-    // Function to get page title from URL
     const getPageTitle = () => {
         const path = pathname?.split('/').filter(Boolean);
         if (!path || path.length === 0) return "Dashboard";
 
         const lastSegment = path[path.length - 1];
-
-        // Custom mapping for specific paths
         const pageTitles = {
             'profile': 'Settings',
             'close-ended-question': 'Close Ended Question',
             'bid-details': 'Respondent Details',
-            // 'bidding-requests': 'Bidding Requests',
-            // 'settings': 'Settings',
-            // 'notifications': 'Notifications',
-            // Add more mappings as needed
         };
 
-        // Default to capitalized version of the last segment
         return pageTitles[lastSegment] ||
             lastSegment
                 .split('-')
@@ -57,23 +49,16 @@ export default function Layout({ children }) {
         const fetchProfileData = async () => {
             try {
                 const userId = Cookies.get("UserId");
-
-                if (!userId) {
-                    console.error("No userId found in cookies");
-                    return;
-                }
+                if (!userId) return;
 
                 const response = await axios.get(`/api/routes/ProfileInfo`, {
                     params: { userId, action: "getProfileInfo" },
                 });
-
                 setProfileData(response.data.user);
-                setFormData(response.data.user);
             } catch (error) {
                 console.error("Error fetching profile data:", error);
             }
         };
-
         fetchProfileData();
     }, []);
 
@@ -81,7 +66,7 @@ export default function Layout({ children }) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <nav className="sticky top-0 z-10 bg-white flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
+                <nav className="sticky top-0 z-[20] bg-white flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b">
                     <div className="flex items-center gap-2 px-4">
                         <SidebarTrigger className="-ml-1 cursor-pointer" />
                         <Separator
