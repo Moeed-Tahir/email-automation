@@ -7,6 +7,7 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { DollarSign } from "lucide-react";
 
 export default function Page() {
   const userId = Cookies.get("UserId");
@@ -213,12 +214,13 @@ export default function Page() {
           <div className="bg-white rounded-xl p-6 flex flex-col gap-4 border-b-2 border-[#7367F0] shadow-sm">
             <div className="flex items-center gap-4">
               <div className="p-2 bg-[#7367F0]/20 rounded-lg">
-                <Image
+                {/* <Image
                   src="/icons8_donation_1.svg"
                   alt="Donations"
                   width={30}
                   height={30}
-                />
+                /> */}
+                <DollarSign className="w-6 h-6 text-[#7367F0]" />
               </div>
               <h3 className="text-2xl font-medium">{stats.totalDonations}</h3>
             </div>
