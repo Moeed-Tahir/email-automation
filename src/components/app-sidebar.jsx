@@ -2,9 +2,6 @@
 
 import * as React from "react";
 import {
-  CircleHelp,
-  HandCoins,
-  HeartHandshake,
   LayoutDashboardIcon,
   LogOut,
   Settings,
@@ -39,11 +36,6 @@ const data = {
     //   url: `/${userId}/bidding-requests`,
     //   icon: HandCoins,
     // },
-    {
-      title: "Close Ended Question",
-      url: `/${userId}/close-ended-question`,
-      icon: HandCoins,
-    },
     // {
     //   title: "Donations",
     //   url: `/${userId}/donation`,

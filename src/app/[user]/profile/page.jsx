@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogTrigger, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CloseEndedQuestionsPage from "../close-ended-question/page";
 
 export default function Page() {
   const [profileData, setProfileData] = useState({
@@ -30,6 +32,7 @@ export default function Page() {
     focus: ""
   });
   const [formData, setFormData] = useState({ ...profileData });
+  const [activeTab, setActiveTab] = useState("profile");
 
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -112,210 +115,233 @@ export default function Page() {
   return (
     <SidebarInset>
       <div className="flex flex-1 flex-col w-full mx-auto py-3 px-5 space-y-10">
-        <div className="flex flex-1 flex-col w-full mx-auto py-4 px-6 space-y-10 border rounded-xl">
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">Personal Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { id: "userName", label: "Full Name", key: "userName", placeholder: "Enter your full name" },
-                { id: "email", label: "Email", key: "userProfileEmail", placeholder: "Enter your email", type: "email" },
-                { id: "location", label: "Location", key: "location", placeholder: "Enter your location" },
-                { id: "linkedInProfile", label: "LinkedIn Profile", key: "linkedInProfile", placeholder: "Enter your LinkedIn profile URL", type: "url" },
-              ].map(({ id, label, key, placeholder, type = "text" }) => (
-                <div key={id} className="space-y-2">
-                  <Label htmlFor={id}>{label}</Label>
-                  <Input
-                    id={id}
-                    type={type}
-                    value={formData[key]}
-                    placeholder={placeholder}
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="profile" onClick={() => setActiveTab("profile")}>
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="open-ended" onClick={() => setActiveTab("open-ended")}>
+              Open-Ended Questions
+            </TabsTrigger>
+            <TabsTrigger value="close-ended" onClick={() => setActiveTab("close-ended")}>
+              Close-Ended Questions
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile">
+            <div className="flex flex-1 flex-col w-full mx-auto py-4 px-6 space-y-10 border rounded-xl">
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold">Personal Information</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    { id: "userName", label: "Full Name", key: "userName", placeholder: "Enter your full name" },
+                    { id: "email", label: "Email", key: "userProfileEmail", placeholder: "Enter your email", type: "email" },
+                    { id: "location", label: "Location", key: "location", placeholder: "Enter your location" },
+                    { id: "linkedInProfile", label: "LinkedIn Profile", key: "linkedInProfile", placeholder: "Enter your LinkedIn profile URL", type: "url" },
+                  ].map(({ id, label, key, placeholder, type = "text" }) => (
+                    <div key={id} className="space-y-2">
+                      <Label htmlFor={id}>{label}</Label>
+                      <Input
+                        id={id}
+                        type={type}
+                        value={formData[key]}
+                        placeholder={placeholder}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, [key]: e.target.value }))
+                        }
+                        disabled={!isEditing}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="aboutMe">About Me</Label>
+                  <textarea
+                    id="aboutMe"
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={formData.aboutMe}
+                    placeholder="Tell us about yourself"
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, [key]: e.target.value }))
+                      setFormData((prev) => ({ ...prev, aboutMe: e.target.value }))
                     }
                     disabled={!isEditing}
+                    rows={4}
                   />
                 </div>
-              ))}
-            </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="aboutMe">About Me</Label>
-              <textarea
-                id="aboutMe"
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={formData.aboutMe}
-                placeholder="Tell us about yourself"
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, aboutMe: e.target.value }))
-                }
-                disabled={!isEditing}
-                rows={4}
-              />
-            </div>
-          </div>
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold">Company Information</h2>
 
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">Company Information</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { id: "companyName", label: "Company Name", key: "companyName", placeholder: "Enter your company name" },
-                { id: "jobTitle", label: "Job Title", key: "jobTitle", placeholder: "Enter your job title" },
-                { id: "department", label: "Department", key: "department", placeholder: "Enter your department" },
-                { id: "industry", label: "Industry", key: "industry", placeholder: "Enter your industry" },
-                { id: "focus", label: "Focus", key: "focus", placeholder: "Enter your focus area" },
-              ].map(({ id, label, key, placeholder, type = "text" }) => (
-                <div key={id} className="space-y-2">
-                  <Label htmlFor={id}>{label}</Label>
-                  <Input
-                    id={id}
-                    type={type}
-                    value={formData[key]}
-                    placeholder={placeholder}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, [key]: e.target.value }))
-                    }
-                    disabled={!isEditing}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    { id: "companyName", label: "Company Name", key: "companyName", placeholder: "Enter your company name" },
+                    { id: "jobTitle", label: "Job Title", key: "jobTitle", placeholder: "Enter your job title" },
+                    { id: "department", label: "Department", key: "department", placeholder: "Enter your department" },
+                    { id: "industry", label: "Industry", key: "industry", placeholder: "Enter your industry" },
+                    { id: "focus", label: "Focus", key: "focus", placeholder: "Enter your focus area" },
+                  ].map(({ id, label, key, placeholder, type = "text" }) => (
+                    <div key={id} className="space-y-2">
+                      <Label htmlFor={id}>{label}</Label>
+                      <Input
+                        id={id}
+                        type={type}
+                        value={formData[key]}
+                        placeholder={placeholder}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, [key]: e.target.value }))
+                        }
+                        disabled={!isEditing}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">Donation Information</h2>
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold">Donation Information</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                {
-                  id: "minimumBidDonation",
-                  label: "Minimum Bid",
-                  key: "minimumBidDonation",
-                  placeholder: "Enter minimum bid",
-                },
-              ].map(({ id, label, key, placeholder }) => (
-                <div key={id} className="space-y-2 w-full col-span-2">
-                  <Label htmlFor={id}>{label}</Label>
-                  <Input
-                    id={id}
-                    className="w-full"
-                    value={formData[key]}
-                    placeholder={placeholder}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, [key]: e.target.value }))
-                    }
-                    disabled={!isEditing}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    {
+                      id: "minimumBidDonation",
+                      label: "Minimum Bid",
+                      key: "minimumBidDonation",
+                      placeholder: "Enter minimum bid",
+                    },
+                  ].map(({ id, label, key, placeholder }) => (
+                    <div key={id} className="space-y-2 w-full col-span-2">
+                      <Label htmlFor={id}>{label}</Label>
+                      <Input
+                        id={id}
+                        className="w-full"
+                        value={formData[key]}
+                        placeholder={placeholder}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, [key]: e.target.value }))
+                        }
+                        disabled={!isEditing}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">Schedule</h2>
-            <div className="space-y-2">
-              <Label htmlFor="calendarLink">Your pre-existing calendar link</Label>
-              <div className="flex items-center px-2 gap-2 border rounded-lg w-full bg-white">
-                <Link className="text-[rgba(44,81,76,1)] size-5 shrink-0" />
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold">Schedule</h2>
+                <div className="space-y-2">
+                  <Label htmlFor="calendarLink">Your pre-existing calendar link</Label>
+                  <div className="flex items-center px-2 gap-2 border rounded-lg w-full bg-white">
+                    <Link className="text-[rgba(44,81,76,1)] size-5 shrink-0" />
+                    <Input
+                      id="calendarLink"
+                      value={formData.calendarLink}
+                      placeholder="Enter calendar link"
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, calendarLink: e.target.value }))
+                      }
+                      disabled={!isEditing}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Edit/Save/Cancel Buttons */}
+              <div className="flex flex-wrap gap-4 pt-4">
+                {!isEditing ? (
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    className="cursor-pointer bg-[#2C514C] hover:bg-[#24403C]"
+                  >
+                    Edit
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      type="submit"
+                      onClick={handleSubmit}
+                      className="cursor-pointer bg-[#2C514C] hover:bg-transparent hover:font-medium hover:text-[#2C514C] border-2 border-[#2C514C] hover:border-[#2C514C]"
+                    >
+                      Save Changes
+                    </Button>
+                    <Button variant="outline" type="button" onClick={handleCancel} className="cursor-pointer">
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              {/* Delete Account */}
+              <div className="space-y-6 pt-10 border-t">
+                <h2 className="text-2xl font-semibold">Delete Account</h2>
+                <div className="rounded-md bg-[#FF9F4329] p-4 text-[#FF9F43] text-lg">
+                  <p className="font-medium mb-1">
+                    Are you sure you want to delete your account?
+                  </p>
+                  <p className="text-[15px]">
+                    Once you delete your account, there is no going back. Please be certain.
+                  </p>
+                </div>
+
+                <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive" className="hover:bg-destructive/70 cursor-pointer">
+                      Delete Account
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="gap-1">
+                    <h3 className="text-[24px] font-semibold">Confirm Deletion</h3>
+                    <p>Are you absolutely sure you want to delete your account?</p>
+                    <DialogFooter className="flex gap-4 justify-end pt-4">
+                      <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="cursor-pointer">
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={deleteProfile}
+                        disabled={isDeleting}
+                        className="cursor-pointer"
+                      >
+                        {isDeleting ? "Deleting..." : "Yes, Delete"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="open-ended">
+            <div className="flex flex-1 flex-col w-full mx-auto py-4 px-6 space-y-10 border rounded-xl">
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold">Open-Ended Questions</h2>
                 <Input
-                  id="calendarLink"
-                  value={formData.calendarLink}
-                  placeholder="Enter calendar link"
+                  id="howHeard"
+                  value={formData.howHeard}
+                  placeholder="Enter Question"
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, calendarLink: e.target.value }))
+                    setFormData((prev) => ({ ...prev, howHeard: e.target.value }))
+                  }
+                  disabled={!isEditing}
+                />
+                <Input
+                  id="questionSolution"
+                  value={formData.questionSolution}
+                  placeholder="Enter Question"
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, questionSolution: e.target.value }))
                   }
                   disabled={!isEditing}
                 />
               </div>
             </div>
-          </div>
+          </TabsContent>
 
-          {/* Open Ended Question */}
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">Open-Ended Question</h2>
-            <Input
-              id="howHeard"
-              value={formData.howHeard}
-              placeholder="Enter Question"
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, howHeard: e.target.value }))
-              }
-              disabled={!isEditing}
-            />
-            <Input
-              id="questionSolution"
-              value={formData.questionSolution}
-              placeholder="Enter Question"
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, questionSolution: e.target.value }))
-              }
-              disabled={!isEditing}
-            />
-          </div>
-
-          {/* Edit/Save/Cancel Buttons */}
-          <div className="flex flex-wrap gap-4 pt-4">
-            {!isEditing ? (
-              <Button
-                onClick={() => setIsEditing(true)}
-                className="cursor-pointer bg-[#2C514C] hover:bg-[#24403C]"
-              >
-                Edit
-              </Button>
-            ) : (
-              <>
-                <Button
-                  type="submit"
-                  onClick={handleSubmit}
-                  className="cursor-pointer bg-[#2C514C] hover:bg-transparent hover:font-medium hover:text-[#2C514C] border-2 border-[#2C514C] hover:border-[#2C514C]"
-                >
-                  Save Changes
-                </Button>
-                <Button variant="outline" type="button" onClick={handleCancel} className="cursor-pointer">
-                  Cancel
-                </Button>
-              </>
-            )}
-          </div>
-
-          {/* Delete Account */}
-          <div className="space-y-6 pt-10 border-t">
-            <h2 className="text-2xl font-semibold">Delete Account</h2>
-            <div className="rounded-md bg-[#FF9F4329] p-4 text-[#FF9F43] text-lg">
-              <p className="font-medium mb-1">
-                Are you sure you want to delete your account?
-              </p>
-              <p className="text-[15px]">
-                Once you delete your account, there is no going back. Please be certain.
-              </p>
-            </div>
-
-            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-              <DialogTrigger asChild>
-                <Button variant="destructive" className="hover:bg-destructive/70 cursor-pointer">
-                  Delete Account
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="gap-1">
-                <h3 className="text-[24px] font-semibold">Confirm Deletion</h3>
-                <p>Are you absolutely sure you want to delete your account?</p>
-                <DialogFooter className="flex gap-4 justify-end pt-4">
-                  <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="cursor-pointer">
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={deleteProfile}
-                    disabled={isDeleting}
-                    className="cursor-pointer"
-                  >
-                    {isDeleting ? "Deleting..." : "Yes, Delete"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
+          <TabsContent value="close-ended">
+            <CloseEndedQuestionsPage />
+          </TabsContent>
+        </Tabs>
       </div>
     </SidebarInset>
   );
