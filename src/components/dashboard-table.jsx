@@ -138,13 +138,13 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
     switch (status) {
       case "Pending":
         return (
-          <Badge className="bg-[#FFCC0029] text-[#FFCC00] p-2 px-3 font-medium">
+          <Badge className="bg-[#FFCC0029] text-[#FF9500] p-2 px-3 font-medium">
             Pending
           </Badge>
         );
       case "Not Submitted":
         return (
-          <Badge className="bg-[#FFCC0029] text-[#FFCC00] p-2 px-3 font-medium">
+          <Badge className="bg-[#FFCC0029] text-[#FF9500] p-2 px-3 font-medium">
             Not Submitted
           </Badge>
         );

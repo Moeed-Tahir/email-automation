@@ -228,7 +228,6 @@ export default function Page() {
         </div>
       </div>
 
-      {/* Table Section */}
       <div className="bg-white rounded-xl p-6 shadow-sm border">
         <DashboardTable userId={userId} />
       </div>

@@ -107,7 +107,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
             surveyObjectId,
           }
         );
-        
+
         setSurvayData(response.data.name);
         setSurvayBidAmount(response.data.bidAmount);
       } catch (error) {
@@ -178,14 +178,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
           </p>
 
           <p className="text-gray-700 mb-4">
-            Please complete your donation to{" "}
-            <span className="font-semibold">
-              {profileData?.charityCompany || "Selected Charity"}
-            </span>{" "}
-            as per the agreed amount of{" "}
-            <span className="font-bold">
-              ${survayBidAmount || "Amount not specified"}
-            </span>
+            we will give you all a link to make the donation to include on this page as well, give us a few to set that up.
           </p>
         </div>
 
@@ -197,9 +190,8 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
         </div>
 
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center mb-4 ${
-            isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
-          }`}
+          className={`border-2 border-dashed rounded-lg p-8 text-center mb-4 ${isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
+            }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -231,8 +223,8 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
                 {file
                   ? file.name
                   : isDragging
-                  ? "Drop your file here"
-                  : "Click or drag file to this area to upload"}
+                    ? "Drop your file here"
+                    : "Click or drag file to this area to upload"}
               </p>
               <p className="text-sm text-gray-500">
                 Formats accepted are .pdf, .docx, .png, .jpg, .jpeg

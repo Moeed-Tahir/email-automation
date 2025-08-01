@@ -34,6 +34,7 @@ const SignupFlow = () => {
     charityCompany: "",
     minBidDonation: "",
     industry: "",
+    linkedInProfile:"",
     motivation: "What problem does your product or service solve, and why is it relevant to this executive’s business?",
     howHeard:
       "If this meeting happens, what would success look like for both of you?",
@@ -142,6 +143,7 @@ const SignupFlow = () => {
     charityCompany: "",
     minBidDonation: "",
     industry: "",
+    linkedInProfile:""
   });
   const router = useRouter();
 
@@ -153,6 +155,7 @@ const SignupFlow = () => {
       jobDescription: "",
       location: "",
       calendarLink: "",
+      linkedInProfile:"",
       charityCompany: "",
       minBidDonation: "",
       industry: "",
@@ -179,6 +182,11 @@ const SignupFlow = () => {
 
     if (currentStep === 3 && !formData.calendarLink.trim()) {
       newErrors.calendarLink = "Calendar link is required";
+      isValid = false;
+    }
+
+     if (currentStep === 3 && !formData.linkedInProfile.trim()) {
+      newErrors.linkedInProfile = "LinkedIn link is required";
       isValid = false;
     }
 
@@ -562,6 +570,29 @@ const SignupFlow = () => {
                   {errors.calendarLink && (
                     <p className="text-red-500 text-sm mt-1">
                       {errors.calendarLink}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Calendar Link
+                  </Label>
+                  <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
+                    <Link className="text-[rgba(44,81,76,1)] size-5" />
+                    <Input
+                      onChange={handleInputChange}
+                      value={formData.linkedInProfile}
+                      name="linkedInProfile"
+                      type="link"
+                      placeholder="Enter your LinkedIn link"
+                      className="border-none focus-visible:ring-0 shadow-none text-base sm:text-lg py-4 sm:py-6"
+                      required
+                    />
+                  </div>
+                  {errors.linkedInProfile && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.linkedInProfile}
                     </p>
                   )}
                 </div>
@@ -955,6 +986,7 @@ const SignupFlow = () => {
                 companyName: formData.companyName,
                 questionSolution: formData.motivation,
                 calendarLink: formData.calendarLink,
+                linkedInProfile: formData.linkedInProfile,
                 charityCompany: formData.charityCompany,
                 minimumBidDonation: formData.minBidDonation,
                 howHeard: formData.howHeard,

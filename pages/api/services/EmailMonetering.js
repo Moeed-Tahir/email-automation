@@ -243,7 +243,7 @@ async function sendResponseEmail(
                 <p style="font-size: 24px; font-weight: 600; color: #2D3748; margin: 0 0 20px 0;">
                   ${userName} Reviews Meeting Requests Through Give2Meet
                 </p>
-                <p>Hi [First Name],</p>
+                <p>Hi </p>
                 <p>Thanks for reaching out!</p>
                 <p>To manage a high volume of sales requests and make time count for more than just business, I use Give2Meet to review and qualify meetings. If you'd like to be considered, here's how to move forward:</p>
                 <p>You'll be asked to:</p>

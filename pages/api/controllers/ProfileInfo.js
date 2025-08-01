@@ -9,7 +9,7 @@ dotenv.config();
 const addProfileInfo = async (req, res) => {
   try {
     await connectToDatabase();
-    const { userEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard, jobDescription, location, companyName, jobTitle,industry,closeEndedQuestions } = req.body;
+    const { userEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard, jobDescription, location, companyName, jobTitle,industry,closeEndedQuestions,linkedInProfile } = req.body;
     
     const user = await User.findOne({ userProfileEmail: userEmail });
     if (!user) {
@@ -27,7 +27,8 @@ const addProfileInfo = async (req, res) => {
     user.jobTitle = jobTitle,
     user.companyName = companyName
     user.closeEndedQuestions = closeEndedQuestions;
-
+    user.linkedInProfile = linkedInProfile;
+    
     await user.save();
     const token = jwt.sign(
       {
