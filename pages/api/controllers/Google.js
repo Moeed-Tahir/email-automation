@@ -68,6 +68,16 @@ exports.handleOAuth2Callback = async (req, res) => {
     const googleName = userInfo.data.name || 'No name provided';
     const googlePicture = userInfo.data.picture || '';
 
+    const existingUser = await User.findOne({ 
+      userProfileEmail: googleEmail,
+      companyName: { $exists: true, $ne: null } 
+    });
+
+    if (existingUser) {
+      const redirectUrl = `${process.env.REQUEST_URL}/navigate-popup`;
+      return res.redirect(redirectUrl);
+    }
+
     const userData = {
       userName: googleName,
       userProfilePhoto: googlePicture,
@@ -105,14 +115,10 @@ exports.handleOAuth2Callback = async (req, res) => {
       name: error.name
     });
 
-    const errorUrl = `${process.env.REQUEST_URL}/auth-error?message=${encodeURIComponent(error.message)
-      }&code=${encodeURIComponent(error.code || 'UNKNOWN_ERROR')}`;
-
+    const errorUrl = `${process.env.REQUEST_URL}/auth-error?message=${encodeURIComponent(error.message)}&code=${encodeURIComponent(error.code || 'UNKNOWN_ERROR')}`;
     res.redirect(errorUrl);
   }
 };
-
-
 
 exports.sendEmail = async (req, res) => {
   const { user_email, to, subject, text } = req.body;
@@ -429,8 +435,6 @@ exports.sendRejectEmailToAdmin = async (req, res) => {
         message: 'User has not authorized Gmail access'
       });
     }
-
-
 
     const tokens = await refreshAccessTokenIfNeeded({
       access_token: user.gmailAccessToken,
