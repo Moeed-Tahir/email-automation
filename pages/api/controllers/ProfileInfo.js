@@ -431,6 +431,15 @@ const updateCloseEndedQuestion = async (req, res) => {
   }
 };
 
+const updateOpenEndedQuestion = async (req,res) => {
+  try{
+     const {userId} = req.body;
+     
+  }catch(error){
+
+  }
+}
+
 module.exports = {
   addProfileInfo,
   checkUser,
@@ -441,5 +450,6 @@ module.exports = {
   verifyOTP,
   getCloseEndedQuestion,
   postCloseEndedQuestion,
-  updateCloseEndedQuestion
+  updateCloseEndedQuestion,
+  updateOpenEndedQuestion
 };

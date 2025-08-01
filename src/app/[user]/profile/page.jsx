@@ -11,7 +11,7 @@ import { SidebarInset } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogTrigger, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CloseEndedQuestionsPage from "../close-ended-question/page";
+import CloseEndedQuestionsPage from "@/components/close-ended-question";
 
 export default function Page() {
   const [profileData, setProfileData] = useState({
@@ -34,7 +34,8 @@ export default function Page() {
   const [formData, setFormData] = useState({ ...profileData });
   const [activeTab, setActiveTab] = useState("profile");
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isEditingQuestions, setIsEditingQuestions] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const router = useRouter();
@@ -59,7 +60,7 @@ export default function Page() {
     fetchProfileData();
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleProfileSubmit = async (e) => {
     e.preventDefault();
     try {
       const userId = Cookies.get("UserId");
@@ -72,18 +73,46 @@ export default function Page() {
 
       if (response.data.success) {
         setProfileData(formData);
-        setIsEditing(false);
+        setIsEditingProfile(false);
       }
     } catch (error) {
       console.error("Error updating profile:", error);
     } finally {
-      setIsEditing(false);
+      setIsEditingProfile(false);
+    }
+  };
+
+  const handleQuestionsSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const userId = Cookies.get("UserId");
+      if (!userId) return console.error("No userId found in cookies");
+
+      const response = await axios.post(
+        `/api/routes/ProfileInfo?action=editProfileInfo&userId=${userId}`,
+        { 
+          updates: {
+            howHeard: formData.howHeard,
+            questionSolution: formData.questionSolution
+          }
+        }
+      );
+
+      if (response.data.success) {
+        setProfileData(formData);
+        setIsEditingQuestions(false);
+      }
+    } catch (error) {
+      console.error("Error updating questions:", error);
+    } finally {
+      setIsEditingQuestions(false);
     }
   };
 
   const handleCancel = () => {
     setFormData(profileData);
-    setIsEditing(false);
+    setIsEditingProfile(false);
+    setIsEditingQuestions(false);
   };
 
   const deleteProfile = async () => {
@@ -130,8 +159,32 @@ export default function Page() {
 
           <TabsContent value="profile">
             <div className="flex flex-1 flex-col w-full mx-auto py-4 px-6 space-y-10 border rounded-xl">
-              <div className="space-y-6">
+              <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-semibold">Personal Information</h2>
+                {!isEditingProfile ? (
+                  <Button
+                    onClick={() => setIsEditingProfile(true)}
+                    className="cursor-pointer bg-[#2C514C] hover:bg-[#24403C]"
+                  >
+                    Edit Profile
+                  </Button>
+                ) : (
+                  <div className="flex gap-4">
+                    <Button
+                      type="submit"
+                      onClick={handleProfileSubmit}
+                      className="cursor-pointer bg-[#2C514C] hover:bg-transparent hover:font-medium hover:text-[#2C514C] border-2 border-[#2C514C] hover:border-[#2C514C]"
+                    >
+                      Save Changes
+                    </Button>
+                    <Button variant="outline" type="button" onClick={handleCancel} className="cursor-pointer">
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[
                     { id: "userName", label: "Full Name", key: "userName", placeholder: "Enter your full name" },
@@ -149,7 +202,7 @@ export default function Page() {
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, [key]: e.target.value }))
                         }
-                        disabled={!isEditing}
+                        disabled={!isEditingProfile}
                       />
                     </div>
                   ))}
@@ -165,7 +218,7 @@ export default function Page() {
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, aboutMe: e.target.value }))
                     }
-                    disabled={!isEditing}
+                    disabled={!isEditingProfile}
                     rows={4}
                   />
                 </div>
@@ -192,7 +245,7 @@ export default function Page() {
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, [key]: e.target.value }))
                         }
-                        disabled={!isEditing}
+                        disabled={!isEditingProfile}
                       />
                     </div>
                   ))}
@@ -221,7 +274,7 @@ export default function Page() {
                         onChange={(e) =>
                           setFormData((prev) => ({ ...prev, [key]: e.target.value }))
                         }
-                        disabled={!isEditing}
+                        disabled={!isEditingProfile}
                       />
                     </div>
                   ))}
@@ -241,35 +294,10 @@ export default function Page() {
                       onChange={(e) =>
                         setFormData((prev) => ({ ...prev, calendarLink: e.target.value }))
                       }
-                      disabled={!isEditing}
+                      disabled={!isEditingProfile}
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* Edit/Save/Cancel Buttons */}
-              <div className="flex flex-wrap gap-4 pt-4">
-                {!isEditing ? (
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    className="cursor-pointer bg-[#2C514C] hover:bg-[#24403C]"
-                  >
-                    Edit
-                  </Button>
-                ) : (
-                  <>
-                    <Button
-                      type="submit"
-                      onClick={handleSubmit}
-                      className="cursor-pointer bg-[#2C514C] hover:bg-transparent hover:font-medium hover:text-[#2C514C] border-2 border-[#2C514C] hover:border-[#2C514C]"
-                    >
-                      Save Changes
-                    </Button>
-                    <Button variant="outline" type="button" onClick={handleCancel} className="cursor-pointer">
-                      Cancel
-                    </Button>
-                  </>
-                )}
               </div>
 
               {/* Delete Account */}
@@ -314,26 +342,55 @@ export default function Page() {
 
           <TabsContent value="open-ended">
             <div className="flex flex-1 flex-col w-full mx-auto py-4 px-6 space-y-10 border rounded-xl">
-              <div className="space-y-6">
+              <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-semibold">Open-Ended Questions</h2>
-                <Input
-                  id="howHeard"
-                  value={formData.howHeard}
-                  placeholder="Enter Question"
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, howHeard: e.target.value }))
-                  }
-                  disabled={!isEditing}
-                />
-                <Input
-                  id="questionSolution"
-                  value={formData.questionSolution}
-                  placeholder="Enter Question"
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, questionSolution: e.target.value }))
-                  }
-                  disabled={!isEditing}
-                />
+                {!isEditingQuestions ? (
+                  <Button
+                    onClick={() => setIsEditingQuestions(true)}
+                    className="cursor-pointer bg-[#2C514C] hover:bg-[#24403C]"
+                  >
+                    Edit Questions
+                  </Button>
+                ) : (
+                  <div className="flex gap-4">
+                    <Button
+                      type="submit"
+                      onClick={handleQuestionsSubmit}
+                      className="cursor-pointer bg-[#2C514C] hover:bg-transparent hover:font-medium hover:text-[#2C514C] border-2 border-[#2C514C] hover:border-[#2C514C]"
+                    >
+                      Save Changes
+                    </Button>
+                    <Button variant="outline" type="button" onClick={handleCancel} className="cursor-pointer">
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Input
+                    id="howHeard"
+                    value={formData.howHeard}
+                    placeholder="Enter Question"
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, howHeard: e.target.value }))
+                    }
+                    disabled={!isEditingQuestions}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Input
+                    id="questionSolution"
+                    value={formData.questionSolution}
+                    placeholder="Enter Question"
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, questionSolution: e.target.value }))
+                    }
+                    disabled={!isEditingQuestions}
+                  />
+                </div>
               </div>
             </div>
           </TabsContent>
