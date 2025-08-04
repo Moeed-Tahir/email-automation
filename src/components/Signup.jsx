@@ -34,7 +34,7 @@ const SignupFlow = () => {
     charityCompany: "",
     minBidDonation: "",
     industry: "",
-    linkedInProfile:"",
+    linkedInProfile: "",
     motivation: "What problem does your product or service solve, and why is it relevant to this executive’s business?",
     howHeard:
       "If this meeting happens, what would success look like for both of you?",
@@ -143,7 +143,7 @@ const SignupFlow = () => {
     charityCompany: "",
     minBidDonation: "",
     industry: "",
-    linkedInProfile:""
+    linkedInProfile: ""
   });
   const router = useRouter();
 
@@ -155,7 +155,7 @@ const SignupFlow = () => {
       jobDescription: "",
       location: "",
       calendarLink: "",
-      linkedInProfile:"",
+      linkedInProfile: "",
       charityCompany: "",
       minBidDonation: "",
       industry: "",
@@ -185,7 +185,7 @@ const SignupFlow = () => {
       isValid = false;
     }
 
-     if (currentStep === 3 && !formData.linkedInProfile.trim()) {
+    if (currentStep === 3 && !formData.linkedInProfile.trim()) {
       newErrors.linkedInProfile = "LinkedIn link is required";
       isValid = false;
     }
@@ -576,7 +576,7 @@ const SignupFlow = () => {
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">
-                    Calendar Link
+                    LinkedIn Link
                   </Label>
                   <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
                     <Link className="text-[rgba(44,81,76,1)] size-5" />
@@ -1025,7 +1025,7 @@ const SignupFlow = () => {
             console.error("Error occurred:", error);
             alert(
               error.response?.data?.message ||
-                "Failed to update profile. Please try again."
+              "Failed to update profile. Please try again."
             );
             setLoading(false); // Reset loading state on error
           }
