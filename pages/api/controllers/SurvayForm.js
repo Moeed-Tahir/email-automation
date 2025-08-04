@@ -379,7 +379,8 @@ const fetchNameAgainstId = async (req, res) => {
       success: true,
       message: "Survey data retrieved successfully",
       name: surveyData.name,
-      bidAmount: surveyData.bidAmount
+      bidAmount: surveyData.bidAmount,
+      charityDonation:surveyData.charityDonation,
     });
 
   } catch (error) {

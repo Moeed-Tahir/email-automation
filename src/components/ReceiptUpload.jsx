@@ -17,6 +17,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
   const [survayBidAmount, setSurvayBidAmount] = useState([]);
   const [isReceiptUpload, setIsReceiptUpload] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [charityDonation, setCharityDonation] = useState();
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -107,7 +108,8 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
             surveyObjectId,
           }
         );
-
+        console.log("response", response);
+        setCharityDonation(response.data.charityDonation);
         setSurvayData(response.data.name);
         setSurvayBidAmount(response.data.bidAmount);
       } catch (error) {
@@ -178,7 +180,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
           </p>
 
           <p className="text-gray-700 mb-4">
-            we will give you all a link to make the donation to include on this page as well, give us a few to set that up.
+            Please complete your donation as per the agreed amount of {charityDonation}
           </p>
         </div>
 

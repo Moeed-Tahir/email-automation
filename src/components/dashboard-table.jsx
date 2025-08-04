@@ -138,33 +138,37 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
     switch (status) {
       case "Pending":
         return (
-          <Badge className="bg-[#FFCC0029] text-[#FF9500] p-2 px-3 font-medium">
+          <Badge className="bg-[#FFF5E6] text-[#FF9500] p-2 px-3 font-medium border border-[#FFE4B2]">
             Pending
           </Badge>
         );
-      case "Not Submitted":
+      case "Completed":
         return (
-          <Badge className="bg-[#FFCC0029] text-[#FF9500] p-2 px-3 font-medium">
-            Not Submitted
+          <Badge className="bg-[#E6F7EE] text-[#28C76F] p-2 px-3 font-medium border border-[#B2F0D5]">
+            Completed
           </Badge>
         );
-      case "Accept":
-      case "Accepted":
+      case "Failed":
         return (
-          <Badge className="bg-[#28C76F29] text-[#28C76F] p-2 px-3 font-medium">
-            Accepted
+          <Badge className="bg-[#FFEEEE] text-[#EA5455] p-2 px-3 font-medium border border-[#FFC7C7]">
+            Failed
           </Badge>
         );
-      case "Reject":
-      case "Rejected":
+      case "Processing":
         return (
-          <Badge className="bg-[#EA545529] text-[#EA5455] p-2 px-3 font-medium">
-            Rejected
+          <Badge className="bg-[#E6F2FF] text-[#4285F4] p-2 px-3 font-medium border border-[#B2D3FF]">
+            Processing
+          </Badge>
+        );
+      case "Refunded":
+        return (
+          <Badge className="bg-[#F3E6FF] text-[#9C27B0] p-2 px-3 font-medium border border-[#E0B2FF]">
+            Refunded
           </Badge>
         );
       default:
         return (
-          <Badge className="bg-gray-100 text-gray-800 p-2 px-3 font-medium">
+          <Badge className="bg-gray-100 text-gray-800 p-2 px-3 font-medium border border-gray-200">
             {status}
           </Badge>
         );

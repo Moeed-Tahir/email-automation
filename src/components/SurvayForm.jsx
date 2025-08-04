@@ -45,6 +45,7 @@ const SurveyForm = ({ userId }) => {
     escrowDonation: "",
     charityDonation: "",
   });
+  
   const [profileData, setProfileData] = useState([]);
   const [case2Questions, setCase2Questions] = useState([]);
   const [case3Questions, setCase3Questions] = useState([]);
