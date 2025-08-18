@@ -1,6 +1,5 @@
 "use client";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,8 @@ const CloseEndedQuestionsPage = () => {
     const [questions, setQuestions] = useState([]);
     const [newQuestion, setNewQuestion] = useState({
         questionText: "",
-        options: [{ text: "", score: 0 }]
+        questionScore: 1, // Default weight of 1 (0-4)
+        options: [{ text: "", score: 5 }] // Default score of 5 (0-10)
     });
     const [editingQuestionId, setEditingQuestionId] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -37,7 +37,12 @@ const CloseEndedQuestionsPage = () => {
                 const response = await axios.post("/api/routes/ProfileInfo?action=getCloseEndedQuestion", {
                     userId
                 });
-                setQuestions(response.data.closeEndedQuestions || []);
+                // Initialize weights if not present (0-4 range)
+                const questionsWithWeights = (response.data.closeEndedQuestions || []).map(q => ({
+                    ...q,
+                    questionScore: Math.min(4, Math.max(0, q.questionScore || 1))
+                }));
+                setQuestions(questionsWithWeights);
             } catch (err) {
                 setError("Failed to fetch questions");
                 console.error("Error fetching questions:", err);
@@ -54,16 +59,32 @@ const CloseEndedQuestionsPage = () => {
     const handleAddOption = () => {
         setNewQuestion({
             ...newQuestion,
-            options: [...newQuestion.options, { text: "", score: 0 }]
+            options: [...newQuestion.options, { text: "", score: 5 }] // Default score of 5
         });
     };
 
     const handleOptionChange = (index, field, value) => {
         const updatedOptions = [...newQuestion.options];
-        updatedOptions[index][field] = field === "score" ? Number(value) : value;
+        let numericValue = field === "score" ? Number(value) : value;
+        
+        // Validate option score to be between 0-10
+        if (field === "score") {
+            numericValue = Math.min(10, Math.max(0, numericValue));
+        }
+        
+        updatedOptions[index][field] = numericValue;
         setNewQuestion({
             ...newQuestion,
             options: updatedOptions
+        });
+    };
+
+    const handlequestionScoreChange = (value) => {
+        // Validate question weight to be between 0-4
+        const numericValue = Math.min(4, Math.max(0, Number(value)));
+        setNewQuestion({
+            ...newQuestion,
+            questionScore: numericValue
         });
     };
 
@@ -76,6 +97,22 @@ const CloseEndedQuestionsPage = () => {
         });
     };
 
+    const calculateNormalizedScore = (question) => {
+        if (!question.options.length) return 0;
+        
+        // Get the maximum possible score for this question
+        const maxOptionScore = Math.max(...question.options.map(opt => opt.score));
+        
+        // Apply weight (0-4)
+        const weightedScore = maxOptionScore * question.questionScore;
+        
+        // Normalize to 0-10 scale (since max weight is 4 and max option score is 10,
+        // the maximum possible is 40, so we divide by 4 to get back to 0-10 scale)
+        const normalizedScore = (weightedScore / 4).toFixed(1);
+        
+        return Math.min(10, Math.max(0, parseFloat(normalizedScore)));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
@@ -85,14 +122,23 @@ const CloseEndedQuestionsPage = () => {
             return;
         }
 
+        if (newQuestion.questionScore < 0 || newQuestion.questionScore > 4) {
+            setError("Question weight must be between 0 and 4");
+            return;
+        }
+
         if (newQuestion.options.length < 2) {
             setError("At least two options are required");
             return;
         }
 
         for (const option of newQuestion.options) {
-            if (!option.text.trim() || option.score === undefined) {
-                setError("All options must have text and score");
+            if (!option.text.trim()) {
+                setError("All options must have text");
+                return;
+            }
+            if (option.score < 0 || option.score > 10) {
+                setError("Option scores must be between 0 and 10");
                 return;
             }
         }
@@ -106,20 +152,28 @@ const CloseEndedQuestionsPage = () => {
                     userId,
                     questionId: editingQuestionId,
                     questionText: newQuestion.questionText,
+                    questionScore: newQuestion.questionScore,
                     options: newQuestion.options
                 });
             } else {
                 response = await axios.post("/api/routes/ProfileInfo?action=postCloseEndedQuestion", {
                     userId,
                     questionText: newQuestion.questionText,
+                    questionScore: newQuestion.questionScore,
                     options: newQuestion.options
                 });
             }
 
-            setQuestions(response.data.questions || []);
+            const updatedQuestions = (response.data.questions || []).map(q => ({
+                ...q,
+                questionScore: Math.min(4, Math.max(0, q.questionScore || 1))
+            }));
+            
+            setQuestions(updatedQuestions);
             setNewQuestion({
                 questionText: "",
-                options: [{ text: "", score: 0 }]
+                questionScore: 1,
+                options: [{ text: "", score: 5 }]
             });
             setEditingQuestionId(null);
         } catch (err) {
@@ -134,7 +188,11 @@ const CloseEndedQuestionsPage = () => {
         setEditingQuestionId(question.questionId);
         setNewQuestion({
             questionText: question.questionText,
-            options: [...question.options]
+            questionScore: Math.min(4, Math.max(0, question.questionScore || 1)),
+            options: [...question.options.map(opt => ({
+                ...opt,
+                score: Math.min(10, Math.max(0, opt.score))
+            }))]
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -143,7 +201,8 @@ const CloseEndedQuestionsPage = () => {
         setEditingQuestionId(null);
         setNewQuestion({
             questionText: "",
-            options: [{ text: "", score: 0 }]
+            questionScore: 1,
+            options: [{ text: "", score: 5 }]
         });
     };
 
@@ -172,7 +231,25 @@ const CloseEndedQuestionsPage = () => {
                         </div>
 
                         <div>
-                            <Label>Options</Label>
+                            <Label htmlFor="questionScore">Question Weight (0-4)</Label>
+                            <Input
+                                id="questionScore"
+                                type="number"
+                                min="0"
+                                max="4"
+                                step="0.1"
+                                value={newQuestion.questionScore}
+                                onChange={(e) => handlequestionScoreChange(e.target.value)}
+                                placeholder="Enter weight (0-4)"
+                                className="mt-2"
+                            />
+                            <p className="text-sm text-gray-500 mt-1">
+                                This weight will multiply the selected option's score (0-4 scale)
+                            </p>
+                        </div>
+
+                        <div>
+                            <Label>Options (Scores must be 0-10)</Label>
                             <div className="mt-2 space-y-3">
                                 {newQuestion.options.map((option, index) => (
                                     <div key={index} className="flex gap-2 items-center">
@@ -184,9 +261,11 @@ const CloseEndedQuestionsPage = () => {
                                             />
                                             <Input
                                                 type="number"
+                                                min="0"
+                                                max="10"
                                                 value={option.score}
                                                 onChange={(e) => handleOptionChange(index, "score", e.target.value)}
-                                                placeholder="Score"
+                                                placeholder="Score (0-10)"
                                             />
                                         </div>
                                         {newQuestion.options.length > 1 && (
@@ -251,20 +330,31 @@ const CloseEndedQuestionsPage = () => {
                             {questions.map((question, qIndex) => {
                                 const questionParts = question.questionText.split('\n');
                                 const questionTextWithoutTitle = questionParts.length > 1 ? questionParts.slice(1).join('\n') : question.questionText;
+                                const normalizedScore = calculateNormalizedScore(question);
 
                                 return (
                                     <div key={question.questionId} className="p-4 border rounded-lg">
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <h4 className="font-medium text-[#2C514C]">
-                                                    {qIndex < questionTitles.length ? questionTitles[qIndex] : `Question ${qIndex + 1}`}
-                                                </h4>
+                                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                    <h4 className="font-medium text-[#2C514C]">
+                                                        {qIndex < questionTitles.length ? questionTitles[qIndex] : `Question ${qIndex + 1}`}
+                                                    </h4>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <span className="text-sm bg-gray-100 px-2 py-1 rounded">
+                                                            Weight: {question.questionScore.toFixed(1)}/4
+                                                        </span>
+                                                        <span className="text-sm bg-blue-100 px-2 py-1 rounded">
+                                                            Normalized: {normalizedScore}/10
+                                                        </span>
+                                                    </div>
+                                                </div>
                                                 <p className="mt-1">{questionTextWithoutTitle}</p>
                                                 <ul className="mt-3 space-y-2">
                                                     {question.options.map((option, idx) => (
                                                         <li key={idx} className="flex items-center gap-2">
                                                             <span className="text-gray-600">{option.text}</span>
-                                                            <span className="text-sm text-gray-400">(Score: {option.score})</span>
+                                                            <span className="text-sm text-gray-400">(Score: {option.score}/10)</span>
                                                         </li>
                                                     ))}
                                                 </ul>

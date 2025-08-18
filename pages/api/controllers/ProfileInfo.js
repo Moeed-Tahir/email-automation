@@ -342,13 +342,13 @@ const getCloseEndedQuestion = async (req, res) => {
 
 const postCloseEndedQuestion = async (req, res) => {
   try {
-    const { questionText, options,userId } = req.body;
+    const { questionText,options,userId,questionScore } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });
     }
 
-    if (!questionText || !options || !Array.isArray(options) || options.length === 0) {
+    if (!questionText || !questionScore || !options || !Array.isArray(options) || options.length === 0) {
       return res.status(400).json({ error: "Question text and options are required" });
     }
 
@@ -360,7 +360,8 @@ const postCloseEndedQuestion = async (req, res) => {
 
     const newQuestion = {
       questionText,
-      options
+      options,
+      questionScore
     };
 
     const user = await User.findOneAndUpdate(
@@ -385,13 +386,14 @@ const postCloseEndedQuestion = async (req, res) => {
 
 const updateCloseEndedQuestion = async (req, res) => {
   try {
-    const { userId, questionId, questionText, options } = req.body;
+    const { userId, questionId, questionText, options,questionScore } = req.body;
+    console.log("Body",req.body);
 
     if (!userId || !questionId) {
       return res.status(400).json({ error: "User ID and Question ID are required" });
     }
 
-    if (!questionText || !options || !Array.isArray(options) || options.length === 0) {
+    if (!questionText || !questionScore || !options || !Array.isArray(options) || options.length === 0) {
       return res.status(400).json({ error: "Question text and options are required" });
     }
 
@@ -410,6 +412,9 @@ const updateCloseEndedQuestion = async (req, res) => {
       q => q.questionId === questionId
     );
 
+    console.log("questionIndex",questionIndex);
+    
+
     if (questionIndex === -1) {
       return res.status(404).json({ error: "Question not found" });
     }
@@ -417,7 +422,8 @@ const updateCloseEndedQuestion = async (req, res) => {
     user.closeEndedQuestions[questionIndex] = {
       questionId,
       questionText,
-      options
+      options,
+      questionScore
     };
 
     await user.save();

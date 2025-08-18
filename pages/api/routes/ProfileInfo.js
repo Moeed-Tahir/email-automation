@@ -7,7 +7,8 @@ import {
     sendOTP,
     verifyOTP,
     getCloseEndedQuestion,
-    updateCloseEndedQuestion
+    updateCloseEndedQuestion,
+    postCloseEndedQuestion
 } from "../controllers/ProfileInfo";
 
 export default async function handler(req, res) {
