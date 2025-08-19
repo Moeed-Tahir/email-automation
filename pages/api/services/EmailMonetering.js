@@ -267,7 +267,7 @@ async function sendResponseEmail(
             
             <!-- Signature -->
             <tr>
-              <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6; border-top: 1px solid #E2E8F0;">
+              <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
                 <p>Thanks again for your interest.</p>
                 <p>Best,<br>
                 <strong>${userName}</strong><br>

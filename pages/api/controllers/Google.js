@@ -260,7 +260,7 @@ exports.stopMonitoring = (userEmail) => {
 exports.sendAcceptEmailToAdmin = async (req, res) => {
   try {
     await connectToDatabase();
-    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, name, surveyId, userName, charityCompany, companyName, industry, jobTitle, location } = req.body;
+    const { sendFromEmail, sendToEmail, dashboardUserId, mainUserId, objectId, name, surveyId, userName, companyName, jobTitle, location,bidAmount } = req.body;
 
     const user = await User.findOne({ userProfileEmail: sendFromEmail });
     if (!user) {
@@ -342,7 +342,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
               <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6; text-align: left;">
                 <p style="margin: 0 0 16px 0;">Hi <strong>${name}</strong>,</p>
                 <p style="margin: 0 0 16px 0;">Great news! I have accepted your request to meet!</p>
-                <p style="margin: 0 0 16px 0;">To move forward, please complete your pledged donation to my selected charity using the secure link below. Once your donation is confirmed, you'll receive a final email with a link to schedule the meeting directly on my calendar.</p>
+                <p style="margin: 0 0 16px 0;">To move forward, please complete your pledged donation of ${bidAmount} using the secure link below</p>
                 
                 <h2 style="font-size: 18px; margin: 24px 0 16px 0;">Step 1: Make Your Donation</h2>
                 
