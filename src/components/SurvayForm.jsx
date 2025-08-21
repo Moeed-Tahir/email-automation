@@ -23,6 +23,7 @@ const SurveyForm = ({ userId }) => {
     questionOne: "" || "Describe your Key And Features",
     questionTwo: "" || "Describe only your Features",
   });
+
   const [formData, setFormData] = useState({
     bidAmount: "",
     firstName: "",
@@ -249,6 +250,7 @@ const SurveyForm = ({ userId }) => {
           return {
             questionId: question.questionId,
             questionText: question.questionText,
+            questionScore: question.questionScore, // Add this line
             answer: isOther ? formData[`other_${question.questionId}`] : answer,
             originalAnswer: answer,
             isOther: isOther,
@@ -270,6 +272,7 @@ const SurveyForm = ({ userId }) => {
           return {
             questionId: question.questionId,
             questionText: question.questionText,
+            questionScore: question.questionScore, // Add this line
             answer: isOther ? formData[`other_${question.questionId}`] : answer,
             originalAnswer: answer,
             isOther: isOther,
@@ -922,11 +925,11 @@ const RadioGroup = ({
   questionId,
   formData,
   setFormData,
-  errors // Add this to the destructured props
+  errors
 }) => {
+
   const handleChange = (val) => {
     onChange(val);
-    // Clear other value if not selecting "Others"
     if (val !== "Other (please specify)") {
       setFormData(prev => ({
         ...prev,

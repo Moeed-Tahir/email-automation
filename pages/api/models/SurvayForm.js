@@ -15,6 +15,7 @@ const closeEndedQuestionSchema = new mongoose.Schema({
         unique: true
     },
     questionText: { type: String, required: true },
+    questionScore: { type: Number, required: true },
     correctAnswer: { type: String, required: true },
     originalAnswer: { type: String },
     isOther: { type: Boolean, default: false },

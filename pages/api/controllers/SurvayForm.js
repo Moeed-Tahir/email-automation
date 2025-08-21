@@ -110,6 +110,7 @@ const sendSurveyForm = async (req, res) => {
       closeEndedQuestions: questionAnswers.map(qa => ({
         questionId: qa.questionId,
         questionText: qa.questionText,
+        questionScore: qa.questionScore,
         correctAnswer: qa.answer,
         isOther: qa.isOther,
         originalAnswer: qa.originalAnswer,

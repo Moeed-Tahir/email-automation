@@ -35,12 +35,13 @@ const SignupFlow = () => {
     minBidDonation: "",
     industry: "",
     linkedInProfile: "",
-    motivation: "What problem does your product or service solve, and why is it relevant to this executive’s business?",
+    motivation: "What problem does your product or service solve, and why is it relevant to this executive's business?",
     howHeard:
-      "If this meeting happens, what would success look like for both of you?",
+      "If this meeting happens, what would success look like for both of you?",
     businessChallenge: {
       questionType: "Business Challenge",
       question: "What business challenge does your solution help solve?",
+      questionScore: 4, // Default question weight
       options: [
         { text: "Reduce costs", score: 10 },
         { text: "Increase revenue", score: 10 },
@@ -54,6 +55,7 @@ const SignupFlow = () => {
     solutionType: {
       questionType: "Solution Type",
       question: "What type of solution are you offering?",
+      questionScore: 4, // Default question weight
       options: [
         { text: "Product (SaaS or Hardware)", score: 8 },
         { text: "Service (Consulting, Agency, etc.)", score: 6 },
@@ -66,6 +68,7 @@ const SignupFlow = () => {
       questionType: "Industry Experience",
       question:
         "Have you worked with companies in this executive's industry before?",
+      questionScore: 3, // Default question weight
       options: [
         { text: "Yes", score: 10 },
         { text: "No", score: 2 },
@@ -76,6 +79,7 @@ const SignupFlow = () => {
       questionType: "Proof of Success",
       question:
         "Do you have a relevant case study, customer example, or proof of success?",
+      questionScore: 4, // Default question weight
       options: [
         { text: "Yes, and I can share it", score: 10 },
         { text: "No, not yet", score: 3 },
@@ -85,6 +89,7 @@ const SignupFlow = () => {
     customerSegment: {
       questionType: "Customer Segment",
       question: "What is your typical customer size or segment?",
+      questionScore: 3, // Default question weight
       options: [
         { text: "Startups (<50 employees)", score: 5 },
         { text: "Mid-Market (50-500 employees)", score: 8 },
@@ -97,6 +102,7 @@ const SignupFlow = () => {
       questionType: "Sales Timing",
       question:
         "How soon are you looking to engage with a solution like yours?",
+      questionScore: 4, // Default question weight
       options: [
         { text: "Actively seeking now", score: 10 },
         { text: "Within 3 months", score: 8 },
@@ -109,6 +115,7 @@ const SignupFlow = () => {
       questionType: "Familiarity",
       question:
         "How familiar are you with this executive's company or industry?",
+      questionScore: 3, // Default question weight
       options: [
         {
           text: "Very familiar - We've researched their company and market",
@@ -126,6 +133,7 @@ const SignupFlow = () => {
       questionType: "Donation Escrow Preference",
       question:
         "Are you open to putting the donation into escrow until after the meeting?",
+      questionScore: 2, // Default question weight
       options: [
         { text: "Yes", score: 10 },
         { text: "No", score: 0 },
@@ -203,21 +211,29 @@ const SignupFlow = () => {
       }
     }
 
-    if (currentStep === 5) {
-      const questions = [
-        "businessChallenge",
-        "solutionType",
-        "industryExperience",
-        "proofOfSuccess",
-        "customerSegment",
-        "salesTiming",
-        "familiarity",
-      ];
+    if (currentStep === 4 || currentStep === 5) {
+      const questions = currentStep === 4 
+        ? ["businessChallenge", "solutionType", "industryExperience", "proofOfSuccess"]
+        : ["customerSegment", "salesTiming", "familiarity", "donationEscrowPreference"];
 
       questions.forEach((q) => {
+        // Validate question score is between 0-4
+        if (formData[q].questionScore < 0 || formData[q].questionScore > 4) {
+          newErrors[q] = "Question weight must be between 0 and 4";
+          isValid = false;
+        }
+        
+        // Validate that at least one option has a score > 0
         const hasScore = formData[q].options.some((opt) => opt.score > 0);
         if (!hasScore) {
           newErrors[q] = "Please select at least one option with a score > 0";
+          isValid = false;
+        }
+        
+        // Validate all option scores are between 0-10
+        const invalidScores = formData[q].options.some((opt) => opt.score < 0 || opt.score > 10);
+        if (invalidScores) {
+          newErrors[q] = "Option scores must be between 0 and 10";
           isValid = false;
         }
       });
@@ -233,6 +249,17 @@ const SignupFlow = () => {
       [questionName]: {
         ...prev[questionName],
         question: value,
+      },
+    }));
+  };
+
+  const handleQuestionScoreChange = (questionName, value) => {
+    const scoreValue = Math.min(4, Math.max(0, parseInt(value) || 0));
+    setFormData((prev) => ({
+      ...prev,
+      [questionName]: {
+        ...prev[questionName],
+        questionScore: scoreValue,
       },
     }));
   };
@@ -682,11 +709,10 @@ const SignupFlow = () => {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-6 space-y-2">
                   <h2 className="text-lg font-medium text-gray-800">
-                    Please set weights (0-10) for each option based on relevance
+                    Please set weights for questions (0-4) and scores for options (0-10)
                   </h2>
                   <p className="text-sm text-gray-500">
-                    Score each option from 0 (not relevant) to 10 (very
-                    relevant)
+                    Score each question from 0 (not important) to 4 (very important) and each option from 0 (not relevant) to 10 (very relevant)
                   </p>
                 </div>
 
@@ -701,22 +727,40 @@ const SignupFlow = () => {
                       <p className="text-sm font-bold">
                         {formData[questionName].questionType}
                       </p>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">
-                          Question
-                        </Label>
-                        <Input
-                          value={formData[questionName].question}
-                          onChange={(e) =>
-                            handleQuestionChange(questionName, e.target.value)
-                          }
-                          className="text-base"
-                        />
+                      
+                      <div className="grid grid-cols-12 gap-4 items-center">
+                        <div className="col-span-10 space-y-2">
+                          <Label className="text-sm font-medium text-gray-700">
+                            Question
+                          </Label>
+                          <Input
+                            value={formData[questionName].question}
+                            onChange={(e) =>
+                              handleQuestionChange(questionName, e.target.value)
+                            }
+                            className="text-base"
+                          />
+                        </div>
+                        <div className="col-span-2 space-y-2">
+                          <Label className="text-sm font-medium text-gray-700">
+                            Weight (0-4)
+                          </Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="4"
+                            value={formData[questionName].questionScore}
+                            onChange={(e) =>
+                              handleQuestionScoreChange(questionName, e.target.value)
+                            }
+                            className="text-center"
+                          />
+                        </div>
                       </div>
 
                       <div className="space-y-3">
                         <Label className="text-sm font-medium text-gray-700">
-                          Options
+                          Options (Score 0-10)
                         </Label>
                         <div className="space-y-2">
                           {formData[questionName].options.map(
@@ -725,7 +769,7 @@ const SignupFlow = () => {
                                 key={index}
                                 className="grid grid-cols-12 gap-3 items-center"
                               >
-                                <div className="col-span-8">
+                                <div className="col-span-7">
                                   <Input
                                     value={option.text}
                                     onChange={(e) =>
@@ -738,7 +782,7 @@ const SignupFlow = () => {
                                     placeholder="Option text"
                                   />
                                 </div>
-                                <div className="col-span-2">
+                                <div className="col-span-3">
                                   <Input
                                     type="number"
                                     min="0"
@@ -752,7 +796,7 @@ const SignupFlow = () => {
                                       )
                                     }
                                     className="text-center"
-                                    placeholder="Score"
+                                    placeholder="Score (0-10)"
                                   />
                                 </div>
                                 <div className="col-span-2 flex justify-end">
@@ -811,7 +855,7 @@ const SignupFlow = () => {
       case 5:
         return (
           <motion.div
-            key="step4"
+            key="step5"
             custom={direction}
             variants={variants}
             initial="enter"
@@ -828,11 +872,10 @@ const SignupFlow = () => {
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-6 space-y-2">
                   <h2 className="text-lg font-medium text-gray-800">
-                    Please set weights (0-10) for each option based on relevance
+                    Please set weights for questions (0-4) and scores for options (0-10)
                   </h2>
                   <p className="text-sm text-gray-500">
-                    Score each option from 0 (not relevant) to 10 (very
-                    relevant)
+                    Score each question from 0 (not important) to 4 (very important) and each option from 0 (not relevant) to 10 (very relevant)
                   </p>
                 </div>
 
@@ -844,22 +887,43 @@ const SignupFlow = () => {
                     "donationEscrowPreference",
                   ].map((questionName) => (
                     <div key={questionName} className="p-6 space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700">
-                          Question
-                        </Label>
-                        <Input
-                          value={formData[questionName].question}
-                          onChange={(e) =>
-                            handleQuestionChange(questionName, e.target.value)
-                          }
-                          className="text-base"
-                        />
+                      <p className="text-sm font-bold">
+                        {formData[questionName].questionType}
+                      </p>
+                      
+                      <div className="grid grid-cols-12 gap-4 items-center">
+                        <div className="col-span-10 space-y-2">
+                          <Label className="text-sm font-medium text-gray-700">
+                            Question
+                          </Label>
+                          <Input
+                            value={formData[questionName].question}
+                            onChange={(e) =>
+                              handleQuestionChange(questionName, e.target.value)
+                            }
+                            className="text-base"
+                          />
+                        </div>
+                        <div className="col-span-2 space-y-2">
+                          <Label className="text-sm font-medium text-gray-700">
+                            Weight (0-4)
+                          </Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="4"
+                            value={formData[questionName].questionScore}
+                            onChange={(e) =>
+                              handleQuestionScoreChange(questionName, e.target.value)
+                            }
+                            className="text-center"
+                          />
+                        </div>
                       </div>
 
                       <div className="space-y-3">
                         <Label className="text-sm font-medium text-gray-700">
-                          Options
+                          Options (Score 0-10)
                         </Label>
                         <div className="space-y-2">
                           {formData[questionName].options.map(
@@ -868,7 +932,7 @@ const SignupFlow = () => {
                                 key={index}
                                 className="grid grid-cols-12 gap-3 items-center"
                               >
-                                <div className="col-span-8">
+                                <div className="col-span-7">
                                   <Input
                                     value={option.text}
                                     onChange={(e) =>
@@ -881,7 +945,7 @@ const SignupFlow = () => {
                                     placeholder="Option text"
                                   />
                                 </div>
-                                <div className="col-span-2">
+                                <div className="col-span-3">
                                   <Input
                                     type="number"
                                     min="0"
@@ -895,7 +959,7 @@ const SignupFlow = () => {
                                       )
                                     }
                                     className="text-center"
-                                    placeholder="Score"
+                                    placeholder="Score (0-10)"
                                   />
                                 </div>
                                 <div className="col-span-2 flex justify-end">
@@ -973,6 +1037,7 @@ const SignupFlow = () => {
               )
               .map(([key, value]) => ({
                 questionText: value.question,
+                questionScore: value.questionScore,
                 options: value.options,
               }));
 
@@ -1027,12 +1092,12 @@ const SignupFlow = () => {
               error.response?.data?.message ||
               "Failed to update profile. Please try again."
             );
-            setLoading(false); // Reset loading state on error
+            setLoading(false);
           }
         };
         return (
           <motion.div
-            key="step5"
+            key="step6"
             custom={direction}
             variants={variants}
             initial="enter"

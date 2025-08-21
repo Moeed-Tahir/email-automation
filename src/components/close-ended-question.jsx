@@ -11,8 +11,8 @@ const CloseEndedQuestionsPage = () => {
     const [questions, setQuestions] = useState([]);
     const [newQuestion, setNewQuestion] = useState({
         questionText: "",
-        questionScore: 1, // Default weight of 1 (0-4)
-        options: [{ text: "", score: 5 }] // Default score of 5 (0-10)
+        questionScore: 1,
+        options: [{ text: "", score: 5 }]
     });
     const [editingQuestionId, setEditingQuestionId] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -37,7 +37,7 @@ const CloseEndedQuestionsPage = () => {
                 const response = await axios.post("/api/routes/ProfileInfo?action=getCloseEndedQuestion", {
                     userId
                 });
-                // Initialize weights if not present (0-4 range)
+
                 const questionsWithWeights = (response.data.closeEndedQuestions || []).map(q => ({
                     ...q,
                     questionScore: Math.min(4, Math.max(0, q.questionScore || 1))
@@ -59,7 +59,7 @@ const CloseEndedQuestionsPage = () => {
     const handleAddOption = () => {
         setNewQuestion({
             ...newQuestion,
-            options: [...newQuestion.options, { text: "", score: 5 }] // Default score of 5
+            options: [...newQuestion.options, { text: "", score: 5 }]
         });
     };
 
@@ -67,7 +67,6 @@ const CloseEndedQuestionsPage = () => {
         const updatedOptions = [...newQuestion.options];
         let numericValue = field === "score" ? Number(value) : value;
         
-        // Validate option score to be between 0-10
         if (field === "score") {
             numericValue = Math.min(10, Math.max(0, numericValue));
         }
@@ -80,7 +79,6 @@ const CloseEndedQuestionsPage = () => {
     };
 
     const handlequestionScoreChange = (value) => {
-        // Validate question weight to be between 0-4
         const numericValue = Math.min(4, Math.max(0, Number(value)));
         setNewQuestion({
             ...newQuestion,
@@ -100,14 +98,10 @@ const CloseEndedQuestionsPage = () => {
     const calculateNormalizedScore = (question) => {
         if (!question.options.length) return 0;
         
-        // Get the maximum possible score for this question
         const maxOptionScore = Math.max(...question.options.map(opt => opt.score));
         
-        // Apply weight (0-4)
         const weightedScore = maxOptionScore * question.questionScore;
         
-        // Normalize to 0-10 scale (since max weight is 4 and max option score is 10,
-        // the maximum possible is 40, so we divide by 4 to get back to 0-10 scale)
         const normalizedScore = (weightedScore / 4).toFixed(1);
         
         return Math.min(10, Math.max(0, parseFloat(normalizedScore)));
@@ -210,7 +204,6 @@ const CloseEndedQuestionsPage = () => {
         <div className="flex flex-1 flex-col w-full mx-auto py-4 px-6 space-y-10 border rounded-xl">
             <div className="space-y-6">
                 <h2 className="text-2xl font-semibold">Close-Ended Questions</h2>
-                
                 <div className="border-b pb-6">
                     <h3 className="text-xl font-medium mb-4">
                         {editingQuestionId ? "Edit Question" : "Add New Question"}

@@ -31,6 +31,21 @@ export default function MeetingRequest() {
   });
   const userId = Cookies.get("UserId") || null;
 
+  // Function to calculate the score for each question
+  const calculateQuestionScore = (question) => {
+    if (!question || !question.options) return 0;
+    
+    // Find the selected option
+    const selectedOption = question.options.find(option => option.isSelected);
+    if (!selectedOption) return 0;
+    
+    // Multiply option score with question score and normalize to be under 10
+    const rawScore = (selectedOption.score * question.questionScore) / 10;
+    
+    // Ensure the score doesn't exceed 10
+    return Math.min(rawScore, 10);
+  };
+
   useEffect(() => {
     const fetchSurveyData = async () => {
       if (surveyId) {
@@ -280,7 +295,6 @@ export default function MeetingRequest() {
             </div>
           </div>
 
-          {/* Closed-Ended Questions Section */}
           <div className="pt-6 border-t space-y-6">
             <h3 className="text-xl font-medium">
               Closed-Ended Questions
@@ -298,12 +312,20 @@ export default function MeetingRequest() {
                   "Familiarity with Executive's Space",
                   "Donation Escrow Preference"
                 ];
+                
+                // Calculate the score for this question
+                const calculatedScore = calculateQuestionScore(question);
 
                 return (
                   <div key={qIndex} className="space-y-4">
-                    <h4 className="text-lg font-medium text-[#2C514C]">
-                      {qIndex + 1}. {questionTitles[qIndex]}
-                    </h4>
+                    <div className="flex justify-between items-center">
+                      <h4 className="text-lg font-medium text-[#2C514C]">
+                        {qIndex + 1}. {questionTitles[qIndex]}
+                      </h4>
+                      <div className="text-sm font-medium text-[#2C514C]">
+                        Score: {calculatedScore.toFixed(1)}
+                      </div>
+                    </div>
                     <Label className="text-base">{question.questionText}</Label>
                     
                     <div className="space-y-3 ml-2">
@@ -321,7 +343,9 @@ export default function MeetingRequest() {
                           >
                             {option.text} 
                             {option.isSelected && (
-                              <span className="text-[#2C514C] ml-2">(Score: {question.score})</span>
+                              <span className="text-[#2C514C] ml-2">
+                                (Option: {option.score}, Question: {question.questionScore})
+                              </span>
                             )}
                           </Label>
                         </div>
