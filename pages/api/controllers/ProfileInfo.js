@@ -387,7 +387,7 @@ const postCloseEndedQuestion = async (req, res) => {
 const updateCloseEndedQuestion = async (req, res) => {
   try {
     const { userId, questionId, questionText, options,questionScore } = req.body;
-    console.log("Body",req.body);
+    // console.log("Body",req.body);
 
     if (!userId || !questionId) {
       return res.status(400).json({ error: "User ID and Question ID are required" });
@@ -412,7 +412,7 @@ const updateCloseEndedQuestion = async (req, res) => {
       q => q.questionId === questionId
     );
 
-    console.log("questionIndex",questionIndex);
+    // console.log("questionIndex",questionIndex);
     
 
     if (questionIndex === -1) {

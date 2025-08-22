@@ -258,7 +258,7 @@ const sendEmailFromCompany = async (
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`Confirmation email sent to ${sendEmailTo}`);
+    // console.log(`Confirmation email sent to ${sendEmailTo}`);
 
   } catch (error) {
     console.error("Error sending email:", error);

@@ -50,10 +50,10 @@ const fetchReciptData = async (req, res) => {
     const userIds = [...new Set(receipts.map(r => r.userId).filter(Boolean))];
     const surveyIds = [...new Set(receipts.map(r => r.surveyId).filter(Boolean))];
 
-    receipts.forEach(r => {
-      if (!r.userId) console.log(`Receipt ${r._id} has no userId`);
-      if (!r.surveyId) console.log(`Receipt ${r._id} has no surveyId`);
-    });
+    // receipts.forEach(r => {
+    //   if (!r.userId) console.log(`Receipt ${r._id} has no userId`);
+    //   if (!r.surveyId) console.log(`Receipt ${r._id} has no surveyId`);
+    // });
 
     const [users, surveys] = await Promise.all([
       userIds.length ? User.find({ userId: { $in: userIds } }).lean() : Promise.resolve([]),
@@ -168,7 +168,7 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       country
     } = req.body;
 
-    console.log("req.body", req.body);
+    // console.log("req.body", req.body);
 
     if (
       !salesRepresentiveEmail ||
@@ -456,10 +456,10 @@ const getDonation = async (req, res) => {
   try {
     await connectToDatabase();
     const { userId } = req.body;
-    console.log("userId", userId);
+    // console.log("userId", userId);
 
     const donations = await Donation.find({ userId });
-    console.log("donations", donations);
+    // console.log("donations", donations);
 
     res.status(200).json({
       success: true,

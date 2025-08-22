@@ -26,7 +26,7 @@ async function checkAndProcessEmails(userEmail, userName) {
     await connectToDatabase();
     const user = await User.findOne({ userProfileEmail: userEmail });
     if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
-      console.log(`Missing Gmail OAuth tokens for user ${userEmail}`);
+      // console.log(`Missing Gmail OAuth tokens for user ${userEmail}`);
       return;
     }
 
@@ -113,7 +113,7 @@ async function checkAndProcessEmails(userEmail, userName) {
       nextPageToken = response.data.nextPageToken;
     } while (nextPageToken);
 
-    console.log(`Found ${allMessages.length} unread messages containing trigger keywords for ${userEmail}`);
+    // console.log(`Found ${allMessages.length} unread messages containing trigger keywords for ${userEmail}`);
 
     if (allMessages.length > 0) {
       for (const msg of allMessages) {
@@ -148,7 +148,7 @@ async function checkAndProcessEmails(userEmail, userName) {
             continue;
           }
 
-          console.log(`Processing email from ${fromEmail} with subject: "${subject}"`);
+          // console.log(`Processing email from ${fromEmail} with subject: "${subject}"`);
 
           const messageId = msgData.payload.headers.find(h => h.name === 'Message-ID')?.value;
           const references = msgData.payload.headers.find(h => h.name === 'References')?.value || '';
@@ -416,7 +416,7 @@ async function sendResponseEmail(
 
     await adminTransport.sendMail(adminMailOption);
     await transporter.sendMail(mailOptions);
-    console.log(`Sent reply email from ${userEmail} to ${toEmail} in thread ${inReplyTo}`);
+    // console.log(`Sent reply email from ${userEmail} to ${toEmail} in thread ${inReplyTo}`);
   } catch (error) {
     console.error(`Error sending response email from ${userEmail} to ${toEmail}:`, error);
   }

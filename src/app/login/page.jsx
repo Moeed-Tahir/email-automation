@@ -238,14 +238,14 @@ const LoginPage = () => {
           });
         }
 
-        console.log("Login successful:", {
-          userEmail,
-          userName,
-          userPhoto,
-          token,
-          charityCompany,
-          userId,
-        });
+        // console.log("Login successful:", {
+        //   userEmail,
+        //   userName,
+        //   userPhoto,
+        //   token,
+        //   charityCompany,
+        //   userId,
+        // });
         router.push(`/${userId}/dashboard`);
       }
     } catch (error) {

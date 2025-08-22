@@ -214,7 +214,7 @@ const DashboardTable = forwardRef(({ userId }, ref) => {
 
   const handleConfirmAction = async () => {
     const { survey, actionType } = confirmationDialog;
-    console.log("survey", survey);
+    // console.log("survey", survey);
     if (!survey) return;
 
     setActionLoading({ id: survey._id, type: actionType });

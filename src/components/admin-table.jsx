@@ -199,7 +199,7 @@ const handleConfirmAction = async () => {
   const endIndex = startIndex + itemsPerPage;
   const currentData = sortedData.slice(startIndex, endIndex);
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
-  console.log("currentData",currentData);
+  // console.log("currentData",currentData);
 
   return (
     <div className="w-full h-max">

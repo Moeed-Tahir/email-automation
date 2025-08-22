@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 
 export default function page() {
   const [tableData, setTableData] = useState([]);
-  console.log("tableData",tableData);
+  // console.log("tableData",tableData);
 
   const fetchAdminData = async () => {
     try {

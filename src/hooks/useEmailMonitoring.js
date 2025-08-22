@@ -7,15 +7,15 @@ export function useEmailMonitoring() {
   useEffect(() => {
     let isMounted = true;
     let intervalId = null;
-    
+
     const callEmailMonitoring = async () => {
       if (!isMounted) return;
-      
+
       const userEmail = Cookies.get('userEmail');
       const userName = Cookies.get('userName');
-      
+
       if (!userEmail) {
-        console.log('No user email found in cookies');
+        // console.log('No user email found in cookies');
         return;
       }
 
@@ -27,7 +27,7 @@ export function useEmailMonitoring() {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ userEmail,userName }),
+            body: JSON.stringify({ userEmail, userName }),
           }
         );
 

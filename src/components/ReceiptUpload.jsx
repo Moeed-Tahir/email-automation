@@ -108,7 +108,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
             surveyObjectId,
           }
         );
-        console.log("response", response);
+        // console.log("response", response);
         setCharityDonation(response.data.charityDonation);
         setSurvayData(response.data.name);
         setSurvayBidAmount(response.data.bidAmount);

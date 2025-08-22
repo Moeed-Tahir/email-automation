@@ -90,10 +90,10 @@ exports.handleOAuth2Callback = async (req, res) => {
     let user = await User.findOne({ userProfileEmail: googleEmail });
 
     if (!user) {
-      console.log('Creating new user document');
+      // console.log('Creating new user document');
       user = new User(userData);
     } else {
-      console.log('Updating existing user document');
+      // console.log('Updating existing user document');
       Object.assign(user, {
         userName: googleName,
         userProfilePhoto: googlePicture,
@@ -217,7 +217,7 @@ exports.getEmails = async (req, res) => {
 
     const messages = response.data.messages || [];
 
-    console.log(`Found ${messages.length} unread messages`);
+    // console.log(`Found ${messages.length} unread messages`);
 
     const fullMessages = [];
     for (const msg of messages) {

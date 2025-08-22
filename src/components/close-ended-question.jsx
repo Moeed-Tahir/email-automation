@@ -337,9 +337,9 @@ const CloseEndedQuestionsPage = () => {
                                                         <span className="text-sm bg-gray-100 px-2 py-1 rounded">
                                                             Weight: {question.questionScore.toFixed(1)}/4
                                                         </span>
-                                                        <span className="text-sm bg-blue-100 px-2 py-1 rounded">
+                                                        {/* <span className="text-sm bg-blue-100 px-2 py-1 rounded">
                                                             Normalized: {normalizedScore}/10
-                                                        </span>
+                                                        </span> */}
                                                     </div>
                                                 </div>
                                                 <p className="mt-1">{questionTextWithoutTitle}</p>
