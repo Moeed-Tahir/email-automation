@@ -16,7 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
-const SurveyForm = ({ userId }) => {
+const SurveyForm = ({ userId,survayFormId }) => {
   const [currentTab, setCurrentTab] = useState(0);
   const [showMeetingInfo, setShowMeetingInfo] = useState(false);
   const [userQuestions, setUserQuestions] = useState({
@@ -54,6 +54,7 @@ const SurveyForm = ({ userId }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  
   const tabs = [
     { title: "Welcome" },
     { title: "Bid & Contact" },
@@ -250,7 +251,7 @@ const SurveyForm = ({ userId }) => {
           return {
             questionId: question.questionId,
             questionText: question.questionText,
-            questionScore: question.questionScore, // Add this line
+            questionScore: question.questionScore,
             answer: isOther ? formData[`other_${question.questionId}`] : answer,
             originalAnswer: answer,
             isOther: isOther,
@@ -272,7 +273,7 @@ const SurveyForm = ({ userId }) => {
           return {
             questionId: question.questionId,
             questionText: question.questionText,
-            questionScore: question.questionScore, // Add this line
+            questionScore: question.questionScore,
             answer: isOther ? formData[`other_${question.questionId}`] : answer,
             originalAnswer: answer,
             isOther: isOther,
@@ -288,12 +289,14 @@ const SurveyForm = ({ userId }) => {
 
       const submissionData = {
         userId,
+        survayFormId,
         ...formData,
         totalScore,
         questionAnswers,
         submittedAt: new Date().toISOString(),
         profileData: {
           userName: profileData.userName,
+          userEmail: profileData.userProfileEmail,
           companyName: profileData.companyName,
           minimumBidDonation: profileData.minimumBidDonation
         },
@@ -338,6 +341,8 @@ const SurveyForm = ({ userId }) => {
         });
 
         setProfileData(response.data.user);
+        console.log("response.data.user",response.data.user);
+
         setUserQuestions({
           questionOne:
             response.data.user.questionSolution ||

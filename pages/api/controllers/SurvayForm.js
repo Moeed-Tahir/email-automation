@@ -35,7 +35,6 @@ const getQuestionFromUserId = async (req, res) => {
 const sendSurveyForm = async (req, res) => {
   try {
     await connectToDatabase();
-
     const {
       userId,
       bidAmount,
@@ -59,7 +58,9 @@ const sendSurveyForm = async (req, res) => {
       city,
       state,
       country,
-      questionAnswers
+      questionAnswers,
+      profileData,
+      survayFormId
     } = req.body;
 
     if (!userId) {
@@ -127,6 +128,17 @@ const sendSurveyForm = async (req, res) => {
     const newSurvey = new SurvayForm(surveyData);
     await newSurvey.save();
     let finalName = `${firstName} ${lastName}`;
+
+    const newAdminForm = await AdminForm.create({
+          executiveEmail:profileData?.userEmail,
+          executiveName:profileData?.userName,
+          salesRepresentiveEmail:email,
+          salesRepresentiveName:finalName,
+          donation:bidAmount,
+          userId,
+          surveyId:survayFormId,
+          status: "Pending"
+        });
 
     sendEmailFromCompany(email, finalName, userData.userName, userData.location, userData.jobTitle, userData.industry);
 
@@ -279,7 +291,6 @@ const fetchSurvayData = async (req, res) => {
       });
     }
 
-    // Fetch all necessary data in parallel for better performance
     const [surveyData, userData, adminForms] = await Promise.all([
       SurvayForm.find({ userId }).lean(),
       User.find({ userId }).lean(),
@@ -294,7 +305,6 @@ const fetchSurvayData = async (req, res) => {
       });
     }
 
-    // Create a map of adminForms by surveyId for faster lookup
     const adminFormMap = adminForms.reduce((map, form) => {
       if (form.surveyId) {
         map[form.surveyId.toString()] = form;

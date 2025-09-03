@@ -12,6 +12,7 @@ export function useZeffyMonitoring() {
             if (!isMounted) return;
 
             const userEmail = Cookies.get('userEmail');
+            const userId = Cookies.get('UserId');
 
             if (!userEmail) {
                 return;
@@ -25,7 +26,7 @@ export function useZeffyMonitoring() {
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ userEmail }),
+                        body: JSON.stringify({ userEmail,userId }),
                     }
                 );
 
