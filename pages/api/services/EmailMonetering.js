@@ -459,4 +459,203 @@ async function refreshAccessTokenIfNeeded(tokens) {
   return tokens;
 }
 
-module.exports = { refreshAccessTokenIfNeeded, startEmailMonitoring }
+const startZeffyEmailMonitoring = async (req, res) => {
+  const { userEmail } = req.body;
+  try {
+    await checkAndProcessZeffyEmails(userEmail);
+    res.status(200).json({ message: `Zeffy email monitoring started for ${userEmail}` });
+  } catch (error) {
+    console.error(`Initial Zeffy email check failed for ${userEmail}:`, error);
+    res.status(500).json({ error: 'Failed to start Zeffy email monitoring.' });
+  }
+};
+
+async function checkAndProcessZeffyEmails(userEmail) {
+  try {
+    await connectToDatabase();
+    const user = await User.findOne({ userProfileEmail: userEmail });
+    if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
+      console.log(`Missing Gmail OAuth tokens for user ${userEmail}`);
+      return;
+    }
+
+    const tokens = await refreshAccessTokenIfNeeded({
+      access_token: user.gmailAccessToken,
+      refresh_token: user.gmailRefreshToken,
+      expiry_date: parseInt(user.gmailExpiryDate, 10),
+    });
+
+    if (tokens.access_token !== user.gmailAccessToken || tokens.expiry_date !== parseInt(user.gmailExpiryDate, 10)) {
+      user.gmailAccessToken = tokens.access_token;
+      user.gmailExpiryDate = tokens.expiry_date;
+      await user.save();
+    }
+
+    const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+    oAuth2Client.setCredentials({
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+
+    const query = `is:unread (from:zeffy.org OR from:zeffy.com OR from:contact@email.zeffy.com OR subject:"GiveToMeet Donation") after:${Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)}`;
+    
+    let allMessages = [];
+    let nextPageToken = null;
+    do {
+      const response = await gmail.users.messages.list({
+        userId: 'me',
+        maxResults: 100,
+        pageToken: nextPageToken,
+        q: query,
+        orderBy: 'date',
+        labelIds: ['INBOX']
+      });
+      if (response.data.messages) {
+        allMessages = allMessages.concat(response.data.messages);
+      }
+      nextPageToken = response.data.nextPageToken;
+    } while (nextPageToken);
+
+    console.log(`Found ${allMessages.length} unread messages from Zeffy for ${userEmail}`);
+
+    if (allMessages.length > 0) {
+      for (const msg of allMessages) {
+        try {
+          const messageData = await gmail.users.messages.get({
+            userId: 'me',
+            id: msg.id,
+            format: 'full'
+          });
+
+          const msgData = messageData.data;
+          const subject = msgData.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)';
+          
+          const fromHeader = msgData.payload.headers.find(h => h.name === 'From')?.value || '';
+          const isFromZeffy = fromHeader.includes('zeffy') || fromHeader.includes('contact@email.zeffy.com');
+          
+          if (!isFromZeffy) {
+            continue;
+          }
+          
+          let emailContent = '';
+          if (msgData.payload.parts) {
+            for (const part of msgData.payload.parts) {
+              if (part.mimeType === 'text/plain' && part.body && part.body.data) {
+                emailContent = Buffer.from(part.body.data, 'base64').toString('utf8');
+                break;
+              } else if (part.mimeType === 'text/html' && part.body && part.body.data) {
+                const htmlContent = Buffer.from(part.body.data, 'base64').toString('utf8');
+                emailContent = htmlContent.replace(/<[^>]*>/g, ' ');
+              }
+            }
+          }
+          
+          if (!emailContent && msgData.payload.body && msgData.payload.body.data) {
+            emailContent = Buffer.from(msgData.payload.body.data, 'base64').toString('utf8');
+          }
+
+          console.log(`Processing Zeffy email from ${fromHeader} with subject: "${subject}"`);
+          
+          if (emailContent && (subject.includes('donation') || subject.includes('Donation') || 
+              emailContent.includes('donation') || emailContent.includes('Donation'))) {
+            
+            let donationAmount = null;
+            const donationMatch = emailContent.match(/\$(\d+(?:\.\d{2})?)/) || 
+                                 emailContent.match(/(\d+(?:\.\d{2})?)\s*(USD|dollars)/i);
+            
+            if (donationMatch) {
+              donationAmount = donationMatch[1];
+            }
+            
+            let donorEmail = null;
+            const emailMatch = emailContent.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+            
+            if (emailMatch) {
+              donorEmail = emailMatch[0];
+            }
+            
+            if (!donorEmail) {
+              const nameMatch = emailContent.match(/([A-Za-z]+\s+[A-Za-z]+)(?:\n|$)/);
+              if (nameMatch) {
+                const donorName = nameMatch[1].trim();
+                console.log(`Extracted donor name: ${donorName}`);
+                
+                const AdminForm = require('../models/Admin');
+                const adminForm = await AdminForm.findOne({
+                  executiveName: { $regex: donorName, $options: 'i' },
+                  status: "Pending"
+                });
+                
+                if (adminForm && donationAmount && adminForm.donation === donationAmount) {
+                  adminForm.status = "Accepted";
+                  await adminForm.save();
+                  console.log(`Updated AdminForm status to Accepted for ${donorName} with donation amount $${donationAmount}`);
+                  
+                  await gmail.users.messages.modify({
+                    userId: 'me',
+                    id: msg.id,
+                    requestBody: {
+                      removeLabelIds: ['UNREAD']
+                    }
+                  });
+                }
+              }
+            } else if (donationAmount && donorEmail) {
+              console.log(`Found donation of $${donationAmount} from ${donorEmail}`);
+              
+              // Update AdminForm instead of SurvayForm
+              const AdminForm = require('../models/AdminForm');
+              const adminForm = await AdminForm.findOne({
+                executiveEmail: donorEmail,
+                donation: donationAmount,
+                status: "Pending"
+              });
+              
+              if (adminForm) {
+                adminForm.status = "Accepted";
+                await adminForm.save();
+                console.log(`Updated AdminForm status to Accepted for ${donorEmail} with donation amount $${donationAmount}`);
+                
+                await gmail.users.messages.modify({
+                  userId: 'me',
+                  id: msg.id,
+                  requestBody: {
+                    removeLabelIds: ['UNREAD']
+                  }
+                });
+              } else {
+                const adminFormByEmail = await AdminForm.findOne({
+                  executiveEmail: donorEmail,
+                  status: "Pending"
+                });
+                
+                if (adminFormByEmail) {
+                  adminFormByEmail.status = "Accepted";
+                  await adminFormByEmail.save();
+                  console.log(`Updated AdminForm status to Accepted for ${donorEmail} (amount match not exact)`);
+                  
+                  await gmail.users.messages.modify({
+                    userId: 'me',
+                    id: msg.id,
+                    requestBody: {
+                      removeLabelIds: ['UNREAD']
+                    }
+                  });
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing Zeffy message ${msg.id}:`, error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error(`Error processing Zeffy emails for ${userEmail}:`, error);
+    throw error;
+  }
+}
+
+module.exports = { refreshAccessTokenIfNeeded, startEmailMonitoring,startZeffyEmailMonitoring }

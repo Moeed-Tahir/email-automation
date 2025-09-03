@@ -15,7 +15,6 @@ export function useEmailMonitoring() {
       const userName = Cookies.get('userName');
 
       if (!userEmail) {
-        // console.log('No user email found in cookies');
         return;
       }
 

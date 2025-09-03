@@ -348,7 +348,7 @@ exports.sendAcceptEmailToAdmin = async (req, res) => {
                 
                 <!-- Button -->
                 <p style="margin: 24px 0 16px 0;">
-                  <a href="${process.env.REQUEST_URL}/upload-receipt?dashboardUserId=${dashboardUserId}&mainUserId=${mainUserId}&surveyId=${surveyId}&surveyObjectId=${objectId}"
+                  <a href="https://www.zeffy.com/en-US/donation-form/donate-for-give2meet"
                     style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
                     👉 Make Your Donation Here
                   </a>

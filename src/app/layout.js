@@ -1,10 +1,13 @@
-"use client" // This MUST be the very first line in the file
+"use client"
 
 import { useEmailMonitoring } from "@/hooks/useEmailMonitoring";
+import { useZeffyMonitoring } from "@/hooks/useZeffyMonitoring";
+
 import "./globals.css";
 
 export default function RootLayout({ children }) {
   useEmailMonitoring();
+  useZeffyMonitoring();
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body>
