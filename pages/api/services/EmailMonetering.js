@@ -5,9 +5,11 @@ const dotenv = require("dotenv");
 dotenv.config();
 const User = require('../models/User');
 const AdminForm = require('../models/Admin');
+const AdminUser = require('../models/AdminUser');
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = `${process.env.REQUEST_URL}/api/routes/Google?action=handleOAuth2Callback`;
+const REDIRECT_URI_ADMIN = `${process.env.REQUEST_URL}/api/routes/AdminUser?action=handleAdminCallback`;
 
 const startEmailMonitoring = async (req, res) => {
   const { userEmail, userName } = req.body;
@@ -41,7 +43,7 @@ async function checkAndProcessEmails(userEmail, userName) {
       await user.save();
     }
 
-    const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+    const oAuth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI_ADMIN);
     oAuth2Client.setCredentials({
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
@@ -458,27 +460,64 @@ async function refreshAccessTokenIfNeeded(tokens) {
   return tokens;
 }
 
+async function AdminRefreshAccessTokenIfNeeded(tokens) {
+  const oAuth2Client = new google.auth.OAuth2(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    `${process.env.REQUEST_URL}/api/routes/AdminUser?action=handleAdminCallback`
+  );
+
+  oAuth2Client.setCredentials({
+    refresh_token: tokens.refresh_token,
+  });
+
+  const FIVE_MINUTES = 5 * 60 * 1000;
+  const currentTime = Date.now();
+
+  if (tokens.expiry_date - currentTime < FIVE_MINUTES) {
+    try {
+      const accessTokenResponse = await oAuth2Client.getAccessToken();
+      const newAccessToken = accessTokenResponse?.token;
+
+      if (!newAccessToken) throw new Error('Failed to get new access token');
+
+      const newExpiryDate = Date.now() + 60 * 60 * 1000;
+
+      return {
+        access_token: newAccessToken,
+        refresh_token: tokens.refresh_token,
+        expiry_date: newExpiryDate,
+      };
+    } catch (error) {
+      console.error('Error refreshing access token:', error.response?.data || error.message);
+      throw new Error('Could not refresh access token');
+    }
+  }
+
+  return tokens;
+}
+
 const startZeffyEmailMonitoring = async (req, res) => {
-  const { userEmail,userId } = req.body;
+  const { adminEmail } = req.body;
   try {
-    await checkAndProcessZeffyEmails(userEmail,userId);
-    res.status(200).json({ message: `Zeffy email monitoring started for ${userEmail}` });
+    await checkAndProcessZeffyEmails(adminEmail);
+    res.status(200).json({ message: `Zeffy email monitoring started for ${adminEmail}` });
   } catch (error) {
-    console.error(`Initial Zeffy email check failed for ${userEmail}:`, error);
+    console.error(`Initial Zeffy email check failed for ${adminEmail}:`, error);
     res.status(500).json({ error: 'Failed to start Zeffy email monitoring.' });
   }
 };
 
-async function checkAndProcessZeffyEmails(userEmail, userId) {
+async function checkAndProcessZeffyEmails(adminEmail) {
   try {
     await connectToDatabase();
-    const user = await User.findOne({ userProfileEmail: userEmail });
+    const user = await AdminUser.findOne({ email: adminEmail });
     if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
-      console.log(`Missing Gmail OAuth tokens for user ${userEmail}`);
+      console.log(`Missing Gmail OAuth tokens for user ${adminEmail}`);
       return;
     }
 
-    const tokens = await refreshAccessTokenIfNeeded({
+    const tokens = await AdminRefreshAccessTokenIfNeeded({
       access_token: user.gmailAccessToken,
       refresh_token: user.gmailRefreshToken,
       expiry_date: parseInt(user.gmailExpiryDate, 10),
@@ -498,7 +537,7 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
 
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
 
-    const query = `is:unread from:abdullahgotaccess@gmail.com after:${Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)}`;
+    const query = `is:unread from:techideas29@gmail.com after:${Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)}`;
 
     let allMessages = [];
     let nextPageToken = null;
@@ -530,7 +569,7 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
           const subject = msgData.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)';
 
           const fromHeader = msgData.payload.headers.find(h => h.name === 'From')?.value || '';
-          const isFromZeffy = fromHeader.includes('abdullahgotaccess@gmail.com');
+          const isFromZeffy = fromHeader.includes('techideas29@gmail.com');
 
           if (!isFromZeffy) {
             continue;
@@ -576,7 +615,6 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
                 adminForm = await AdminForm.findOne({
                   executiveEmail: donorEmail,
                   donation: donationAmount,
-                  userId: userId,
                   status: "Pending"
                 });
               }
@@ -584,7 +622,6 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
               if (!adminForm) {
                 adminForm = await AdminForm.findOne({
                   donation: donationAmount,
-                  userId: userId,
                   status: "Pending"
                 });
               }
@@ -592,12 +629,13 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
               if (!adminForm && donorEmail) {
                 adminForm = await AdminForm.findOne({
                   executiveEmail: donorEmail,
-                  userId: userId,
                   status: "Pending"
                 });
               }
 
               if (adminForm) {
+                console.log("This is called");
+
                 adminForm.status = "Accept";
                 await adminForm.save();
 
@@ -610,10 +648,9 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
                 });
               } else {
                 const allPendingForms = await AdminForm.find({ 
-                  userId: userId, 
                   status: "Pending" 
                 });
-                console.log(`Available Pending AdminForms for user ${userId}:`, allPendingForms.map(f => ({
+                console.log(`Available Pending AdminForms for user`, allPendingForms.map(f => ({
                   executiveEmail: f.executiveEmail,
                   donation: f.donation
                 })));

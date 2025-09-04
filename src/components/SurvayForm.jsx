@@ -341,7 +341,6 @@ const SurveyForm = ({ userId,survayFormId }) => {
         });
 
         setProfileData(response.data.user);
-        console.log("response.data.user",response.data.user);
 
         setUserQuestions({
           questionOne:

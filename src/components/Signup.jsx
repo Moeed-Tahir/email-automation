@@ -41,7 +41,7 @@ const SignupFlow = () => {
     businessChallenge: {
       questionType: "Business Challenge",
       question: "What business challenge does your solution help solve?",
-      questionScore: 4, // Default question weight
+      questionScore: 4,
       options: [
         { text: "Reduce costs", score: 10 },
         { text: "Increase revenue", score: 10 },
@@ -55,7 +55,7 @@ const SignupFlow = () => {
     solutionType: {
       questionType: "Solution Type",
       question: "What type of solution are you offering?",
-      questionScore: 4, // Default question weight
+      questionScore: 4,
       options: [
         { text: "Product (SaaS or Hardware)", score: 8 },
         { text: "Service (Consulting, Agency, etc.)", score: 6 },
@@ -68,7 +68,7 @@ const SignupFlow = () => {
       questionType: "Industry Experience",
       question:
         "Have you worked with companies in this executive's industry before?",
-      questionScore: 3, // Default question weight
+      questionScore: 3,
       options: [
         { text: "Yes", score: 10 },
         { text: "No", score: 2 },
@@ -79,7 +79,7 @@ const SignupFlow = () => {
       questionType: "Proof of Success",
       question:
         "Do you have a relevant case study, customer example, or proof of success?",
-      questionScore: 4, // Default question weight
+      questionScore: 4, 
       options: [
         { text: "Yes, and I can share it", score: 10 },
         { text: "No, not yet", score: 3 },
@@ -89,7 +89,7 @@ const SignupFlow = () => {
     customerSegment: {
       questionType: "Customer Segment",
       question: "What is your typical customer size or segment?",
-      questionScore: 3, // Default question weight
+      questionScore: 3,
       options: [
         { text: "Startups (<50 employees)", score: 5 },
         { text: "Mid-Market (50-500 employees)", score: 8 },
@@ -102,7 +102,7 @@ const SignupFlow = () => {
       questionType: "Sales Timing",
       question:
         "How soon are you looking to engage with a solution like yours?",
-      questionScore: 4, // Default question weight
+      questionScore: 4, 
       options: [
         { text: "Actively seeking now", score: 10 },
         { text: "Within 3 months", score: 8 },
@@ -115,7 +115,7 @@ const SignupFlow = () => {
       questionType: "Familiarity",
       question:
         "How familiar are you with this executive's company or industry?",
-      questionScore: 3, // Default question weight
+      questionScore: 3, 
       options: [
         {
           text: "Very familiar - We've researched their company and market",
@@ -133,7 +133,7 @@ const SignupFlow = () => {
       questionType: "Donation Escrow Preference",
       question:
         "Are you open to putting the donation into escrow until after the meeting?",
-      questionScore: 2, // Default question weight
+      questionScore: 2,
       options: [
         { text: "Yes", score: 10 },
         { text: "No", score: 0 },
@@ -223,14 +223,12 @@ const SignupFlow = () => {
           isValid = false;
         }
         
-        // Validate that at least one option has a score > 0
         const hasScore = formData[q].options.some((opt) => opt.score > 0);
         if (!hasScore) {
           newErrors[q] = "Please select at least one option with a score > 0";
           isValid = false;
         }
         
-        // Validate all option scores are between 0-10
         const invalidScores = formData[q].options.some((opt) => opt.score < 0 || opt.score > 10);
         if (invalidScores) {
           newErrors[q] = "Option scores must be between 0 and 10";
