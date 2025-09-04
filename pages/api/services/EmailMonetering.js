@@ -26,7 +26,6 @@ async function checkAndProcessEmails(userEmail, userName) {
     await connectToDatabase();
     const user = await User.findOne({ userProfileEmail: userEmail });
     if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
-      // console.log(`Missing Gmail OAuth tokens for user ${userEmail}`);
       return;
     }
 
@@ -499,7 +498,7 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
 
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
 
-    const query = `is:unread (from:techideas29@gmail.com OR subject:"GiveToMeet Donation") after:${Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)}`;
+    const query = `is:unread from:contact@email.zeffy.com after:${Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)}`;
 
     let allMessages = [];
     let nextPageToken = null;
@@ -518,8 +517,6 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
       nextPageToken = response.data.nextPageToken;
     } while (nextPageToken);
 
-    console.log(`Found ${allMessages.length} unread messages from Zeffy for ${userEmail}`);
-
     if (allMessages.length > 0) {
       for (const msg of allMessages) {
         try {
@@ -533,7 +530,7 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
           const subject = msgData.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)';
 
           const fromHeader = msgData.payload.headers.find(h => h.name === 'From')?.value || '';
-          const isFromZeffy = fromHeader.includes('techideas29@gmail.com');
+          const isFromZeffy = fromHeader.includes('contact@email.zeffy.com');
 
           if (!isFromZeffy) {
             continue;
@@ -556,97 +553,46 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
             emailContent = Buffer.from(msgData.payload.body.data, 'base64').toString('utf8');
           }
 
-          console.log(`Processing Zeffy email from ${fromHeader} with subject: "${subject}"`);
-
-          if (emailContent && subject.includes('GiveToMeet Donation')) {
-            // Parse donation amount - look for pattern like "$300 donation"
+          if (emailContent) {
             let donationAmount = null;
             const donationMatch = emailContent.match(/\$(\d+(?:\.\d{2})?)\s+donation/i) ||
-                                 emailContent.match(/New\s+\$(\d+(?:\.\d{2})?)\s+donation/i);
+                                 emailContent.match(/New\s+\$(\d+(?:\.\d{2})?)\s+donation/i) ||
+                                 emailContent.match(/\$(\d+(?:\.\d{2})?)\s+donation\s+received/i);
             
             if (donationMatch) {
               donationAmount = donationMatch[1];
             }
 
-            // Parse donor information - look for the pattern: Name, Email, Location
-            let donorName = null;
             let donorEmail = null;
-            let donorLocation = null;
-
-            // Split content by lines and look for the donor info pattern
-            const lines = emailContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-            
-            for (let i = 0; i < lines.length; i++) {
-              const line = lines[i];
-              
-              // Look for donor name (typically appears before email)
-              if (!donorName && /^[A-Za-z]+\s+[A-Za-z]+$/.test(line) && !line.includes('@')) {
-                donorName = line;
-                continue;
-              }
-              
-              // Look for email address
-              if (!donorEmail && line.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)) {
-                donorEmail = line;
-                continue;
-              }
-              
-              // Look for location (typically appears after email)
-              if (!donorLocation && donorEmail && /^[A-Za-z\s]+,\s*[A-Za-z]{2}\.?$/.test(line)) {
-                donorLocation = line;
-                break;
-              }
+            const emailMatch = emailContent.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+            if (emailMatch) {
+              donorEmail = emailMatch[0];
             }
-
-            // Alternative approach: look for the specific pattern in the email structure
-            if (!donorName || !donorEmail) {
-              const donorInfoMatch = emailContent.match(/([A-Za-z]+\s+[A-Za-z]+)\s+([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\s+([A-Za-z\s]+,\s*[A-Za-z]{2}\.?)/);
-              if (donorInfoMatch) {
-                donorName = donorInfoMatch[1];
-                donorEmail = donorInfoMatch[2];
-                donorLocation = donorInfoMatch[3];
-              }
-            }
-
-            console.log(`Extracted donation info: Amount=$${donationAmount}, Name=${donorName}, Email=${donorEmail}, Location=${donorLocation}`);
 
             if (donationAmount) {
               let adminForm = null;
 
-              // First try to find by exact email and amount match - FIXED: changed "Accept" to "Pending"
               if (donorEmail) {
                 adminForm = await AdminForm.findOne({
                   executiveEmail: donorEmail,
                   donation: donationAmount,
                   userId: userId,
-                  status: "Pending"  // Changed from "Accept" to "Pending"
-                });
-              }
-
-              // If not found by email, try by name and amount
-              if (!adminForm && donorName) {
-                adminForm = await AdminForm.findOne({
-                  executiveName: { $regex: donorName, $options: 'i' },
-                  donation: donationAmount,
-                  userId: userId,  // Added userId here too
                   status: "Pending"
                 });
               }
 
-              // If still not found, try by email only (fuzzy match)
+              if (!adminForm) {
+                adminForm = await AdminForm.findOne({
+                  donation: donationAmount,
+                  userId: userId,
+                  status: "Pending"
+                });
+              }
+
               if (!adminForm && donorEmail) {
                 adminForm = await AdminForm.findOne({
                   executiveEmail: donorEmail,
-                  userId: userId,  // Added userId here too
-                  status: "Pending"
-                });
-              }
-
-              // If still not found, try by name only (fuzzy match)
-              if (!adminForm && donorName) {
-                adminForm = await AdminForm.findOne({
-                  executiveName: { $regex: donorName, $options: 'i' },
-                  userId: userId,  // Added userId here too
+                  userId: userId,
                   status: "Pending"
                 });
               }
@@ -654,9 +600,7 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
               if (adminForm) {
                 adminForm.status = "Accept";
                 await adminForm.save();
-                console.log(`Updated AdminForm status to Accepted for ${donorName || donorEmail || 'unknown'} with donation amount $${donationAmount}`);
 
-                // Mark email as read
                 await gmail.users.messages.modify({
                   userId: 'me',
                   id: msg.id,
@@ -665,15 +609,12 @@ async function checkAndProcessZeffyEmails(userEmail, userId) {
                   }
                 });
               } else {
-                console.log(`No matching AdminForm found for donation from ${donorName || donorEmail || 'unknown'} with amount $${donationAmount}`);
-                // Add debug logging to see what AdminForms actually exist
                 const allPendingForms = await AdminForm.find({ 
                   userId: userId, 
                   status: "Pending" 
                 });
                 console.log(`Available Pending AdminForms for user ${userId}:`, allPendingForms.map(f => ({
                   executiveEmail: f.executiveEmail,
-                  executiveName: f.executiveName,
                   donation: f.donation
                 })));
               }
