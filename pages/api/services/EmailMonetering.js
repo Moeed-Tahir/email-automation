@@ -114,8 +114,6 @@ async function checkAndProcessEmails(userEmail, userName) {
       nextPageToken = response.data.nextPageToken;
     } while (nextPageToken);
 
-    // console.log(`Found ${allMessages.length} unread messages containing trigger keywords for ${userEmail}`);
-
     if (allMessages.length > 0) {
       for (const msg of allMessages) {
         try {
@@ -148,8 +146,6 @@ async function checkAndProcessEmails(userEmail, userName) {
           if (!fromEmail || fromEmail.toLowerCase() === userEmail.toLowerCase()) {
             continue;
           }
-
-          // console.log(`Processing email from ${fromEmail} with subject: "${subject}"`);
 
           const messageId = msgData.payload.headers.find(h => h.name === 'Message-ID')?.value;
           const references = msgData.payload.headers.find(h => h.name === 'References')?.value || '';
@@ -537,7 +533,7 @@ async function checkAndProcessZeffyEmails(adminEmail) {
 
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
 
-    const query = `is:unread from:techideas29@gmail.com after:${Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)}`;
+    const query = `is:unread from:abdullahgotaccess@gmail.com after:${Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)}`;
 
     let allMessages = [];
     let nextPageToken = null;
@@ -568,8 +564,14 @@ async function checkAndProcessZeffyEmails(adminEmail) {
           const msgData = messageData.data;
           const subject = msgData.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)';
 
+          let donorName = null;
+          const nameMatch = subject.match(/(?:donation received from|donation from)\s+(.+)$/i);
+          if (nameMatch && nameMatch[1]) {
+            donorName = nameMatch[1].trim();
+          }
+
           const fromHeader = msgData.payload.headers.find(h => h.name === 'From')?.value || '';
-          const isFromZeffy = fromHeader.includes('techideas29@gmail.com');
+          const isFromZeffy = fromHeader.includes('abdullahgotaccess@gmail.com');
 
           if (!isFromZeffy) {
             continue;
@@ -595,9 +597,9 @@ async function checkAndProcessZeffyEmails(adminEmail) {
           if (emailContent) {
             let donationAmount = null;
             const donationMatch = emailContent.match(/\$(\d+(?:\.\d{2})?)\s+donation/i) ||
-                                 emailContent.match(/New\s+\$(\d+(?:\.\d{2})?)\s+donation/i) ||
-                                 emailContent.match(/\$(\d+(?:\.\d{2})?)\s+donation\s+received/i);
-            
+              emailContent.match(/New\s+\$(\d+(?:\.\d{2})?)\s+donation/i) ||
+              emailContent.match(/\$(\d+(?:\.\d{2})?)\s+donation\s+received/i);
+
             if (donationMatch) {
               donationAmount = donationMatch[1];
             }
@@ -605,15 +607,21 @@ async function checkAndProcessZeffyEmails(adminEmail) {
             let donorEmail = null;
             const emailMatch = emailContent.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
             if (emailMatch) {
-              donorEmail = emailMatch[0];
+              donorEmail = emailMatch[0].toLowerCase();
             }
 
-            if (donationAmount) {
-              let adminForm = null;
+            if (donationAmount && donorEmail && donorName) {
+              let adminForm = await AdminForm.findOne({
+                salesRepresentiveEmail: donorEmail,
+                salesRepresentiveName: { $regex: new RegExp(`^${donorName}$`, 'i') },
+                donation: donationAmount,
+                status: "Pending"
+              });
 
-              if (donorEmail) {
+              if (!adminForm) {
                 adminForm = await AdminForm.findOne({
-                  executiveEmail: donorEmail,
+                  salesRepresentiveEmail: { $regex: new RegExp(`^${donorEmail}$`, 'i') },
+                  salesRepresentiveName: { $regex: new RegExp(`^${donorName}$`, 'i') },
                   donation: donationAmount,
                   status: "Pending"
                 });
@@ -621,20 +629,15 @@ async function checkAndProcessZeffyEmails(adminEmail) {
 
               if (!adminForm) {
                 adminForm = await AdminForm.findOne({
+                  salesRepresentiveEmail: donorEmail,
+                  salesRepresentiveName: { $regex: new RegExp(donorName, 'i') },
                   donation: donationAmount,
                   status: "Pending"
                 });
               }
 
-              if (!adminForm && donorEmail) {
-                adminForm = await AdminForm.findOne({
-                  executiveEmail: donorEmail,
-                  status: "Pending"
-                });
-              }
-
               if (adminForm) {
-                console.log("This is called");
+                console.log("Matching AdminForm found and marked as Accept");
 
                 adminForm.status = "Accept";
                 await adminForm.save();
@@ -647,16 +650,27 @@ async function checkAndProcessZeffyEmails(adminEmail) {
                   }
                 });
               } else {
-                const allPendingForms = await AdminForm.find({ 
-                  status: "Pending" 
+                console.log('No matching AdminForm found for:', {
+                  donorEmail,
+                  donorName,
+                  donationAmount
                 });
-                console.log(`Available Pending AdminForms for user`, allPendingForms.map(f => ({
-                  executiveEmail: f.executiveEmail,
+
+                const allPendingForms = await AdminForm.find({
+                  status: "Pending"
+                });
+                console.log(`Available Pending AdminForms:`, allPendingForms.map(f => ({
+                  salesRepresentiveEmail: f.salesRepresentiveEmail,
+                  salesRepresentiveName: f.salesRepresentiveName,
                   donation: f.donation
                 })));
               }
             } else {
-              console.log('No donation amount found in email content');
+              console.log('Missing required information for matching:', {
+                donationAmount,
+                donorEmail,
+                donorName
+              });
             }
           }
         } catch (error) {
@@ -665,7 +679,7 @@ async function checkAndProcessZeffyEmails(adminEmail) {
       }
     }
   } catch (error) {
-    console.error(`Error processing Zeffy emails for ${userEmail}:`, error);
+    console.error(`Error processing Zeffy emails for ${adminEmail}:`, error);
     throw error;
   }
 }
