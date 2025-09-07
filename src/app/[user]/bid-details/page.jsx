@@ -10,8 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Textarea } from "@/components/ui/textarea";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -30,7 +28,6 @@ export default function MeetingRequest() {
   });
   const userId = Cookies.get("UserId") || null;
 
-  // Function to calculate the score for each question
   const calculateTotalScore = (questions) => {
     if (!Array.isArray(questions) || questions.length === 0) return 0;
 

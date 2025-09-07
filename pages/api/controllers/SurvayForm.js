@@ -60,7 +60,6 @@ const sendSurveyForm = async (req, res) => {
       country,
       questionAnswers,
       profileData,
-      survayFormId
     } = req.body;
 
     if (!userId) {
@@ -130,15 +129,15 @@ const sendSurveyForm = async (req, res) => {
     let finalName = `${firstName} ${lastName}`;
 
     const newAdminForm = await AdminForm.create({
-          executiveEmail:profileData?.userEmail,
-          executiveName:profileData?.userName,
-          salesRepresentiveEmail:email,
-          salesRepresentiveName:finalName,
-          donation:bidAmount,
-          userId,
-          surveyId:survayFormId,
-          status: "Pending"
-        });
+      executiveEmail: profileData?.userEmail,
+      executiveName: profileData?.userName,
+      salesRepresentiveEmail: email,
+      salesRepresentiveName: finalName,
+      donation: bidAmount,
+      userId,
+      surveyId: newSurvey.survayId,
+      status: "Pending"
+    });
 
     sendEmailFromCompany(email, finalName, userData.userName, userData.location, userData.jobTitle, userData.industry);
 
@@ -313,7 +312,7 @@ const fetchSurvayData = async (req, res) => {
     }, {});
 
     const enrichSurveyData = (survey) => {
-      const adminForm = adminFormMap[survey._id.toString()];
+      const adminForm = adminFormMap[survey.survayId.toString()];
       const status = adminForm ? adminForm.status : "Not Submitted";
 
       const baseData = {
@@ -391,7 +390,7 @@ const fetchNameAgainstId = async (req, res) => {
       message: "Survey data retrieved successfully",
       name: surveyData.name,
       bidAmount: surveyData.bidAmount,
-      charityDonation:surveyData.charityDonation,
+      charityDonation: surveyData.charityDonation,
     });
 
   } catch (error) {

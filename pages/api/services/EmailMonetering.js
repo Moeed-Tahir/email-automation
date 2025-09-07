@@ -10,6 +10,7 @@ const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = `${process.env.REQUEST_URL}/api/routes/Google?action=handleOAuth2Callback`;
 const REDIRECT_URI_ADMIN = `${process.env.REQUEST_URL}/api/routes/AdminUser?action=handleAdminCallback`;
+const SurvayForm = require('../models/SurvayForm');
 
 const startEmailMonitoring = async (req, res) => {
   const { userEmail, userName } = req.body;
@@ -27,6 +28,7 @@ async function checkAndProcessEmails(userEmail, userName) {
   try {
     await connectToDatabase();
     const user = await User.findOne({ userProfileEmail: userEmail });
+
     if (!user || !user.gmailAccessToken || !user.gmailRefreshToken || !user.gmailExpiryDate) {
       return;
     }
@@ -504,6 +506,88 @@ const startZeffyEmailMonitoring = async (req, res) => {
   }
 };
 
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'info@makelastingchange.com',
+    pass: 'vcvk scep luhp qosk',
+  },
+});
+
+const sendConfirmationEmail = async (adminForm, surveyData) => {
+  try {
+    const salesRepNameParts = adminForm.salesRepresentiveName.split(' ');
+    const firstName = salesRepNameParts[0] || '';
+
+    const executiveNameParts = adminForm.executiveName.split(' ');
+    const executiveFirstName = executiveNameParts[0] || '';
+
+    const calendarLink = `https://calendar.google.com/calendar/r/eventedit?text=Meeting+with+${executiveFirstName}&details=Meeting+via+Give2Meet`;
+
+    const mailOptions = {
+      from: `${adminForm.executiveName} via Give2Meet <info@makelastingchange.com>`,
+      to: adminForm.salesRepresentiveEmail,
+      subject: `Your Donation Is Confirmed — Schedule Your Meeting with ${adminForm.executiveName}`,
+      html: `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F2F5F8; padding: 40px 20px;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 4px; overflow: hidden;">
+            <!-- Header -->
+            <tr>
+              <td align="left" style="padding: 20px;">
+                <img src="https://rixdrbokebnvidwyzvzo.supabase.co/storage/v1/object/public/new-project/email-automation/Logo%20(7).png" alt="Give2Meet Logo" style="height: 40px;">
+              </td>
+            </tr>
+            
+            <!-- Main Content -->
+            <tr>
+              <td style="padding: 20px; font-size: 16px; color: #4A5568; line-height: 1.6;">
+                <h1 style="font-size: 24px; color: #2C514C; margin-bottom: 20px;">You're All Set! Book Your Meeting Now</h1>
+                <p style="margin-bottom: 20px;">Hi ${firstName},</p>
+                <p style="margin-bottom: 20px;">Thank you for completing your donation to ${surveyData.charityDonation || 'the charity'}. Your support means a lot, and we're one step closer to meeting!</p>
+                
+                <h2 style="font-size: 18px; color: #2C514C; margin: 30px 0 15px 0;">What's Next:</h2>
+                <p style="margin-bottom: 20px;">Please use the link below to select a date and time that works best for you. The meeting will be added directly to my calendar and you will receive a calendar invitation to accept.</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${calendarLink}" style="display: inline-block; padding: 12px 24px; background-color: #2C514C; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;">👉 Schedule Your Meeting Here</a>
+                </div>
+                
+                <p style="margin-bottom: 20px;">A few quick reminders. Your donation of $${adminForm.donation} will be held in escrow until the meeting takes place. If the meeting is completed as scheduled, the donation will be released to the charity.</p>
+                <p style="margin-bottom: 20px;">Thanks again for using Give2Meet to make our time together meaningful and impactful.</p>
+                
+                <p style="margin-top: 30px;">
+                  Best,<br>
+                  <strong>${adminForm.executiveName}</strong><br>
+                  ${surveyData.jobTitle || ''}<br>
+                  ${surveyData.company || ''}<br>
+                  ${surveyData.city || ''}, ${surveyData.state || ''}, ${surveyData.country || ''}
+                </p>
+              </td>
+            </tr>
+            
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 20px; border-top: 1px solid #eaeaea; font-size: 12px; color: #999999; text-align: center;">
+                <p>© ${new Date().getFullYear()} Give2Meet. All rights reserved.</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Confirmation email sent successfully to:", adminForm.salesRepresentiveEmail);
+  } catch (error) {
+    console.error("Error sending confirmation email:", error);
+  }
+};
+
 async function checkAndProcessZeffyEmails(adminEmail) {
   try {
     await connectToDatabase();
@@ -552,6 +636,8 @@ async function checkAndProcessZeffyEmails(adminEmail) {
       nextPageToken = response.data.nextPageToken;
     } while (nextPageToken);
 
+    console.log(`Found ${allMessages.length} unread Zeffy emails`);
+
     if (allMessages.length > 0) {
       for (const msg of allMessages) {
         try {
@@ -563,17 +649,13 @@ async function checkAndProcessZeffyEmails(adminEmail) {
 
           const msgData = messageData.data;
           const subject = msgData.payload.headers.find(h => h.name === 'Subject')?.value || '(No subject)';
-
-          let donorName = null;
-          const nameMatch = subject.match(/(?:donation received from|donation from)\s+(.+)$/i);
-          if (nameMatch && nameMatch[1]) {
-            donorName = nameMatch[1].trim();
-          }
+          console.log(`Processing email: ${subject}`);
 
           const fromHeader = msgData.payload.headers.find(h => h.name === 'From')?.value || '';
           const isFromZeffy = fromHeader.includes('abdullahgotaccess@gmail.com');
 
           if (!isFromZeffy) {
+            console.log('Skipping - not from Zeffy');
             continue;
           }
 
@@ -610,37 +692,55 @@ async function checkAndProcessZeffyEmails(adminEmail) {
               donorEmail = emailMatch[0].toLowerCase();
             }
 
-            if (donationAmount && donorEmail && donorName) {
+            console.log('Extracted from email:', { donorEmail, donationAmount });
+
+            if (donationAmount && donorEmail) {
+
+              const normalizedDonationAmount = donationAmount.replace(/\.00$/, '')
+              console.log("donationAmount", donationAmount, "donorEmail", donorEmail)
               let adminForm = await AdminForm.findOne({
                 salesRepresentiveEmail: donorEmail,
-                salesRepresentiveName: { $regex: new RegExp(`^${donorName}$`, 'i') },
-                donation: donationAmount,
+                donation: normalizedDonationAmount,
                 status: "Pending"
               });
+
+              console.log("adminForm", adminForm)
+
+
+              // console.log('Exact match result:', adminForm ? 'FOUND' : 'NOT FOUND');
 
               if (!adminForm) {
                 adminForm = await AdminForm.findOne({
                   salesRepresentiveEmail: { $regex: new RegExp(`^${donorEmail}$`, 'i') },
-                  salesRepresentiveName: { $regex: new RegExp(`^${donorName}$`, 'i') },
-                  donation: donationAmount,
+                  donation: { $in: [normalizedDonationAmount, donationAmount] },
                   status: "Pending"
                 });
-              }
-
-              if (!adminForm) {
-                adminForm = await AdminForm.findOne({
-                  salesRepresentiveEmail: donorEmail,
-                  salesRepresentiveName: { $regex: new RegExp(donorName, 'i') },
-                  donation: donationAmount,
-                  status: "Pending"
-                });
+                // console.log('Case-insensitive match result:', adminForm ? 'FOUND' : 'NOT FOUND');
               }
 
               if (adminForm) {
-                console.log("Matching AdminForm found and marked as Accept");
+                // console.log("Matching AdminForm found:", {
+                //   id: adminForm._id,
+                //   email: adminForm.salesRepresentiveEmail,
+                //   donation: adminForm.donation,
+                //   status: adminForm.status,
+                //   surveyId: adminForm.surveyId
+                // });
+
+                let surveyData = null;
+                if (adminForm.surveyId) {
+                  surveyData = await SurvayForm.findOne({ survayId: adminForm.surveyId });
+                }
 
                 adminForm.status = "Accept";
                 await adminForm.save();
+                // console.log("AdminForm marked as Accept");
+
+                if (surveyData) {
+                  await sendConfirmationEmail(adminForm, surveyData);
+                } else {
+                  console.log("No survey data found, cannot send confirmation email");
+                }
 
                 await gmail.users.messages.modify({
                   userId: 'me',
@@ -649,27 +749,26 @@ async function checkAndProcessZeffyEmails(adminEmail) {
                     removeLabelIds: ['UNREAD']
                   }
                 });
+                console.log("Email marked as read");
               } else {
-                console.log('No matching AdminForm found for:', {
-                  donorEmail,
-                  donorName,
-                  donationAmount
-                });
+                // console.log('No matching AdminForm found for:', {
+                //   donorEmail,
+                //   donationAmount
+                // });
 
                 const allPendingForms = await AdminForm.find({
                   status: "Pending"
                 });
-                console.log(`Available Pending AdminForms:`, allPendingForms.map(f => ({
-                  salesRepresentiveEmail: f.salesRepresentiveEmail,
-                  salesRepresentiveName: f.salesRepresentiveName,
-                  donation: f.donation
+                console.log('All pending forms in DB:', allPendingForms.map(f => ({
+                  email: f.salesRepresentiveEmail,
+                  donation: f.donation,
+                  type: typeof f.donation
                 })));
               }
             } else {
               console.log('Missing required information for matching:', {
                 donationAmount,
-                donorEmail,
-                donorName
+                donorEmail
               });
             }
           }

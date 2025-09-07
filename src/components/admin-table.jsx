@@ -139,7 +139,8 @@ const handleConfirmAction = async () => {
         companyName: request.userInfo?.companyName,
         city: request.userInfo?.city,
         state: request.userInfo?.state,
-        country: request.userInfo?.country
+        country: request.userInfo?.country,
+        surveyId:request.userInfo?.survayId
       });
 
       if (!emailResponse.data.message) {
@@ -199,7 +200,7 @@ const handleConfirmAction = async () => {
   const endIndex = startIndex + itemsPerPage;
   const currentData = sortedData.slice(startIndex, endIndex);
   const totalPages = Math.ceil(sortedData.length / itemsPerPage);
-  // console.log("currentData",currentData);
+  console.log("currentData",currentData);
 
   return (
     <div className="w-full h-max">

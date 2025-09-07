@@ -6,6 +6,8 @@ const SurvayForm = require('../models/SurvayForm');
 const dotenv = require("dotenv");
 const User = require('../models/User');
 dotenv.config();
+const mongoose = require("mongoose");
+
 
 const uploadReciptData = async (req, res) => {
   try {
@@ -55,9 +57,12 @@ const fetchReciptData = async (req, res) => {
     //   if (!r.surveyId) console.log(`Receipt ${r._id} has no surveyId`);
     // });
 
+    const validSurveyIds = surveyIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+
+
     const [users, surveys] = await Promise.all([
       userIds.length ? User.find({ userId: { $in: userIds } }).lean() : Promise.resolve([]),
-      surveyIds.length ? SurvayForm.find({ _id: { $in: surveyIds } }).lean() : Promise.resolve([])
+      validSurveyIds.length ? SurvayForm.find({ _id: { $in: validSurveyIds } }).lean() : Promise.resolve([])
     ]);
 
     surveys.forEach(s => console.log(`Survey found:`, {
@@ -134,6 +139,8 @@ const fetchReciptData = async (req, res) => {
       return result;
     });
 
+    console.log("enrichedReceipts", enrichedReceipts);
+
     res.status(200).json({
       message: "Receipts fetched successfully",
       receipts: enrichedReceipts
@@ -165,7 +172,8 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       companyName,
       city,
       state,
-      country
+      country,
+      surveyId
     } = req.body;
 
     // console.log("req.body", req.body);
@@ -183,8 +191,8 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       !companyName ||
       !city ||
       !state ||
-      !country
-    ) {
+      !surveyId ||
+      !country) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields in request body'
@@ -289,7 +297,9 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
 
     const updatedForm = await Admin.findByIdAndUpdate(
       objectId,
-      { status: "Accept" },
+      {
+        status: "Accept"
+      },
       { new: true }
     );
 
@@ -306,7 +316,8 @@ const sendAcceptEmailFromAdmin = async (req, res) => {
       executiveEmail,
       executiveName,
       donation,
-      userId
+      userId,
+      surveyId
     });
 
     res.json({
@@ -442,7 +453,8 @@ const addDonation = async (donationData) => {
       executiveEmail: donationData.executiveEmail,
       executiveName: donationData.executiveName,
       donation: donationData.donation,
-      userId: donationData.userId
+      userId: donationData.userId,
+      surveyId: donationData.surveyId
     });
 
     return newDonation;

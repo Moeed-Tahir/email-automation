@@ -16,7 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
-const SurveyForm = ({ userId,survayFormId }) => {
+const SurveyForm = ({ userId }) => {
   const [currentTab, setCurrentTab] = useState(0);
   const [showMeetingInfo, setShowMeetingInfo] = useState(false);
   const [userQuestions, setUserQuestions] = useState({
@@ -289,7 +289,6 @@ const SurveyForm = ({ userId,survayFormId }) => {
 
       const submissionData = {
         userId,
-        survayFormId,
         ...formData,
         totalScore,
         questionAnswers,

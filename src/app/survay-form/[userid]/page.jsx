@@ -7,9 +7,8 @@ import {  useSearchParams } from 'next/navigation';
 const Page = () => {
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId");
-  const survayFormId = searchParams.get("surveyId");
   
-  return <SurveyForm userId={userId} survayFormId={survayFormId} />;
+  return <SurveyForm userId={userId} />;
 };
 
 export default Page;
