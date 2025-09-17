@@ -221,7 +221,7 @@ const handleAdminCallback = async (req, res) => {
 
     const userEmail = userInfo.data.email;
 
-    if (userEmail !== 'moeedtahir29@gmail.com') {
+    if (userEmail !== 'codevdigital.social@gmail.com') {
       console.warn(`Unauthorized login attempt from: ${userEmail}`);
       return res.redirect('/admin/login?error=unauthorized_email');
     }
@@ -259,7 +259,7 @@ const checkGmailStatus = async (req, res) => {
   try {
     await connectToDatabase();
     
-    const adminUser = await AdminUser.findOne({ email: 'moeedtahir29@gmail.com' });
+    const adminUser = await AdminUser.findOne({ email: 'codevdigital.social@gmail.com' });
     
     if (adminUser && adminUser.gmailAccessToken) {
       const isTokenValid = adminUser.gmailExpiryDate > new Date();
@@ -297,7 +297,7 @@ const disconnectGmail = async (req, res) => {
     await connectToDatabase();
     
     const result = await AdminUser.findOneAndUpdate(
-      { email: 'moeedtahir29@gmail.com' },
+      { email: 'codevdigital.social@gmail.com' },
       {
         gmailAccessToken: null,
         gmailRefreshToken: null,
@@ -331,7 +331,7 @@ const refreshAccessToken = async (req, res) => {
   try {
     await connectToDatabase();
     
-    const adminUser = await AdminUser.findOne({ email: 'moeedtahir29@gmail.com' });
+    const adminUser = await AdminUser.findOne({ email: 'codevdigital.social@gmail.com' });
     
     if (!adminUser || !adminUser.gmailRefreshToken) {
       return res.status(400).json({ 
@@ -347,7 +347,7 @@ const refreshAccessToken = async (req, res) => {
     const { credentials } = await oauth2Client.refreshAccessToken();
     
     const updatedAdmin = await AdminUser.findOneAndUpdate(
-      { email: 'moeedtahir29@gmail.com' },
+      { email: 'codevdigital.social@gmail.com' },
       {
         gmailAccessToken: credentials.access_token,
         gmailExpiryDate: credentials.expiry_date ? new Date(credentials.expiry_date).toISOString() : null
