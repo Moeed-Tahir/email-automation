@@ -9,8 +9,8 @@ dotenv.config();
 const addProfileInfo = async (req, res) => {
   try {
     await connectToDatabase();
-    const { userEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard, jobDescription, location, companyName, jobTitle,industry,closeEndedQuestions,linkedInProfile } = req.body;
-    
+    const { userEmail, calendarLink, charityCompany, minimumBidDonation, questionSolution, howHeard, jobDescription, location, companyName, jobTitle, industry, closeEndedQuestions, linkedInProfile } = req.body;
+
     const user = await User.findOne({ userProfileEmail: userEmail });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -23,12 +23,12 @@ const addProfileInfo = async (req, res) => {
     user.howHeard = howHeard;
     user.industry = industry;
     user.jobDescription = jobDescription,
-    user.location = location,
-    user.jobTitle = jobTitle,
-    user.companyName = companyName
+      user.location = location,
+      user.jobTitle = jobTitle,
+      user.companyName = companyName
     user.closeEndedQuestions = closeEndedQuestions;
     user.linkedInProfile = linkedInProfile;
-    
+
     await user.save();
     const token = jwt.sign(
       {
@@ -227,8 +227,17 @@ const sendOTP = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USERNAME,
       to: email,
-      subject: 'Your OTP for verification',
-      text: `Your OTP is: ${otp}. It will expire in 10 minutes.`
+      subject: 'Your Verification Code',
+      html: `
+    <div>
+      <h2>Verification Code</h2>
+      <p>Your verification code is:</p>
+      <h3 style="font-size: 24px; letter-spacing: 3px;">${otp}</h3>
+      <p><strong>Expires in 10 minutes</strong></p>
+      <p>If you didn't request this code, please ignore this email.</p>
+    </div>
+  `,
+      text: `Your verification code is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this code, please ignore this email.`
     };
 
     await transporter.sendMail(mailOptions);
@@ -342,7 +351,7 @@ const getCloseEndedQuestion = async (req, res) => {
 
 const postCloseEndedQuestion = async (req, res) => {
   try {
-    const { questionText,options,userId,questionScore } = req.body;
+    const { questionText, options, userId, questionScore } = req.body;
 
     if (!userId) {
       return res.status(400).json({ error: "User ID is required" });
@@ -386,7 +395,7 @@ const postCloseEndedQuestion = async (req, res) => {
 
 const updateCloseEndedQuestion = async (req, res) => {
   try {
-    const { userId, questionId, questionText, options,questionScore } = req.body;
+    const { userId, questionId, questionText, options, questionScore } = req.body;
     // console.log("Body",req.body);
 
     if (!userId || !questionId) {
@@ -413,7 +422,7 @@ const updateCloseEndedQuestion = async (req, res) => {
     );
 
     // console.log("questionIndex",questionIndex);
-    
+
 
     if (questionIndex === -1) {
       return res.status(404).json({ error: "Question not found" });
@@ -438,11 +447,11 @@ const updateCloseEndedQuestion = async (req, res) => {
   }
 };
 
-const updateOpenEndedQuestion = async (req,res) => {
-  try{
-     const {userId} = req.body;
-     
-  }catch(error){
+const updateOpenEndedQuestion = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+  } catch (error) {
 
   }
 }

@@ -617,7 +617,7 @@ async function checkAndProcessZeffyEmails(adminEmail) {
 
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
 
-    const query = `is:unread from:abdullahgotaccess@gmail.com after:${Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)}`;
+    const query = `is:unread from:contact@email.zeffy.com after:${Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)}`;
 
     let allMessages = [];
     let nextPageToken = null;
@@ -652,7 +652,7 @@ async function checkAndProcessZeffyEmails(adminEmail) {
           console.log(`Processing email: ${subject}`);
 
           const fromHeader = msgData.payload.headers.find(h => h.name === 'From')?.value || '';
-          const isFromZeffy = fromHeader.includes('abdullahgotaccess@gmail.com');
+          const isFromZeffy = fromHeader.includes('contact@email.zeffy.com');
 
           if (!isFromZeffy) {
             console.log('Skipping - not from Zeffy');

@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import Link from "next/link";
 import {
   CircleDollarSign,
-  Link,
+  Link2Icon,
   Mail,
   Briefcase,
   MapPin,
@@ -79,7 +80,7 @@ const SignupFlow = () => {
       questionType: "Proof of Success",
       question:
         "Do you have a relevant case study, customer example, or proof of success?",
-      questionScore: 4, 
+      questionScore: 4,
       options: [
         { text: "Yes, and I can share it", score: 10 },
         { text: "No, not yet", score: 3 },
@@ -102,7 +103,7 @@ const SignupFlow = () => {
       questionType: "Sales Timing",
       question:
         "How soon are you looking to engage with a solution like yours?",
-      questionScore: 4, 
+      questionScore: 4,
       options: [
         { text: "Actively seeking now", score: 10 },
         { text: "Within 3 months", score: 8 },
@@ -115,7 +116,7 @@ const SignupFlow = () => {
       questionType: "Familiarity",
       question:
         "How familiar are you with this executive's company or industry?",
-      questionScore: 3, 
+      questionScore: 3,
       options: [
         {
           text: "Very familiar - We've researched their company and market",
@@ -212,7 +213,7 @@ const SignupFlow = () => {
     }
 
     if (currentStep === 4 || currentStep === 5) {
-      const questions = currentStep === 4 
+      const questions = currentStep === 4
         ? ["businessChallenge", "solutionType", "industryExperience", "proofOfSuccess"]
         : ["customerSegment", "salesTiming", "familiarity", "donationEscrowPreference"];
 
@@ -222,13 +223,13 @@ const SignupFlow = () => {
           newErrors[q] = "Question weight must be between 0 and 4";
           isValid = false;
         }
-        
+
         const hasScore = formData[q].options.some((opt) => opt.score > 0);
         if (!hasScore) {
           newErrors[q] = "Please select at least one option with a score > 0";
           isValid = false;
         }
-        
+
         const invalidScores = formData[q].options.some((opt) => opt.score < 0 || opt.score > 10);
         if (invalidScores) {
           newErrors[q] = "Option scores must be between 0 and 10";
@@ -421,7 +422,6 @@ const SignupFlow = () => {
               <h1 className="text-3xl md:text-[40px] font-semibold text-[var(--secondary-color)] mb-4 text-left leading-[51px]">
                 Please add your gmail to continue
               </h1>
-
               <div className="w-full space-y-6 flex flex-col items-start justify-start sm:mr-24">
                 <Button
                   onClick={handleGmailAuth}
@@ -435,8 +435,36 @@ const SignupFlow = () => {
                   >
                     <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                   </svg>
-                  Give Access to Email
+                  Continue with Google
                 </Button>
+                {/* Privacy Policy and Terms Links */}
+                <div className="w-full text-left pt-2">
+                  <p className="text-sm text-gray-500 leading-relaxed inline">
+                    By continuing, you acknowledge that you have read and agree
+                    to our{" "}
+                    <span>
+                      <Link
+                        href="/t&cs"
+                        className="text-[rgba(44,81,76,1)] underline font-bold"
+                      // target="_blank"
+                      >
+                        Terms of Service
+                      </Link>
+                    </span>{" "}
+                    and{" "}
+                    <span>
+                      <Link
+                        href="/privacy"
+                        className="text-[rgba(44,81,76,1)] underline font-bold"
+                      // target="_blank"
+                      >
+                        Privacy Policy
+                      </Link>
+                    </span>
+                    . This includes consent to access your Gmail data for
+                    automated email processing.
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -581,7 +609,7 @@ const SignupFlow = () => {
                     Calendar Link
                   </Label>
                   <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
-                    <Link className="text-[rgba(44,81,76,1)] size-5" />
+                    <Link2Icon className="text-[rgba(44,81,76,1)] size-5" />
                     <Input
                       onChange={handleInputChange}
                       value={formData.calendarLink}
@@ -604,7 +632,7 @@ const SignupFlow = () => {
                     LinkedIn Link
                   </Label>
                   <div className="flex items-center px-2 gap-2 border-2 rounded-lg w-full bg-white">
-                    <Link className="text-[rgba(44,81,76,1)] size-5" />
+                    <Link2Icon className="text-[rgba(44,81,76,1)] size-5" />
                     <Input
                       onChange={handleInputChange}
                       value={formData.linkedInProfile}
@@ -725,7 +753,7 @@ const SignupFlow = () => {
                       <p className="text-sm font-bold">
                         {formData[questionName].questionType}
                       </p>
-                      
+
                       <div className="grid grid-cols-12 gap-4 items-center">
                         <div className="col-span-10 space-y-2">
                           <Label className="text-sm font-medium text-gray-700">
@@ -888,7 +916,7 @@ const SignupFlow = () => {
                       <p className="text-sm font-bold">
                         {formData[questionName].questionType}
                       </p>
-                      
+
                       <div className="grid grid-cols-12 gap-4 items-center">
                         <div className="col-span-10 space-y-2">
                           <Label className="text-sm font-medium text-gray-700">
