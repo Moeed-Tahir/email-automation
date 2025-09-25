@@ -56,6 +56,7 @@ const ReceiptUpload = ({ surveyId, mainUserId, surveyObjectId }) => {
         return;
       }
 
+      
       const { data: publicUrlData } = supabase.storage
         .from("new-project")
         .getPublicUrl(filePath);
