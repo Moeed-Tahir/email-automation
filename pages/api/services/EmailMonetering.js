@@ -257,7 +257,7 @@ async function sendResponseEmail(
             <!-- Button -->
             <tr>
               <td align="left" style="padding: 0 20px 20px 20px;">
-                <a href="${process.env.REQUEST_URL}/survay-form/${userId}?userId=${userId}"
+                <a href="${process.env.REQUEST_URL}/survey-form/${userId}?userId=${userId}"
                    style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
                   Submit a Meeting Request
                 </a>
@@ -366,7 +366,7 @@ async function sendResponseEmail(
             <!-- Button -->
             <tr>
               <td align="left" style="padding: 0 20px 20px 20px;">
-                <a href="${process.env.REQUEST_URL}/survay-form/${userId}?userId=${userId}"
+                <a href="${process.env.REQUEST_URL}/survey-form/${userId}?userId=${userId}"
                    style="display: inline-block; padding: 12px 24px; font-size: 16px; font-weight: 600; color: #ffffff; background-color: #2C514C; border: 2px solid #2C514C; text-decoration: none; border-radius: 4px;">
                   Complete Survey
                 </a>
