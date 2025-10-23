@@ -10,7 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import logo from "../../public/Logo.svg";
+import logo from "../../public/Givetomeet-updated.png";
 import {
   Sidebar,
   SidebarContent,
@@ -80,7 +80,7 @@ export function AppSidebar({ isAdmin = false, ...props }) {
   return (
     <Sidebar collapsible="icon" {...props} className="z-30">
       <SidebarHeader className="bg-[#2C514C] py-6 px-4">
-        <Image src={logo} alt="Logo" width={130} height={130} />
+        <Image src={logo} alt="Logo" width={170} height={130} />
       </SidebarHeader>
       <SidebarContent className="bg-[#2C514C]">
         {isAdmin ? (

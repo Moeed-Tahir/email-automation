@@ -277,7 +277,7 @@ const LoginPage = () => {
       {/* Mobile logo */}
       <div className="w-full flex lg:hidden items-center justify-center p-5">
         <img
-          src="/email-logo.jpg"
+          src="/Givetomeet-updated.png"
           alt="Logo"
           className="max-w-full object-contain shrink-0"
         />
