@@ -268,9 +268,9 @@ const LoginPage = () => {
         transition={{ duration: 0.5 }}
       >
         <img
-          src="/login-page.svg"
+          src="/framer.png"
           alt="Login illustration"
-          className="max-w-full min-h-screen object-cover shrink-0"
+          className="w-[400px] min-h-screen object-cover shrink-0"
         />
       </motion.div>
 

@@ -1205,15 +1205,15 @@ const SignupFlow = () => {
   const getImageForStep = () => {
     switch (currentStep) {
       case 1:
-        return "/login-page.svg";
+        return "/framer.png";
       case 2:
-        return "/login-page.svg";
+        return "/framer.png";
       case 3:
         return "/login-page-2.svg";
       case 4:
         return "/login-page-3.svg";
       default:
-        return "/login-page.svg";
+        return "/framer.png";
     }
   };
 
@@ -1226,7 +1226,7 @@ const SignupFlow = () => {
         <img
           src={getImageForStep()}
           alt={`Step ${currentStep}`}
-          className="max-w-full min-h-screen object-cover shrink-0"
+          className="w-[400px] min-h-screen object-cover shrink-0"
         />
       </motion.div>
 
