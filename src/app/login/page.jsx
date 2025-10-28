@@ -270,16 +270,17 @@ const LoginPage = () => {
         <img
           src="/framer.png"
           alt="Login illustration"
-          className="w-[400px] min-h-screen object-cover shrink-0"
+          className="w-[400px] object-top-left min-h-screen object-cover shrink-0"
         />
       </motion.div>
 
       {/* Mobile logo */}
       <div className="w-full flex lg:hidden items-center justify-center p-5">
         <img
-          src="/Givetomeet-updated.png"
+          src="/Givetomeet.png"
           alt="Logo"
-          className="max-w-full object-contain shrink-0"
+          width={130}
+          className="object-contain shrink-0"
         />
       </div>
 
